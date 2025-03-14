@@ -368,6 +368,10 @@ nav a:hover, nav a.active {
     justify-content: flex-start;
 }
 
+.audio-player {
+    margin-left: 20px;
+}
+
 .top-left li {
     margin-bottom: 1rem; /* Add space between list items */
     line-height: 1.5rem;
@@ -699,8 +703,53 @@ nav a:hover, nav a.active {
 /* Media query for screens below 800px */
 @media (max-width: 800px) {
 
+     /* navigation banner */
+     #banner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        left: 0%;
+        transform: translateX(0%);
+
+    }
+    
+    #banner img {
+        display: none;
+    }
+    
+    nav {
+        display: flex;
+        font-size: 2.4vw;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        justify-content: center;
+    }    
+ 
+
+    /* home section */
+    #home {
+        height: auto; /* Full viewport height */
+    }
+
+    .home-content {
+        margin: 8%;
+        height: auto;
+    }
+
+    .content-row {
+        display: grid;
+        grid-template-rows: 1fr 2fr;
+        grid-template-columns: 1fr;
+        gap: 2rem; /* Add space between columns in this row */
+        transform: translateX(0); /* Adjust the position of the content */
+        margin: 8%;
+
+    } 
+
     .intro-text h1 {
         font-size: 1.2rem !important; /* Set font size */
+        line-height: 1;
     }
 
     .intro-text p {
@@ -711,35 +760,114 @@ nav a:hover, nav a.active {
         font-size: 1.2rem !important; /* Set font size */
     }  
 
-    .photo img {
-        max-width: 60%; /* Adjust width for smaller screens */
+    .photo {
+        text-align: center;
     }
 
-    /* Center the navigation */
-    #banner {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+    .photo img {
+        max-width: 40%; /* Adjust width for smaller screens */
     }
+
     
-    #banner img {
-        display: none;
-    }
-    
-    nav {
-        display: flex;
-        font-size: 0.8em;
-    }    
- 
    
+   /* services section */
+    .services-page {
+        display: flex;
+        flex-direction: column;
+        height: auto; /* Adjust height to include the top banner */
+        color: white;
+        align-items: center; /* Center items horizontally */
+        justify-content: center;
+        position: relative; /* Allow absolute positioning of the arrow-down */
+        margin: 4%;
+    }
+
     .info-box h1 {
         font-size: 1.2rem; /* Font size for the big headings */
     }
 
     .info-box {
-        font-size: 1.2rem; /* Font size for the big headings */
         padding-left: 8%;
         padding-right: 8%;
     }
+
+   
+    /* portfolio section */
+    .portfolio-page {
+        padding-bottom: 12%;
+    }
     
+    .project-box {
+        display: grid;
+        grid-template-rows: auto auto auto auto;
+        grid-template-columns: 1fr;
+           }
+    
+    .audio-player {
+        margin-left: -5%;
+        max-width: 100%;
+    }
+    
+    .top-left {
+        padding-top: 8%
+    }
+
+    .bottom-left {
+        display: none
+    }
+
+    .bottom-right {
+        padding-bottom: 8%;
+    }
+
+    /* contact section */
+    #contact {
+        height: auto; /* Adjust height to include the top banner, as well as padding */
+    }
+
+    /* pricing section */
+    .pricing-text-box-container{
+        text-align: inherit;
+        padding-bottom: 10vh;
+    
+    }
+    .logo-container {
+        width: 35%; /* Adjust size as needed */
+    }
+    
+    .logo {
+        width: 20%; /* Ensure the logo takes full width of the container */
+        padding-bottom: 20%;
+    }
+
+    .brain-container {
+        width: 35%; /* Adjust size as needed */
+     
+    }
+    
+    .brain {
+        padding-bottom: 20%;    
+    }
+
+
+    /* MISC */
+    .arrow-down {
+        text-align: right;
+        padding-right: 4%; /* Reduced padding */
+        padding-bottom: 4%;
+        /* border: 1px solid #ccc; Border for visualization */
+    }
+    
+    .arrow-down img {
+        width: 1.5rem; /* Adjust size as needed */
+        height: auto;
+    }
+
+    .modal-content {
+        margin: auto;
+        margin-top: 20%;
+        display: block;
+        width: 80%;
+        max-width: 80%;
+    }
 }  
