@@ -1,0 +1,745 @@
+body, html {
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: Helvetica, sans-serif;
+    max-width: 1200px; /* Optional: Set a max width for larger screens */
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.page-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background: linear-gradient(to bottom, rgb(19, 15, 24), rgb(41, 32, 50)); /* Gradient from top to bottom */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Add shadow along the sides */
+
+}
+
+a {
+    text-decoration: none;
+    color: rgb(60, 136, 168);
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+body h1 {
+    font-size: 2rem;
+    margin: 1rem 0; /* Specify margin for h1 elements */
+}
+
+hr {
+    border: 0;
+    height: 2px;
+    background: #ccc;
+    margin: 4% 8% 0 8%;
+}
+
+/* TOP-BANNER */
+#banner {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 1200px; /* Match the max-width of the wrapper */
+    height: 80px; /* Adjust height as needed */
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: rgba(60, 136, 168, 1); /* needed */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1000;
+    box-sizing: border-box; /* Include padding within the width */    
+    border-bottom: 2px solid rgb(230, 119, 72);
+}
+
+#banner img {
+    display: flex;
+    max-height: 100%;
+    padding-left: 5%;
+    padding-right: 5%;
+}
+
+#banner a:hover {
+    text-decoration: none;
+}
+
+/* NAVIGATION */
+nav {
+    display: flex;
+    align-items: center;
+    padding-right: 4%;
+}
+
+nav a {
+    color: black;
+    text-decoration: none;
+    padding: 8px 16px;
+    display: inline-block;
+}
+
+nav a:hover, nav a.active {
+    background-color: rgba(230, 119, 72, 1);
+    color: white;
+}
+
+
+/* SECTION DEFINITIONS */
+#home {
+    background: linear-gradient(to bottom, rgba(60, 136, 168, 1), rgb(38, 109, 140)); /* Gradient from top to bottom */
+    height: 100vh; /* Full viewport height */
+    width: 100%; /* Full width */
+}
+
+#services {
+    width: 100%;
+}
+
+#portfolio {
+    padding-top: 40px;
+    width: 100%;
+    background-color: white;
+}
+
+#contact {
+    padding-top: 40px;
+    width: 100%;
+    height: calc(100vh - 120px); /* Adjust height to include the top banner, as well as padding */
+    background-color: white;
+    position: relative; /* Ensure the pseudo-element is positioned relative to the section */
+}
+
+#pricing {
+    padding-top: 40px;
+    width: 100%;
+    height: calc(100vh - calc(120px + 30px)); /* Adjust height to include the top banner, as well as padding, and the footer */
+    background-color: white;
+}
+
+#border { /* line dividing the sections */
+    width: 100%;
+    height: auto; 
+    background-color: white;
+}
+
+#footer { /* thin strip at the very bottom */
+    width: 100%;
+    height: 30px; /* Adjust height as needed */
+    background-color: rgba(60, 136, 168, 1); /* Set background color */
+    color: rgb(74, 74, 74);
+    max-width: 1200px; /* Match the max-width of the wrapper */
+    display: flex;
+    z-index: 1000;
+    box-sizing: border-box; /* Include padding within the width */
+    border-top: 2px solid rgb(230, 119, 72);
+}
+
+/* Highlight styling */
+.highlight {
+    color: rgb(230, 119, 72); /* Color for the first word */
+}
+
+
+
+/* LAYOUT OF HOME PAGE */
+.home-page {
+    display: flex;
+    height: 100vh;
+}
+
+.home-container {
+    display: grid;
+    align-items: center; /* Center items horizontally */
+    justify-content: center;
+    grid-template-rows: 80px 1fr auto;
+    width: 100%;
+    height: 100%;
+    gap: 10px; /* Add space between grid boxes */
+}
+
+.top-row {
+    background-color: #f0f0f0;
+}
+
+.content-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    align-items: start;
+    gap: 1rem; /* Add space between columns in this row */
+    padding-top: auto; /* Determine the space between the top of the container and the content */
+    transform: translateX(-4%); /* Adjust the position of the content */
+} 
+
+.photo {
+    text-align: right;
+}
+
+.photo img {
+    max-width: 50%;
+    height: auto;
+}
+
+.intro-text {
+    padding-right: 4%;
+}
+
+.intro-text h1 {
+    line-height: 0; 
+    font-size: 1.5rem !important;
+
+}
+
+.name-highlight {
+    line-height: 0.5;
+    color: rgba(38, 30, 48, 0.9); 
+
+}
+
+.degree-highlight {
+    color: rgb(230, 119, 72); /* Set the color to orange */
+}
+
+.intro-text p {
+    line-height: 1.5;
+    font-size: 1rem !important;
+    color: white;
+}
+
+.intro-text button {
+    border: none; /* Remove border */
+    border-radius: 0; /* Remove border-radius */
+    background-color: rgb(230, 119, 72); /* Set background color */
+    color: white; /* Set text color */
+    padding: 0.5rem 1rem; /* Add padding */
+    font-size: 1.5rem !important; /* Set font size */
+    cursor: pointer; /* Change cursor to pointer */
+    outline: none; /* Remove outline */
+    display: inline-flex; /* Use inline-flex to align icon and text */
+    align-items: center; /* Center items vertically */
+    text-align: center; /* Center text */
+    line-height: normal; /* Reset line-height */
+    letter-spacing: 2px; /* Add letter spacing */
+}
+
+.button-icon {
+    height: 1em; /* Set height to match the font size */
+    margin-right: 0.5rem; /* Add space between icon and text */
+    filter: invert(100%); /* Invert colors */
+    transform: translateY(0.1em); /* Adjust vertical alignment */
+}
+
+.intro-text button:focus {
+    outline: none; /* Remove focus outline */
+}
+
+.intro-text button:active {
+    transform: scale(0.98); /* Slightly scale down on click */
+}
+
+
+.arrow-down {
+    text-align: right;
+    padding-right: 4%; /* Reduced padding */
+    padding-bottom: 2%;
+    /* border: 1px solid #ccc; Border for visualization */
+}
+
+.arrow-down img {
+    width: 2rem; /* Adjust size as needed */
+    height: auto;
+}
+
+
+
+/* LAYOUT OF SERVICES PAGE */
+.services-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 79px); /* Adjust height to include the top banner */
+    color: white;
+    align-items: center; /* Center items horizontally */
+    justify-content: center;
+    position: relative; /* Allow absolute positioning of the arrow-down */
+}
+
+.info-box {
+    padding-top: auto; /* Determine the space between the top of the container and the content */
+    padding-bottom: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Align items to the left */
+    text-align: left; /* Center text */
+}
+
+.info-box h1 {
+    font-size: 2.7rem; /* Font size for the big headings */
+}
+
+.info-box ul {
+    padding: 0; /* bullet points default padding removed */
+    padding-left: 4% /* we do want a little bit of padding on the left */
+}
+
+.info-box li {
+    margin-bottom: 1rem; /* Add space between list items */    
+}
+
+.arrow-down-container {
+    width: 100%; /* Full width */
+    display: flex;
+    justify-content: flex-end; /* Align to the right */
+    position: absolute; /* Position absolutely within the page */
+    bottom: 0px; /* Position at the bottom */
+    right: 0px; /* Adjust as needed */
+}
+
+
+/* LAYOUT OF THE PORTFOLIO PAGE */
+.portfolio-page {
+    width: 100%;
+    max-width: 1200px; /* Optional: Set a max width for larger screens */
+    display: flex;
+    flex-direction: column;
+    height: auto; 
+    align-items: flex-start; /* Align items to the left */
+    position: relative; /* Allow absolute positioning of the arrow-down */
+    padding: 0 8%; /* Add 4% padding on left and right */
+    box-sizing: border-box; /* Ensure padding is included in the width */
+    color:rgba(38, 30, 48, 1)
+}
+
+.portfolio-page h1, .portfolio-page p {
+    text-align: left; /* Ensure text is aligned to the left */
+    margin: 0; /* Remove default margin */
+    padding-bottom: 0; /* Add some space between elements */
+}
+.portfolio-page h1 {
+    font-size: 2.7rem; /* Adjust font size as needed */
+    line-height: 1;
+    margin-bottom: 1rem; /* Add space between elements */
+}
+
+.portfolio-page h2 {
+    color:rgba(38, 30, 48, 1); 
+    line-height: 1;
+    margin: 0;
+}
+
+.portfolio-page p {
+    line-height: 1.5rem;
+}
+
+.project-image {
+    float: right;
+    width: 100%; /* Adjust width as needed */
+    height: auto;
+    cursor: pointer;
+}
+
+.project-box {
+    display: grid;
+    grid-template-rows: auto auto;
+    grid-template-columns: 1fr .8fr;
+    border: 1.5px solid rgb(60, 136, 168);
+    border-radius: 4px;
+    margin-bottom: 8%;
+    width: 100%; /* Full width */
+}
+
+.project-item {
+    padding: 4% 4%;
+    box-sizing: border-box;
+}
+
+.top-left {
+    padding-bottom: 0;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.top-left li {
+    margin-bottom: 1rem; /* Add space between list items */
+    line-height: 1.5rem;
+}
+
+.top-right {
+    margin-bottom: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+.bottom-left {
+    padding-top: 0;
+    margin-top: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.bottom-right {
+    padding-top: 0;
+    margin-top: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    transform: translateY(0.25rem); /* Align with project tags */
+}
+
+.project-tags {
+    display: flex;
+    justify-content: left; /* Evenly space tags */
+    flex-wrap: wrap; /* Allow tags to wrap to the next line if needed */
+}
+
+.tag {
+    background-color: rgb(230, 119, 72);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin: 5px; /* Adjust margin as needed */
+    font-size: 1rem; /* Adjust font size as needed */
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+.project-details-text {
+    background-color: rgb(60, 136, 168);
+    color: white;
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+
+/* LAYOUT OF THE CONTACT PAGE  */
+.contact-page {
+    width: 100%;
+    height: inherit;
+    max-width: 1200px; /* Optional: Set a max width for larger screens */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Distribute space between items */
+    align-items: flex-start; /* Align items to the left */
+    position: relative; /* Allow absolute positioning of the arrow-down */
+    padding: 0 8%; /* Add 8% padding on left and right */
+    box-sizing: border-box; /* Ensure padding is included in the width */
+    color: rgba(38, 30, 48, 1);    
+}
+
+.contact-page h1, .contact-page p {
+    text-align: left; /* Ensure text is aligned to the left */
+    margin: 0; /* Remove default margin */
+    padding-bottom: 1rem; /* Add some space between elements */
+}
+
+.contact-page p {
+    line-height: 1.5rem;
+}
+
+.contact-page li {
+    margin-bottom: 0rem; /* Add space between list items */
+    line-height: 1.5rem;
+}
+
+.contact-page h1 {
+    font-size: 2.7rem; /* Adjust font size as needed */
+    line-height: 1;
+    margin-bottom: 1rem; /* Add space between elements */
+}
+
+.contact-page h2 {
+    color:rgba(38, 30, 48, 1); 
+    line-height: 1.5;
+    margin: 0;
+}
+
+.contact-content {
+    text-align: left; /* Ensure text is aligned to the left */
+    width: inherit;
+    height: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Distribute space between items */
+    margin-bottom: 15%;
+}
+
+.box-container{
+    text-align: inherit;
+
+}
+
+.tech-stack-image { 
+    max-width: 100%;
+}
+
+.social-links {
+    display: flex;
+    justify-content: space-between; /* Evenly space items with no extra space on sides */
+    align-items: center;
+    width: 100%;
+    padding: 0; /* Remove padding */
+    margin: 0; /* Remove margin */
+    box-sizing: border-box;
+    flex-wrap: wrap; 
+    
+}
+
+.social-links a {
+    text-decoration: none;
+    margin: 0; /* Remove margin from links */
+    padding: 0; /* Remove padding from links */
+}
+
+
+/* LAYOUT OF THE PRICING PAGE  */
+.pricing-page {
+    width: 100%;
+    height: inherit;
+    max-width: 1200px; /* Optional: Set a max width for larger screens */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Distribute space between items */
+    align-items: flex-start; /* Align items to the left */
+    position: relative; /* Allow absolute positioning of the arrow-down */
+    padding: 0 8%; /* Add 8% padding on left and right */
+    box-sizing: border-box; /* Ensure padding is included in the width */
+    color: rgba(38, 30, 48, 1);    
+    overflow: hidden;
+}
+
+.pricing-page h1, .pricing-page p {
+    text-align: left; /* Ensure text is aligned to the left */
+    margin: 0; /* Remove default margin */
+    padding-bottom: 1rem; /* Add some space between elements */
+}
+
+.pricing-page h1 {
+    font-size: 2.7rem; /* Adjust font size as needed */
+    line-height: 1;
+    margin-bottom: 0; /* Add space between elements */
+    padding-bottom: 0
+}
+
+.pricing-page h2 {
+    color:rgba(38, 30, 48, 1); 
+    line-height: 1.5;
+    margin: 0;
+}
+
+.pricing-page li {
+    margin-bottom: 0rem; /* Add space between list items */
+    line-height: 1.5rem;
+}
+
+.pricing-content {
+    text-align: left; /* Ensure text is aligned to the left */
+    width: inherit;
+    height: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; 
+    margin-top: 0%;
+}
+
+.pricing-text-box-container{
+    text-align: inherit;
+    padding-bottom: 20vh;
+
+}
+
+.pricing-bottom-box-container {
+    flex-shrink: 3;
+    display: flex;
+    justify-content: center; /* Center items horizontally */
+    align-items: flex-end; /* Align items to the bottom */
+    width: 100%;
+    padding: 0; /* Remove padding */
+    margin: 0; /* Remove margin */
+    box-sizing: border-box;
+    position: relative; /* Allow absolute positioning of children */
+}
+
+.logo-container {
+    width: 15%; /* Adjust size as needed */
+    height: auto;
+    position: absolute;
+    left: 0; /* Align to the left */
+    bottom: 0; /* Align to the bottom */
+}
+
+.logo {
+    width: 20%; /* Ensure the logo takes full width of the container */
+    cursor: pointer;
+    padding: 0;
+    padding-bottom: 8%;
+}
+
+.brain-container {
+    width: 25%; /* Adjust size as needed */
+    height: auto;
+    position: absolute;
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Center horizontally */
+    bottom: 0; /* Align to the bottom */
+}
+
+.brain {
+    width: 100%; /* Ensure the brain image takes full width of the container */
+    height: auto;
+    cursor: pointer;
+    padding-bottom: 0;
+    opacity: 0.2;
+    padding-bottom: 8%;
+
+}
+
+
+
+/* LAYOUT OF THE FOOTER CONTENT */
+.footer-content {
+    padding: 0;
+    padding-left: 4%;
+    line-height: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* Modal styling */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+}
+
+.modal-content {
+    margin: auto;
+    margin-top: 5%;
+    display: block;
+    width: 80%;
+    max-width: 40%;
+}
+
+.close {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.close:hover,
+.close:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Media query for screens below 1200px */
+@media (max-width: 1200px) {
+
+    .intro-text h1 {
+        font-size: 2vw; /* Adjust font size */
+    }
+
+    .intro-text p {
+        font-size: 1.5vw; /* Adjust font size */
+    }
+
+    .intro-text button {
+        font-size: 2vw; /* Adjust font size */
+    }
+
+    .photo img {
+        max-width: 60%; /* Adjust width for smaller screens */
+    }
+
+    .info-box {
+        padding-left: 8%;
+        padding-left: 8%;
+    }
+    
+    /* Center the navigation */
+    #banner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    #banner img {
+        display: none;
+    }
+    
+    nav {
+        display: flex;
+        font-size: 0.8em;
+    }  
+}
+
+
+/* Media query for screens below 800px */
+@media (max-width: 800px) {
+
+    .intro-text h1 {
+        font-size: 1.2rem !important; /* Set font size */
+    }
+
+    .intro-text p {
+        font-size: 1.5vw; /* Adjust font size */
+    }
+
+    .intro-text button {
+        font-size: 1.2rem !important; /* Set font size */
+    }  
+
+    .photo img {
+        max-width: 60%; /* Adjust width for smaller screens */
+    }
+
+    /* Center the navigation */
+    #banner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    #banner img {
+        display: none;
+    }
+    
+    nav {
+        display: flex;
+        font-size: 0.8em;
+    }    
+ 
+   
+    .info-box h1 {
+        font-size: 1.2rem; /* Font size for the big headings */
+    }
+
+    .info-box {
+        font-size: 1.2rem; /* Font size for the big headings */
+        padding-left: 8%;
+        padding-right: 8%;
+    }
+    
+}  

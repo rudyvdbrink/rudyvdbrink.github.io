@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brink Data Science</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="images/logo_gray.png" type="image/png">
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+</head>
+
+
+<body>
+    <div class="page-content">
+
+        <!-- banner with navigation -->
+        <div id="banner">
+            <img src="images/banner.png" alt="Banner">
+            <nav>
+                <a href="#home" class="nav-link active">HOME</a>
+                <a href="#services" class="nav-link">SERVICES</a>
+                <a href="#portfolio" class="nav-link">PORTFOLIO</a>
+                <a href="#contact" class="nav-link">CONTACT</a>
+                <a href="#pricing" class="nav-link">PRICING</a>
+            </nav>
+        </div>
+
+
+        <!-- home section -->
+        <section id="home">
+            <div class="home-page" id="home">
+                <div class="home-container">
+                    <div class="top-row"></div>
+                    <div class="content-row">
+                        <div class="photo">
+                            <img src="images/photo.png" alt="Photo">
+                        </div>
+                        <div class="intro-text">
+                            <h1 style="color: rgb(60, 38, 28);">
+                                <span class="name-highlight">RUDY VAN DEN BRINK</span> 
+                                <span class="degree-highlight">PhD</span>
+                            </h1>
+
+                            <p>I help businesses and individuals make sense of data. I deliver tailored software solutions and custom AI models. 
+                                <br> <br>
+                                Between academia and industry I have over a decade of <a href="https://www.dropbox.com/s/vza0nrf7m3xru3n/CV_vandenBrink.pdf?dl=1" style="color: rgba(38, 30, 48, 0.9); text-decoration: none;">experience</a> developing machine learning solutions to complex challenges.
+                                Get in touch today for a consultation or quote on a project.
+                            </p>
+                            <button>
+                                <a href="#contact" style="color: white; text-decoration: none;">
+                                    <img src="images/button_icon.png" alt="Icon" class="button-icon">CONTACT
+                                </a>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="arrow-down">
+                        <a href="#services">
+                            <img src="images/arrow.png" alt="Arrow Down" >
+                        </a>
+                    </div>
+
+                    
+                </div>        
+            </div>
+        </section>
+
+        <!-- services section -->
+        <section id="services">
+            <div class="services-page">
+        
+                <div class="info-box">
+                    <h1><span class="highlight">WHAT</span> I OFFER:</h1>
+                    <ul>
+                        <li>Custom AI models: develop AI models from scratch to suit your needs</li>
+                        <li>Predictive Analytics: forecast trends, behaviors, and outcomes to guide strategy</li>
+                        <li>Machine Learning: build models that automate decision-making and uncover hidden patterns</li>
+                        <li>Data Engineering: clean, preprocess, and organize your data for maximum impact</li>
+                        <li>Consultation: actionable input on machine learning strategy</li>
+                    </ul>
+                    <h1><span class="highlight">WHY</span> WORK WITH ME:</h1>
+                    <ul>
+                        <li>Tailored Solutions: I commit to understanding your unique business challenges and deliver personalized results</li>
+                        <li>Proven Expertise: I have a track record of developing successful AI models for a range of industries</li>
+                        <li>Clear Communication: I explain complex concepts in simple terms and ensure you’re involved every step of the way</li>
+                    </ul>
+                </div>
+        
+                <div class="arrow-down-container">
+                    <div class="arrow-down">
+                        <a href="#portfolio">
+                            <img src="images/arrow.png" alt="Arrow Down">
+                        </a>
+                    </div>
+                </div>
+        
+        </section>
+
+    
+
+        <!-- portfolio section -->
+        <section id="portfolio">
+            <div class="portfolio-page">
+                <h1><span class="highlight">PORTFOLIO</span></h1>
+                
+                <p style="margin-bottom: 4rem;">
+                I have experience developing custom AI models for a range of applications. Many of these are proprietary, but I can share some examples of open-source projects here. 
+                <br> <br>
+                These selected examples showcase three custom AI projects for wich I lead end-to-end development. Each has 
+                individual aims, ranging from scientific research to app development.                
+                </p>
+
+                <!-- sr-decoding project -->
+                <div class="project-box">
+
+                    <div class="project-item top-left">
+                        <h2>DECODING BRAIN SIGNALS</h2>
+                        <ul>
+                            <li>A multi-year project to build classifiers that recognize patterns in human brain activity that are linked to how we see the world, and how our perceptions turn into actions</li>
+                            <li>A Bayesian model estimates hidden beliefs that people hold</li>
+                            <li>The combination of these models lets us track how information flows across the brain</li>
+                            <li>The system identifies when brain activity patterns break down, accounting for mistakes in decision-making</li>
+                            <li>Methodology and conceptual findings published in a top-tier scientific journal</li>
+
+                        </ul>
+                    </div>
+                    
+                    <div class="project-item top-right">                        
+                        <img src="images/sr_decoding_performance.png" alt="Project 1 Image" class="project-image" onclick="showImage(this)">
+                    </div>
+
+                    <div class="project-item bottom-left">
+                        
+                        <div class="project-tags">
+                            <span class="tag">Machine Learning</span>                                
+                            <span class="tag">SVM</span>
+                            <span class="tag">Classification</span>
+                            <span class="tag">Regression</span>
+                            <span class="tag">Time-series analysis</span>
+                        </div>
+
+                    </div>
+
+                    <div class="project-item bottom-right">
+                        <div class="project-details-text">
+                            <a href="https://www.cell.com/neuron/fulltext/S0896-6273(22)01032-7" style="color: white;">See project details ></a>
+                        </div>
+                    </div>
+
+                </div>  
+
+                <!-- book maker -->
+                <div class="project-box">
+
+                    <div class="project-item top-left">
+                        <h2>MAKING AUDIOBOOKS WITH GEN AI</h2>
+                        <ul>
+                            <li>A free and open-source application to turn ebooks into audiobooks</li>
+                            <li>Includes a generative AI text-to-speech model capable of zero-shot prediction, and requires only 6 seconds of sample audio 
+                                for reliable voice-cloning</li>
+                            <li>Uses natural language processing tools to parse ebooks</li>
+                            <li>Sample audio:</li>
+                                <audio controls style="margin-left: 20px;">
+                                    <source src="media/example.wav" type="audio/wav">
+                                    Your browser does not support the audio element.
+                                </audio> 
+                            
+                            <li style="padding-top: 0.5rem; margin-bottom: 1; ">Supports 17 different languages</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="project-item top-right">                        
+                        <img src="images/bm_logo.png" alt="Project 1 Image" class="project-image" onclick="showImage(this)">
+                    </div>
+                    
+                    <div class="project-item bottom-left">
+                        
+                        <div class="project-tags">
+                            <span class="tag">Generative AI</span>                                
+                            <span class="tag">Zero-shot prediction</span>
+                            <span class="tag">NLP</span>
+                            <span class="tag">Open source</span>
+                        </div>
+
+                    </div>
+
+                    <div class="project-item bottom-right">
+                        <div class="project-details-text">
+                            <a href="https://github.com/rudyvdbrink/book_maker/blob/main/README.md" style="color: white;">See project details ></a>
+                        </div>
+                    </div>
+
+                </div> 
+
+                <!-- skin-lesion identifier -->
+                <div class="project-box">
+
+                    <div class="project-item top-left">
+                        <h2>DETECTING SKIN CANCER</h2>
+                        <ul>
+                            <li>An application to diagnose skin lesions</li>
+                            <li>Includes three large convolutional neural networks</li>
+                            <li>Models were quantized to run on limited hardware and deployed in a web-app</li>
+                            <li>Includes functionality to interrogate the model for what features it is relying on: explainable AI</li>
+                            <li>Bias in model performance mitigated through an elaborate training procedure</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="project-item top-right">                        
+                        <img src="images/shap_results.png" alt="Project 1 Image" class="project-image" onclick="showImage(this)">
+                    </div>
+
+                    <div class="project-item bottom-left">
+                        
+                        <div class="project-tags">
+                            <span class="tag">CNN</span>                                
+                            <span class="tag">Transfer learning</span>
+                            <span class="tag">Image augmentation</span>
+                            <span class="tag">Deep learning</span>
+                            <span class="tag">Computer vision</span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="project-item bottom-right">
+                        <div class="project-details-text">
+                            <a href="https://skin-lesion-prediction.streamlit.app/about" style="color: white;">See project details ></a>
+                        </div>
+                    </div>
+
+                </div> 
+
+                     
+                                
+                <div class="arrow-down-container">
+                    <div class="arrow-down">
+                        <a href="#contact">
+                            <img src="images/arrow.png" alt="Arrow Down">
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- dividing line -->
+            <hr>
+
+        </section>
+
+
+        <section id="contact">
+            <div class="contact-page">
+                
+                <div class="contact-content">
+                    <div class="box-container">
+                        <h1><span class="highlight">CONTACT</span></h1>
+                    </div>
+                    <div class="box-container">
+                        <h2>Email</h2>
+                        <p>
+                        Quotes or 15 minute consultations are free of charge. Please contact me at: <br>                
+                        <a href="mailto:brinkdatascience@protonmail.com">brinkdatascience@protonmail.com</a> 
+                        for any inquiries or to set up a meeting.
+                        </p>
+                    </div>
+
+                    <div class="box-container">
+                        <h2 style="margin-bottom: 0; padding-bottom: 0;">More information</h2>
+                        <p>
+                            <ul style="margin-top: 0; padding-top: 0;">
+                                <li>My main educational background (including PhD) is in neuroscience</li>
+                                <li>For more information on my professional history, see <a href="https://www.dropbox.com/s/vza0nrf7m3xru3n/CV_vandenBrink.pdf?dl=1">my CV</a></li>
+                                <li>I mainly work in Python and with packages for machine learning and data visualization</li>
+                                <li>My tech stack includes: </li>
+                            </ul> 
+
+                            <div style="text-align: center;">
+                                <img src="https://camo.githubusercontent.com/9ba3a3a9586140bca6c41357679eb215011b001558b1e31711c928c1b511b7a2/68747470733a2f2f736b696c6c69636f6e732e6465762f69636f6e733f693d707974686f6e2c6d61746c61622c626173682c6d7973716c2c7673636f64652c6769746875622c6769742c6c696e75782c74656e736f72666c6f772c7079746f7263682c736b6c6561726e" alt="Tech Stack" class="tech-stack-image">
+                            </div>
+                            <ul>                        
+                                <li>Find code examples on my <a href="https://www.github.com/rudyvdbrink">GitHub page</a>.</li>
+                            </ul>
+                        </p>
+                    </div>
+
+                    <div class="box-container">
+                        <h2>Socials</h2>
+                        <p>
+                            You can also find more information or reach out to me on the following platforms:
+                        </p>
+
+                        <div class="social-links">
+                            <a href="https://www.linkedin.com/in/rudy-van-den-brink-3301b5283/" target="_blank">
+                                <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+                            </a>
+                            <a href="https://ruudvandenbrink.net/" target="_blank">
+                                <img src="https://img.shields.io/badge/Website-E67748?style=for-the-badge&logo=todoist&logoColor=white" alt="Website" />
+                            </a>
+                            <a href="https://github.com/rudyvdbrink" target="_blank">
+                                <img src="https://img.shields.io/badge/Github-333333?style=for-the-badge&logo=github&logoColor=white" alt="Github" />
+                            </a>
+                            <a href="https://www.dropbox.com/s/vza0nrf7m3xru3n/CV_vandenBrink.pdf?dl=1" target="_blank">
+                                <img src="https://img.shields.io/badge/Full CV-333333?style=for-the-badge&logo=read.cv&logoColor=white" alt="Full CV" />
+                            </a>
+                            <a href="https://scholar.google.com/citations?user=gKseug0AAAAJ&hl=de" target="_blank">
+                                <img src="https://img.shields.io/badge/Scholar-334333?style=for-the-badge&logo=google scholar&logoColor=white" alt="Scholar" />
+                            </a>
+                            <a href="https://bsky.app/profile/rudyvdbrink.bsky.social" target="_blank">
+                                <img src="https://img.shields.io/badge/Bluesky-0077B5?style=for-the-badge&logo=Bluesky&logoColor=white" alt="Bluesky" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="arrow-down-container">
+                    <div class="arrow-down">
+                        <a href="#pricing">
+                            <img src="images/arrow.png" alt="Arrow Down">
+                        </a>
+                    </div>
+                </div>
+
+                
+            </div>
+
+            
+
+        </section>
+
+        <section  id=border >
+            <hr>
+        </section>
+
+
+        <section id="pricing">           
+
+            <div class="pricing-page">
+                <!-- dividing line -->
+                
+                <div class="pricing-content">
+                    <div class="box-container">
+                        <h1><span class="highlight">PRICING</span></h1>
+                    </div>
+
+                    <div class="pricing-text-box-container" style="margin-bottom: 0%;">
+                        <h2>Rate and price quotes</h2>   
+                        <p style="line-height: 1.5;">
+                            The cost of your project will depend on the complexity of the task and the time required to complete it.
+                            <br><br>
+                            I utilize a fixed per-hour rate: 
+                            
+                            <ul style="line-height: 1.5;">
+                                <li>The rate is subject to change depending on project scope.</li> 
+                                <li>Rates apply to projects under 60 hours.</li>
+                                <li>For larger projects, I can provide a fixed price quote.</li>
+                            </ul>
+        
+                            <br>
+                            Send me a <a href="mailto:brinkdatascience@protonmail.com">brief description</a> of the project and I can make an estimate of the time required.
+                        </p>
+                        
+                    </div>
+                
+                <div class="pricing-bottom-box-container"> 
+
+                    <div class="logo-container">
+                        <img src="images/logo_gray.png" alt="Logo" class="logo" >
+                    </div>
+
+                    <div class="brain-container">
+                        <img src="images/brain.png" alt="image" class="brain">
+                    </div>                  
+
+                </div>
+
+                <div class="arrow-down-container">
+                    <div class="arrow-down">
+                        <a href="#home">
+                            <img src="images/arrow.png" alt="Arrow UP" style="transform: rotate(180deg);">
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="footer">
+            <div class="footer-content"> 
+                    <p>© 2022 Rudy van den Brink. All rights reserved.</p>
+            </div> 
+        </div>
+
+    </div>    
+
+    <!-- modal, when an image in the portfolio seciton is clicked -->
+    <div id="image-modal" class="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="modal-image" style="background-color: white;">
+    </div>
+
+    <!-- scripts for scrolling and modal functions etc -->
+    <script src="js/script.js"></script>
+    
+   
+</body>
+</html>
