@@ -1,0 +1,174 @@
+/* Basic Reset & Body */
+body, html {
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: Helvetica, sans-serif;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+}
+
+.page-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background: 
+        url(../images/noise.svg),
+        linear-gradient(to bottom, rgb(19, 15, 24), rgb(41, 32, 50));
+    background-blend-mode: soft-light; 
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); 
+}
+
+a { text-decoration: none; color: rgb(60, 136, 168); }
+a:hover { text-decoration: underline; }
+
+body h1 { font-size: 2rem; margin: 1rem 0; }
+
+hr {
+    border: 0;
+    height: 2px;
+    background: #ccc;
+    margin: 4% 8% 0 8%;
+}
+
+/* TOP-BANNER */
+#banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background: url(../images/noise.svg), rgba(60, 136, 168, 1);
+    background-blend-mode: color-burn;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    box-sizing: border-box;
+    border-bottom: 2px solid rgb(230, 119, 72);
+}
+
+.banner-logo {
+    display: block;
+    position: absolute;
+    left: 4%;
+    max-height: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.github-logo {
+    display: block;
+    position: absolute;
+    right: 4%;
+    max-height: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#banner a:hover { text-decoration: none; }
+
+/* NAVIGATION */
+nav { display: flex; align-items: center; justify-content: center; padding: 0; }
+nav a { color: black; text-decoration: none; padding: 8px 16px; display: inline-block; }
+
+nav a.active { background-color: rgba(230, 119, 72, 1); color: white; }
+
+@media (hover: hover) and (pointer: fine) {
+    nav a:hover { background-color: rgba(230, 119, 72, 1); color: white; }
+}
+
+/* NAV-CENTERED (custom class for centering) */
+.nav-centered nav {
+    justify-content: center;
+    padding-right: 0;
+}
+
+/* FOOTER & BORDERS */
+#border { width: 100%; height: auto; background-color: white; }
+
+#footer {
+    width: 100%;
+    height: 30px;
+    background: url(../images/noise.svg), rgba(60, 136, 168, 1);
+    background-blend-mode: color-burn;   
+    display: flex;
+    z-index: 1000;
+    box-sizing: border-box;
+    border-top: 2px solid rgb(230, 119, 72);
+}
+.footer-content { padding: 0; padding-left: 4%; line-height: 0; align-items: center; justify-content: center; }
+
+/* SHARED COMPONENTS */
+.highlight { color: rgb(230, 119, 72); }
+
+.arrow-down { text-align: right; padding-right: 4%; padding-bottom: 2%; }
+.arrow-down img { width: 2rem; height: auto; }
+
+.arrow-down-container {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+}
+
+/* MODAL */
+.modal {
+    display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+    width: 100%; height: 100%; overflow: auto;
+    background-color: rgba(0,0,0,0.9);
+}
+.modal-content { margin: auto; margin-top: 5%; display: block; width: 80%; max-width: 40%; }
+.close {
+    position: absolute; top: 15px; right: 35px; color: #f1f1f1;
+    font-size: 40px; font-weight: bold; transition: 0.3s;
+}
+.close:hover, .close:focus { color: #bbb; text-decoration: none; cursor: pointer; }
+
+/* Responsive Styles */
+
+/* Hover Capabilities */
+@media (hover: hover) and (pointer: fine) {
+    nav a:hover { background-color: rgba(230, 119, 72, 1); color: white; }
+}
+
+@media (max-width: 1400px) {
+    .banner-logo, .github-logo {
+        max-height: 45px;
+    }
+}
+
+@media (max-width: 1200px) {
+    #banner { display: flex; justify-content: center; align-items: center; }
+    #banner img { display: none; }
+    nav { display: flex; font-size: 0.8em; }  
+}
+
+@media (max-width: 800px) {
+    #banner { 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        left: 0%; 
+        transform: translateX(0%);
+        height: 55px;
+    }
+    #banner img { display: none; }
+    nav { 
+        display: flex; 
+        font-size: 1.0rem;
+        width: 100%; 
+        padding: 0; 
+        margin: 0; 
+        justify-content: center; 
+    }
+    .modal-content { margin: auto; margin-top: 20%; display: block; width: 80%; max-width: 80%; }
+}

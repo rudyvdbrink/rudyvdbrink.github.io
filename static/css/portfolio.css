@@ -1,0 +1,194 @@
+#portfolio {
+    padding-top: 40px;
+    width: 100%;
+    min-height: 100vh;
+    /* Inherits global background (dark texture) */
+    color: white;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.portfolio-page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    align-items: flex-start;
+    position: relative;
+    padding: 0 4%;
+    box-sizing: border-box;
+}
+
+.portfolio-page h1 {
+    font-size: 2.7rem;
+    line-height: 1;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.portfolio-page p {
+    line-height: 1.5rem;
+    margin-bottom: 3rem;
+    max-width: 800px;
+}
+
+/* Grid Layout */
+.portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 8rem;
+    row-gap: 8rem;
+    width: 100%;
+    margin-bottom: 8rem;
+    margin-top: auto;
+    align-self: center;
+    flex-grow: 1;
+    align-content: center;
+}
+
+
+/* Card Styling */
+
+
+.portfolio-card {
+    display: flex;
+    flex-direction: row;
+    transition: transform 0.2s;
+    overflow: hidden;
+}
+
+.card-image-container {
+    flex: 0 0 40%;
+    position: relative;
+    overflow: hidden;
+    padding-top: 1.5rem;
+    box-sizing: border-box;
+}
+
+.card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: top;
+    transition: transform 0.3s;
+    cursor: pointer;
+}
+
+.card-image:hover {
+    transform: scale(1.05);
+}
+
+.card-content {
+    flex: 1;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.card-header h2 {
+    font-size: 1.2rem;
+    margin: 0;
+    line-height: 1.3;
+    color: white;
+    padding-right: 10px;
+}
+
+.card-link {
+    color: rgb(230, 119, 72);
+    font-size: 0.9rem;
+    text-decoration: none;
+    white-space: nowrap;
+    margin-top: auto;
+    align-self: flex-start;
+}
+
+.card-link:hover {
+    text-decoration: underline;
+}
+
+.card-body {
+    flex-grow: 1;
+}
+
+.card-body p {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: white;
+    margin: 0;
+}
+
+/* Responsive Breakpoints */
+
+@media (max-width: 1900px) {
+    .portfolio-grid {
+        row-gap: 2rem;
+        column-gap: 5rem;
+    }
+}
+
+@media (max-width: 1400px) {
+    .portfolio-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 1024px) {
+    .portfolio-card {
+        flex-direction: column;
+        height: auto;
+        min-height: auto;
+        max-height: none;
+    }
+    
+    .card-content {
+        display: contents;
+    }
+    
+    .card-header {
+        order: 1;
+        width: 100%;
+        padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+        box-sizing: border-box;
+    }
+
+    .card-image-container {
+        order: 2;
+        flex: 0 0 auto;
+        width: 100%;
+        padding: 0rem 1.5rem 0.5rem 1.5rem;
+    }
+
+    .card-body {
+        order: 3;
+        padding: 0 1.5rem 1rem 1.5rem;
+    }
+    
+    .card-link {
+        order: 4;
+        padding: 0 1.5rem 1.5rem 1.5rem;
+        margin-top: 0;
+    }
+    
+    .card-header h2 {
+        font-size: 1.4rem;
+    }
+}
+
+@media (max-width: 800px) {
+    .portfolio-page { padding-bottom: 12%; }
+}
+
+@media (max-width: 600px) {
+    .portfolio-grid {
+        grid-template-columns: 1fr;
+        row-gap: 3rem;
+    }
+}
