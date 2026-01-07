@@ -1,0 +1,88 @@
+#contact {
+    padding-top: 40px; 
+    width: 100%; 
+    height: calc(100vh - 120px);
+    background: url(../images/noise.svg), linear-gradient(to bottom, rgba(60, 136, 168, 1), rgb(38, 109, 140));
+    background-blend-mode: color-burn;
+    position: relative;
+    color: white;
+}
+
+.contact-page {
+    width: 100%; 
+    height: inherit; 
+    display: flex;
+    flex-direction: column; 
+    justify-content: space-between; 
+    align-items: flex-start;
+    position: relative; 
+    padding: 0 4%; 
+    box-sizing: border-box; 
+}
+.contact-page h1, .contact-page p { text-align: left; margin: 0; padding-bottom: 1rem; }
+.contact-page p { line-height: 1.5rem; color: white; }
+.contact-page li { margin-bottom: 0rem; line-height: 1.5rem; color: white; }
+.contact-page h1 { font-size: 2.7rem; line-height: 1; margin-bottom: 1rem; color: white; }
+
+/* Responsive Styles */
+@media (max-width: 1400px) {
+    #contact {
+        height: auto;
+        min-height: calc(100vh - 120px);
+        padding-bottom: 2rem;
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 1024px) {
+    .contact-page {
+        flex-grow: 1;
+        justify-content: flex-start;
+    }
+    
+    .contact-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 800px) {
+    #contact { height: auto; }
+}
+.contact-page h2 { color: white; line-height: 1.5; margin: 0; }
+
+.contact-content {
+    text-align: left; 
+    width: inherit; 
+    display: flex;
+    flex-direction: column; 
+    justify-content: center; 
+    flex-grow: 1;     
+    gap: 2rem; 
+}
+.box-container { text-align: inherit; }
+.tech-stack-image { max-width: 100%; }
+
+/* Links in contact section context */
+.contact-page a {
+    color: rgb(230, 119, 72);
+}
+.contact-page a:hover {
+    text-decoration: underline;
+}
+
+.social-links {
+    display: flex; 
+    justify-content: flex-start; 
+    align-items: center;
+    width: 100%; 
+    padding: 0; 
+    margin: 0; 
+    box-sizing: border-box; 
+    flex-wrap: wrap;
+    gap: 1rem; 
+}
+.social-links a { text-decoration: none; margin: 0; padding: 0; }
