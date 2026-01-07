@@ -1,5 +1,5 @@
 #home {
-    background: url(../images/noise.svg), linear-gradient(to bottom, rgba(60, 136, 168, 1), rgb(38, 109, 140));
+    background: url(/static/images/noise.svg), linear-gradient(to bottom, rgba(60, 136, 168, 1), rgb(38, 109, 140));
     background-blend-mode: color-burn;
     height: 100vh;
     width: 100%;
