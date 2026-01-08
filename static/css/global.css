@@ -95,15 +95,16 @@ nav a.active { background-color: rgba(230, 119, 72, 1); color: white; }
 
 #footer {
     width: 100%;
-    height: 30px;
+    min-height: 30px;
     background: url(/static/images/noise.svg), rgba(60, 136, 168, 1);
     background-blend-mode: color-burn;   
     display: flex;
     z-index: 1000;
     box-sizing: border-box;
     border-top: 2px solid rgb(230, 119, 72);
+    padding: 5px 0;
 }
-.footer-content { padding: 0; padding-left: 4%; line-height: 0; align-items: center; justify-content: center; }
+.footer-content { padding: 0; padding-left: 4%; line-height: 1.2; align-items: center; justify-content: center; }
 
 /* SHARED COMPONENTS */
 .highlight { color: rgb(230, 119, 72); }

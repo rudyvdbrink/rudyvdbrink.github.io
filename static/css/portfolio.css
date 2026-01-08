@@ -75,7 +75,13 @@
     cursor: pointer;
 }
 
-.card-image:hover {
+@media (hover: hover) {
+    .card-image:hover {
+        transform: scale(1.05);
+    }
+}
+
+.card-image:active {
     transform: scale(1.05);
 }
 
