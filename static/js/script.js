@@ -78,11 +78,13 @@ function showImage(img) {
     const modal = document.getElementById('image-modal');
     const modalImg = document.getElementById('modal-image');
     modal.style.display = 'block';
-    modalImg.src = img.src;
+    
+    if (img.src.includes('smart_sampling_clean.png')) {
+        modalImg.src = img.src.replace('smart_sampling_clean.png', 'smart_sampling.png');
+    } else {
+        modalImg.src = img.src;
+    }
 
-    // Check if the image source contains one of the white logos
-    // If so, set a dark background; otherwise, keep it white.
-    // Assuming logos might be vector/transparent white images.
     if (img.src.includes('bm_logo.png') || img.src.includes('llmlynx_logo_notext.png')) {
          modalImg.style.backgroundColor = 'rgba(60, 136, 168, 1)'; // Use standard theme dark blue/color
     } else {
