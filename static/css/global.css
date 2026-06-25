@@ -1,175 +1,332 @@
-/* Basic Reset & Body */
+/* ============================================================
+   Brink Data Science — design tokens & global shell
+   Palette is the existing brand: deep purple-black canvas,
+   teal primary, terracotta accent.
+   ============================================================ */
+
+:root {
+    /* Canvas */
+    --ink:        #130F18;   /* brand background start */
+    --ink-2:      #1B1524;   /* lifted surface */
+    --ink-3:      #292032;   /* brand background end / card edge */
+
+    /* Brand */
+    --teal:       #3C88A8;
+    --teal-deep:  #266D8C;
+    --teal-bright:#5BB0D0;   /* legible teal for text/links on dark */
+    --terra:      #E67748;
+    --terra-soft: #F0976F;
+
+    /* Neutrals */
+    --paper:      #ECEAF2;   /* primary text on dark */
+    --muted:      #9A92AC;   /* secondary text */
+    --plate:      #F2F0EA;   /* light image plate */
+    --line:       rgba(236, 234, 242, 0.10);
+    --line-strong:rgba(236, 234, 242, 0.18);
+
+    /* Type */
+    --font-display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --font-body:    "Inter", "Helvetica Neue", Arial, sans-serif;
+    --font-mono:    "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+    /* Layout */
+    --content-max: 1500px;
+    --gutter: clamp(1.25rem, 5vw, 5rem);
+    /* Side padding: at least the gutter, growing to center content at --content-max on wide screens */
+    --pad-x: max(var(--gutter), calc((100% - var(--content-max)) / 2));
+    --banner-h: 72px;
+    --radius: 14px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
 body, html {
+    margin: 0;
     padding: 0;
     width: 100%;
-    height: 100%;
-    font-family: Helvetica, sans-serif;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
+    min-height: 100%;
+    background-color: var(--ink);
+}
+
+body {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--paper);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }
 
 .page-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     width: 100%;
-    background: 
-        url(/static/images/noise.svg),
-        linear-gradient(to bottom, rgb(19, 15, 24), rgb(41, 32, 50));
-    background-blend-mode: soft-light; 
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); 
+    min-height: 100vh;
+    position: relative;
+    z-index: 0;
 }
 
-a { text-decoration: none; color: rgb(60, 136, 168); }
-a:hover { text-decoration: underline; }
-
-body h1 { font-size: 2rem; margin: 1rem 0; }
-
-hr {
-    border: 0;
-    height: 2px;
-    background: #ccc;
-    margin: 4% 8% 0 8%;
-}
-
-/* TOP-BANNER */
-#banner {
+/* Ambient background painted once on a fixed, composited layer.
+   This avoids the per-scroll-frame repaint that `background-attachment: fixed`
+   forces (the cause of mobile scroll stutter and the white flash on fast scroll). */
+.page-content::before {
+    content: "";
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 80px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    background: url(/static/images/noise.svg), rgba(60, 136, 168, 1);
-    background-blend-mode: color-burn;
-    display: flex;
+    /* Cover the *large* viewport (URL-bar-hidden) height, anchored at the top, so
+       hiding the mobile address bar never exposes an unpainted gap at the bottom. */
+    height: 100vh;
+    height: 100lvh;
+    z-index: -1;
+    background:
+        url(/static/images/noise.svg),
+        radial-gradient(1100px 700px at 78% -8%, rgba(60, 136, 168, 0.22), transparent 60%),
+        radial-gradient(800px 600px at 0% 110%, rgba(230, 119, 72, 0.10), transparent 55%),
+        linear-gradient(to bottom, var(--ink), var(--ink-3));
+    background-blend-mode: soft-light, normal, normal, normal;
+}
+
+img { max-width: 100%; display: block; }
+
+a { color: var(--teal-bright); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+:focus-visible {
+    outline: 2px solid var(--terra);
+    outline-offset: 3px;
+    border-radius: 3px;
+}
+
+/* ---------- Shared section primitives ---------- */
+
+main { display: block; }
+
+section {
+    width: 100%;
+    padding-left: var(--pad-x);
+    padding-right: var(--pad-x);
+    scroll-margin-top: var(--banner-h);
+    box-sizing: border-box;
+}
+
+.eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--teal-bright);
+    margin: 0 0 1rem;
+}
+
+.section-head { max-width: 720px; padding-top: clamp(3.5rem, 8vw, 6.5rem); }
+
+.section-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.1rem, 5vw, 3.4rem);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: var(--paper);
+}
+
+.section-intro {
+    color: var(--muted);
+    font-size: clamp(1rem, 1.6vw, 1.15rem);
+    margin: 1.1rem 0 0;
+    max-width: 60ch;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.01em;
+    padding: 0.85rem 1.5rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    text-decoration: none;
+}
+.btn:hover { text-decoration: none; transform: translateY(-2px); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary {
+    background-color: var(--terra);
+    color: #1a0f08;
+    box-shadow: 0 8px 24px rgba(230, 119, 72, 0.28);
+}
+.btn-primary:hover { background-color: var(--terra-soft); }
+
+.btn-ghost {
+    background-color: transparent;
+    color: var(--paper);
+    border-color: var(--line-strong);
+}
+.btn-ghost:hover { border-color: var(--teal-bright); color: var(--teal-bright); }
+
+/* ---------- Banner / nav ---------- */
+
+#banner {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: var(--banner-h);
     z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--pad-x);
+    background: rgba(19, 15, 24, 0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
     box-sizing: border-box;
-    border-bottom: 2px solid rgb(230, 119, 72);
 }
 
-.banner-logo {
-    display: block;
+.wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.02rem;
+    letter-spacing: 0.04em;
+    color: var(--paper);
+}
+.wordmark:hover { text-decoration: none; }
+.wordmark-rest { font-weight: 500; color: var(--muted); }
+.wordmark-node {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--terra);
+    box-shadow: 0 0 0 4px rgba(230, 119, 72, 0.18);
+    flex: none;
+}
+
+nav { display: flex; align-items: center; gap: 0.25rem; }
+.nav-link {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.45rem 0.7rem;
+    border-radius: 8px;
+    position: relative;
+    transition: color 0.2s ease;
+}
+.nav-link:hover { color: var(--paper); text-decoration: none; }
+.nav-link.active { color: var(--terra); }
+.nav-link.active::after {
+    content: "";
     position: absolute;
-    left: 4%;
-    max-height: 60px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 0.7rem; right: 0.7rem; bottom: 0.15rem;
+    height: 2px;
+    background: var(--terra);
+    border-radius: 2px;
 }
 
+.github-link { display: inline-flex; transition: opacity 0.2s ease; }
+/* The source mark is solid black; invert to a light icon that reads on the dark bar */
 .github-logo {
-    display: block;
-    position: absolute;
-    right: 4%;
-    max-height: 60px;
-    top: 50%;
-    transform: translateY(-50%);
+    height: 26px;
+    width: auto;
+    filter: brightness(0) invert(1);
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
 }
+.github-link:hover .github-logo { opacity: 1; }
 
-#banner a:hover { text-decoration: none; }
-
-/* NAVIGATION */
-nav { display: flex; align-items: center; justify-content: center; padding: 0; }
-nav a { color: black; text-decoration: none; padding: 8px 16px; display: inline-block; }
-
-nav a.active { background-color: rgba(230, 119, 72, 1); color: white; }
-
-@media (hover: hover) and (pointer: fine) {
-    nav a:hover { background-color: rgba(230, 119, 72, 1); color: white; }
-}
-
-/* NAV-CENTERED (custom class for centering) */
-.nav-centered nav {
-    justify-content: center;
-    padding-right: 0;
-}
-
-/* FOOTER & BORDERS */
-#border { width: 100%; height: auto; background-color: white; }
+/* ---------- Footer ---------- */
 
 #footer {
     width: 100%;
-    min-height: 30px;
-    background: url(/static/images/noise.svg), rgba(60, 136, 168, 1);
-    background-blend-mode: color-burn;   
-    display: flex;
-    z-index: 1000;
+    margin-top: clamp(4rem, 9vw, 7rem);
+    padding: 1.75rem var(--pad-x);
+    border-top: 1px solid var(--line);
     box-sizing: border-box;
-    border-top: 2px solid rgb(230, 119, 72);
-    padding: 5px 0;
 }
-.footer-content { padding: 0; padding-left: 4%; line-height: 1.2; align-items: center; justify-content: center; }
-
-/* SHARED COMPONENTS */
-.highlight { color: rgb(230, 119, 72); }
-
-.arrow-down { text-align: right; padding-right: 4%; padding-bottom: 2%; }
-.arrow-down img { width: 2rem; height: auto; }
-
-.arrow-down-container {
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
-    position: absolute;
-    bottom: 0px;
-    right: 0px;
+#footer p {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    color: var(--muted);
 }
 
-/* MODAL */
+/* ---------- Modal ---------- */
+
 .modal {
-    display: none; position: fixed; z-index: 1000; left: 0; top: 0;
-    width: 100%; height: 100%; overflow: auto;
-    background-color: rgba(0,0,0,0.9);
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    inset: 0;
+    overflow: auto;
+    background-color: rgba(10, 8, 14, 0.92);
+    backdrop-filter: blur(4px);
 }
-.modal-content { margin: auto; margin-top: 5%; display: block; width: 80%; max-width: 40%; }
+.modal-content {
+    margin: 6vh auto;
+    display: block;
+    width: min(86%, 760px);
+    border-radius: var(--radius);
+    background-color: var(--plate);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
 .close {
-    position: absolute; top: 15px; right: 35px; color: #f1f1f1;
-    font-size: 40px; font-weight: bold; transition: 0.3s;
+    position: fixed;
+    top: 18px; right: 28px;
+    color: var(--paper);
+    font-size: 42px;
+    line-height: 1;
+    font-weight: 300;
+    cursor: pointer;
+    transition: color 0.2s ease;
 }
-.close:hover, .close:focus { color: #bbb; text-decoration: none; cursor: pointer; }
+.close:hover { color: var(--terra); }
 
-/* Responsive Styles */
+/* ---------- Scroll reveal ---------- */
 
-/* Hover Capabilities */
-@media (hover: hover) and (pointer: fine) {
-    nav a:hover { background-color: rgba(230, 119, 72, 1); color: white; }
+.reveal {
+    opacity: 0;
+    translate: 0 24px;
+    transition: opacity 0.7s cubic-bezier(0.22, 0.61, 0.36, 1),
+                translate 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
+.reveal.is-visible { opacity: 1; translate: 0 0; }
 
-@media (max-width: 1400px) {
-    .banner-logo, .github-logo {
-        max-height: 45px;
+/* ---------- Responsive shell ---------- */
+
+@media (max-width: 720px) {
+    :root { --banner-h: 62px; }
+    .wordmark-rest { display: none; }
+    nav { gap: 0; }
+    .nav-link { padding: 0.4rem 0.5rem; font-size: 0.7rem; }
+    /* blur under a fixed bar is costly on phones; use a solid bar instead */
+    #banner {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgba(19, 15, 24, 0.95);
     }
 }
 
-@media (max-width: 1200px) {
-    #banner { display: flex; justify-content: center; align-items: center; }
-    #banner img { display: none; }
-    nav { display: flex; font-size: 0.8em; }  
+@media (max-width: 420px) {
+    .github-link { display: none; }
 }
 
-@media (max-width: 800px) {
-    #banner { 
-        display: flex; 
-        justify-content: center; 
-        align-items: center; 
-        left: 0%; 
-        transform: translateX(0%);
-        height: 55px;
-    }
-    #banner img { display: none; }
-    nav { 
-        display: flex; 
-        font-size: 1.0rem;
-        width: 100%; 
-        padding: 0; 
-        margin: 0; 
-        justify-content: center; 
-    }
-    .modal-content { margin: auto; margin-top: 20%; display: block; width: 80%; max-width: 80%; }
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal { opacity: 1 !important; translate: none !important; transition: none; }
+    .btn, .card, .card-image { transition: none !important; }
 }
