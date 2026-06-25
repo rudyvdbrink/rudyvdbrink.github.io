@@ -5,29 +5,33 @@
     <!-- Metadata -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Brink Data Science: Consultancy and AI development services.">
-    <meta name="keywords" content="AI, machine learning, data science, large langue models, LLM, NLP, consultancy, software development, Rudy van den Brink">
+    <meta name="description" content="Brink Data Science: custom machine learning models, software, and consultancy by Rudy van den Brink, PhD.">
+    <meta name="keywords" content="machine learning, data science, ML, deep learning, large language models, LLM, NLP, consultancy, software development, Rudy van den Brink">
     <meta name="author" content="Rudy van den Brink">
     <meta name="robots" content="index, follow">
 
     <meta property="og:title" content="Brink Data Science">
-    <meta property="og:description" content="Consultancy and AI development services.">
-    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/images/logo.png">
+    <meta property="og:description" content="Custom machine learning models, software, and consultancy.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
     <meta property="og:url" content="https://www.brinkdatascience.com">
-    
-    <meta name="twitter:card" content="shttps://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/images/logo.png">
+
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Brink Data Science">
-    <meta name="twitter:description" content="Consultancy and AI development services.">
-    <meta name="twitter:image" content="shttps://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/images/logo.png">
-      <meta name="robots" content="index, follow">
+    <meta name="twitter:description" content="Custom machine learning models, software, and consultancy.">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
 
     <title>Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="static/css/global.css">
     <link rel="stylesheet" href="static/css/home.css">
     <link rel="stylesheet" href="static/css/portfolio.css">
     <link rel="stylesheet" href="static/css/contact.css">
     <link rel="icon" href="static/images/logo_gray.png" type="image/png">
-    
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
     <script>
@@ -40,15 +44,15 @@
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
-      "@context": "http://schema.org",
+      "@context": "https://schema.org",
       "@type": "Organization",
       "name": "Brink Data Science",
       "url": "https://www.brinkdatascience.com",
-      "logo": "https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/images/logo.png",
+      "logo": "https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png",
       "contactPoint": {
         "@type": "ContactPoint",
-        "contactType": "Customer Service"
-        "email": "info@brinkdatascience.com"
+        "contactType": "Customer Service",
+        "email": "info@brinkdatascience.com",
         "url": "https://app.youform.com/forms/iegl3uw3"
       },
       "sameAs": [
@@ -60,273 +64,227 @@
       ]
     }
     </script>
-
 </head>
-
 
 <body>
     <div class="page-content">
 
         <!-- banner with navigation -->
-        <div id="banner">
-            <a href="#home" class="logo-link">
-                <img src="static/images/banner.png" alt="Banner" class="banner-logo">
+        <header id="banner">
+            <a href="#home" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">BRINK</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">DATA SCIENCE</span>
             </a>
-            <nav>
-                <a href="#home" class="nav-link active">HOME</a>
-                <a href="#portfolio" class="nav-link">PORTFOLIO</a>
-                <a href="#contact" class="nav-link">CONTACT</a>
+            <nav aria-label="Primary">
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="#portfolio" class="nav-link">Portfolio</a>
+                <a href="#contact" class="nav-link">Contact</a>
             </nav>
-            <a href="https://github.com/rudyvdbrink" target="_blank" class="github-link">
-                <img src="static/images/github_logo.png" alt="GitHub" class="github-logo">
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="static/images/github_logo.png" alt="" class="github-logo">
             </a>
-        </div>
+        </header>
 
+        <main>
 
-        <!-- home section -->
+        <!-- home / hero -->
         <section id="home">
-            <div class="home-page" id="home">
-                <div class="home-container">
-                    <div class="top-row"></div>
-                    <div class="content-row">
-                        <div class="photo">
-                            <img src="static/images/photo.png" alt="Photo">
-                        </div>
-                        <div class="intro-text">
-                            <h1 style="color: rgb(60, 38, 28);">
-                                <span class="name-highlight">RUDY VAN DEN BRINK</span> 
-                                <span class="degree-highlight">PhD</span>
-                            </h1>
-
-                            <p>I am a data scientist. I build custom AI models, design tailored software solutions and provide consultancy services. 
-                                <br> <br>
-                                Between academia and industry I have over a decade of <a href="https://www.dropbox.com/s/vza0nrf7m3xru3n/CV_vandenBrink.pdf?dl=1" style="color: rgba(38, 30, 48, 0.9); text-decoration: none;">experience</a> developing machine learning solutions to complex challenges.
-                                Get in touch today for a consultation or exploring options on a project.
-                            </p>
-                            <button>
-                                <a href="https://app.youform.com/forms/iegl3uw3" style="color: white; text-decoration: none;">
-                                    <img src="static/images/button_icon.png" alt="Icon" class="button-icon">CONTACT
-                                </a>
-                            </button>
-                        </div>
+            <div class="hero">
+                <div class="hero-text">
+                    <p class="eyebrow">Brink Data Science</p>
+                    <h1 class="hero-title">Performant machine<br>learning models.</h1>
+                    <p class="hero-lede">
+                        I'm <strong>Rudy</strong> &mdash; a data scientist with a PhD in neuroscience.
+                        I train machine learning models, write the software that puts them to work, and
+                        help teams figure out where they're actually worth it &mdash; backed by over a
+                        decade of work experience across research and industry.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                        <a href="#portfolio" class="btn btn-ghost">See the work</a>
                     </div>
-
-                    <div class="arrow-down-home">
-                        <a href="#portfolio">
-                            <img src="static/images/arrow.png" alt="Arrow Down" >
-                        </a>
-                    </div>
-
-                    
-                </div>        
+                    <p class="hero-meta">
+                        <a href="https://www.dropbox.com/s/vza0nrf7m3xru3n/CV_vandenBrink.pdf?dl=1" target="_blank" rel="noopener">Download CV</a>
+                    </p>
+                </div>
+                <div class="hero-visual">
+                    <svg class="hero-net" viewBox="0 0 600 440" role="img" aria-label="An abstract neural network" preserveAspectRatio="xMidYMid meet">
+<g class="net-edges"><line x1="95" y1="88" x2="255" y2="63" class="net-edge"/><line x1="95" y1="88" x2="255" y2="126" class="net-edge"/><line x1="95" y1="88" x2="255" y2="189" class="net-edge"/><line x1="95" y1="88" x2="255" y2="251" class="net-edge"/><line x1="95" y1="88" x2="255" y2="314" class="net-edge"/><line x1="95" y1="88" x2="255" y2="377" class="net-edge"/><line x1="95" y1="176" x2="255" y2="63" class="net-edge"/><line x1="95" y1="176" x2="255" y2="126" class="net-edge"/><line x1="95" y1="176" x2="255" y2="251" class="net-edge"/><line x1="95" y1="176" x2="255" y2="314" class="net-edge"/><line x1="95" y1="176" x2="255" y2="377" class="net-edge"/><line x1="95" y1="264" x2="255" y2="63" class="net-edge"/><line x1="95" y1="264" x2="255" y2="126" class="net-edge"/><line x1="95" y1="264" x2="255" y2="189" class="net-edge"/><line x1="95" y1="264" x2="255" y2="251" class="net-edge"/><line x1="95" y1="264" x2="255" y2="314" class="net-edge"/><line x1="95" y1="264" x2="255" y2="377" class="net-edge"/><line x1="95" y1="352" x2="255" y2="63" class="net-edge"/><line x1="95" y1="352" x2="255" y2="126" class="net-edge"/><line x1="95" y1="352" x2="255" y2="189" class="net-edge"/><line x1="95" y1="352" x2="255" y2="251" class="net-edge"/><line x1="95" y1="352" x2="255" y2="314" class="net-edge"/><line x1="95" y1="352" x2="255" y2="377" class="net-edge"/><line x1="255" y1="63" x2="420" y2="63" class="net-edge"/><line x1="255" y1="63" x2="420" y2="126" class="net-edge"/><line x1="255" y1="63" x2="420" y2="189" class="net-edge"/><line x1="255" y1="63" x2="420" y2="251" class="net-edge"/><line x1="255" y1="63" x2="420" y2="314" class="net-edge"/><line x1="255" y1="63" x2="420" y2="377" class="net-edge"/><line x1="255" y1="126" x2="420" y2="63" class="net-edge"/><line x1="255" y1="126" x2="420" y2="126" class="net-edge"/><line x1="255" y1="126" x2="420" y2="189" class="net-edge"/><line x1="255" y1="126" x2="420" y2="251" class="net-edge"/><line x1="255" y1="126" x2="420" y2="314" class="net-edge"/><line x1="255" y1="126" x2="420" y2="377" class="net-edge"/><line x1="255" y1="189" x2="420" y2="63" class="net-edge"/><line x1="255" y1="189" x2="420" y2="126" class="net-edge"/><line x1="255" y1="189" x2="420" y2="189" class="net-edge"/><line x1="255" y1="189" x2="420" y2="314" class="net-edge"/><line x1="255" y1="189" x2="420" y2="377" class="net-edge"/><line x1="255" y1="251" x2="420" y2="63" class="net-edge"/><line x1="255" y1="251" x2="420" y2="126" class="net-edge"/><line x1="255" y1="251" x2="420" y2="189" class="net-edge"/><line x1="255" y1="251" x2="420" y2="251" class="net-edge"/><line x1="255" y1="251" x2="420" y2="314" class="net-edge"/><line x1="255" y1="251" x2="420" y2="377" class="net-edge"/><line x1="255" y1="314" x2="420" y2="63" class="net-edge"/><line x1="255" y1="314" x2="420" y2="126" class="net-edge"/><line x1="255" y1="314" x2="420" y2="189" class="net-edge"/><line x1="255" y1="314" x2="420" y2="251" class="net-edge"/><line x1="255" y1="314" x2="420" y2="314" class="net-edge"/><line x1="255" y1="314" x2="420" y2="377" class="net-edge"/><line x1="255" y1="377" x2="420" y2="63" class="net-edge"/><line x1="255" y1="377" x2="420" y2="126" class="net-edge"/><line x1="255" y1="377" x2="420" y2="189" class="net-edge"/><line x1="255" y1="377" x2="420" y2="251" class="net-edge"/><line x1="255" y1="377" x2="420" y2="314" class="net-edge"/><line x1="255" y1="377" x2="420" y2="377" class="net-edge"/><line x1="420" y1="63" x2="545" y2="110" class="net-edge"/><line x1="420" y1="63" x2="545" y2="220" class="net-edge"/><line x1="420" y1="63" x2="545" y2="330" class="net-edge"/><line x1="420" y1="126" x2="545" y2="110" class="net-edge"/><line x1="420" y1="126" x2="545" y2="220" class="net-edge"/><line x1="420" y1="126" x2="545" y2="330" class="net-edge"/><line x1="420" y1="189" x2="545" y2="110" class="net-edge"/><line x1="420" y1="189" x2="545" y2="220" class="net-edge"/><line x1="420" y1="189" x2="545" y2="330" class="net-edge"/><line x1="420" y1="251" x2="545" y2="110" class="net-edge"/><line x1="420" y1="251" x2="545" y2="330" class="net-edge"/><line x1="420" y1="314" x2="545" y2="110" class="net-edge"/><line x1="420" y1="314" x2="545" y2="220" class="net-edge"/><line x1="420" y1="314" x2="545" y2="330" class="net-edge"/><line x1="420" y1="377" x2="545" y2="110" class="net-edge"/><line x1="420" y1="377" x2="545" y2="220" class="net-edge"/><line x1="420" y1="377" x2="545" y2="330" class="net-edge"/></g>
+<g class="net-edges-active"><path d="M95 176 L255 189" class="net-edge net-edge--active" style="--i:0"/><path d="M255 189 L420 251" class="net-edge net-edge--active" style="--i:1"/><path d="M420 251 L545 220" class="net-edge net-edge--active" style="--i:2"/></g>
+<g class="net-nodes"><circle cx="95" cy="88" r="8" class="net-node" style="--i:0"/><circle cx="95" cy="176" r="8" class="net-node net-node--hot" style="--i:1"/><circle cx="95" cy="264" r="8" class="net-node" style="--i:2"/><circle cx="95" cy="352" r="8" class="net-node" style="--i:3"/><circle cx="255" cy="63" r="9" class="net-node" style="--i:3"/><circle cx="255" cy="126" r="9" class="net-node" style="--i:4"/><circle cx="255" cy="189" r="9" class="net-node net-node--hot" style="--i:5"/><circle cx="255" cy="251" r="9" class="net-node" style="--i:6"/><circle cx="255" cy="314" r="9" class="net-node" style="--i:7"/><circle cx="255" cy="377" r="9" class="net-node" style="--i:8"/><circle cx="420" cy="63" r="9" class="net-node" style="--i:6"/><circle cx="420" cy="126" r="9" class="net-node" style="--i:7"/><circle cx="420" cy="189" r="9" class="net-node" style="--i:8"/><circle cx="420" cy="251" r="9" class="net-node net-node--hot" style="--i:0"/><circle cx="420" cy="314" r="9" class="net-node" style="--i:1"/><circle cx="420" cy="377" r="9" class="net-node" style="--i:2"/><circle cx="545" cy="110" r="8" class="net-node" style="--i:0"/><circle cx="545" cy="220" r="8" class="net-node net-node--hot" style="--i:1"/><circle cx="545" cy="330" r="8" class="net-node" style="--i:2"/></g>
+</svg>
+                    <a href="#portfolio" class="scroll-cue" aria-label="Scroll to portfolio">
+                        <img src="static/images/arrow.png" alt="">
+                    </a>
+                </div>
             </div>
         </section>
 
-        <!-- portfolio section -->
+        <!-- portfolio -->
         <section id="portfolio">
-            <div class="portfolio-page">
-                <h1><span class="highlight">PORTFOLIO</span></h1>
-                
-                <!-- sr-decoding project -->
-                <div class="portfolio-grid">
+            <div class="section-head">
+                <p class="eyebrow">Selected work</p>
+                <h2 class="section-title">Portfolio</h2>
+                <p class="section-intro">
+                    Projects across machine learning, data science, and neuroscience &mdash; from
+                    production systems running on edge devices to peer&#8209;reviewed research.
+                </p>
+            </div>
 
-                    <!-- Project 1: Neurolex  -->
-                    <div class="portfolio-card">
-                         <div class="card-image-container">
-                            <img src="static/images/neurolex_logo.png" alt="NeuroLex" class="card-image" onclick="showImage(this)">
-                        </div>
-                        <div class="card-content">
-                            <div class="card-header">
-                                <h2>NEUROLEX</h2>
-                            </div>
-                            <div class="card-body">
-                                <p>A multi-agent retrieval-augmented generation (RAG) system that powers a social media bot for neuroscientists. Runs on an edge device and enables natural language queries over a database of articles from the last 100 years.</p>
-                            </div>
-                            <a href="https://bsky.app/profile/neuro-lex.bsky.social" target="_blank" class="card-link">See project details</a>
-                        </div>
+            <div class="portfolio-grid">
+
+                <!-- Neurolex -->
+                <article class="card">
+                    <div class="card-plate">
+                        <img src="static/images/neurolex_logo.png" alt="NeuroLex" class="card-image" onclick="showImage(this)">
                     </div>
-
-                    <!-- Project 2: Smart Samping -->
-                    <div class="portfolio-card">
-                         <div class="card-image-container">
-                            <img src="static/images/smart_sampling_clean.png" alt="Smart Sampling" class="card-image" onclick="showImage(this)">
-                        </div>
-                        <div class="card-content">
-                            <div class="card-header">
-                                <h2>SMART SAMPLING</h2>
-                            </div>
-                            <div class="card-body">
-                                <p>A large neural network that finds buildings in satellite images. Built with the aim to enable representative monitoring of malaria in Western Africa. </p>
-                            </div>
-                            <a href="https://github.com/rudyvdbrink/ssmpl" target="_blank" class="card-link">See project details</a>
-                        </div>
+                    <div class="card-body">
+                        <p class="card-tags">RAG &middot; Multi&#8209;agent &middot; Edge Computing</p>
+                        <h3 class="card-title">NeuroLex</h3>
+                        <p class="card-desc">A multi&#8209;agent retrieval&#8209;augmented generation system powering a social-media bot for neuroscientists. Runs on an edge device, answering natural-language queries over a century of articles.</p>
+                        <a href="https://bsky.app/profile/neuro-lex.bsky.social" target="_blank" rel="noopener" class="card-link">View project</a>
                     </div>
+                </article>
 
-                    <!-- Project 3: LLMLYNX -->
-                    <div class="portfolio-card">
-                         <div class="card-image-container">
-                            <img src="static/images/llmlynx_logo_notext.png" alt="LLMLYNX" class="card-image" onclick="showImage(this)">
-                        </div>
-                        <div class="card-content">
-                            <div class="card-header">
-                                <h2>LLMLYNX</h2>
-                            </div>
-                            <div class="card-body">
-                                <p>A self-hosted UI for LLM interactions with persistent storage and building custom agents. Designed with local-first principles. </p>
-                            </div>
-                            <a href="https://github.com/rudyvdbrink/llmlynx" target="_blank" class="card-link">See project details</a>
-                        </div>
+                <!-- Smart Sampling -->
+                <article class="card">
+                    <div class="card-plate card-plate--cover">
+                        <img src="static/images/smart_sampling_clean.png" alt="Smart Sampling" class="card-image" onclick="showImage(this)">
                     </div>
-
-                    <!-- Project 4: AutoHPSearch -->
-                    <div class="portfolio-card">
-                        <div class="card-image-container">
-                            <img src="static/images/autohpsearch_logo.png" alt="AutoHPSearch" class="card-image" onclick="showImage(this)">
-                        </div>
-                        <div class="card-content">
-                            <div class="card-header">
-                                <h2>AUTOHPSEARCH</h2>
-                            </div>
-                            <div class="card-body">
-                                <p>A Python library for automated hyper parameter tuning and machine learning workflows. Build an end-to-end pipeline or fine tune an LLM on consumer hardware in a few lines of code.</p>
-                            </div>
-                            <a href="https://github.com/rudyvdbrink/autohpsearch" target="_blank" class="card-link">See project details</a>
-                        </div>
+                    <div class="card-body">
+                        <p class="card-tags">Computer vision &middot; Segmentation &middot; Remote Sensing</p>
+                        <h3 class="card-title">Smart Sampling</h3>
+                        <p class="card-desc">A computer vision foundation model for building detection in satellite imagery, built to enable representative monitoring of malaria across Western Africa.</p>
+                        <a href="https://github.com/rudyvdbrink/ssmpl" target="_blank" rel="noopener" class="card-link">View project</a>
                     </div>
+                </article>
 
-                    <!-- Project 5: Making Audiobooks -->
-                    <div class="portfolio-card">
-                         <div class="card-image-container">
-                            <img src="static/images/bm_logo.png" alt="Making Audiobooks" class="card-image" onclick="showImage(this)">
-                        </div>
-                        <div class="card-content">
-                            <div class="card-header">
-                                <h2>MAKING AUDIOBOOKS</h2>
-                            </div>
-                            <div class="card-body">
-                                <p>A free and open-source application to turn ebooks into audiobooks. Includes a generative AI text-to-speech model.</p>
-                            </div>
-                            <a href="https://github.com/rudyvdbrink/book_maker/blob/main/README.md" target="_blank" class="card-link">See project details</a>
-                        </div>
+                <!-- LLMLynx -->
+                <article class="card">
+                    <div class="card-plate card-plate--brand">
+                        <img src="static/images/llmlynx_logo_notext.png" alt="LLMLynx" class="card-image" onclick="showImage(this)">
                     </div>
-
-                    <!-- Project 6: Decoding Brain Signals -->
-                    <div class="portfolio-card">
-                        <div class="card-image-container">
-                            <img src="static/images/sr_decoding_performance_masked.png" alt="Decodng Brain Signals" class="card-image" onclick="showImage(this)">
-                        </div>
-                        <div class="card-content">
-                            <div class="card-header">
-                                <h2>DECODING BRAIN SIGNALS</h2>
-                            </div>
-                            <div class="card-body">
-                                <p>A multi-year project to build classifiers that recognize patterns in human brain activity that are linked to how we see the world.</p>
-                            </div>
-                            <a href="https://www.cell.com/neuron/fulltext/S0896-6273(22)01032-7" target="_blank" class="card-link">See project details</a>
-                        </div>
+                    <div class="card-body">
+                        <p class="card-tags">LLM &middot; Self&#8209;hosted &middot; Local&#8209;first</p>
+                        <h3 class="card-title">LLMLynx</h3>
+                        <p class="card-desc">A self-hosted UI for LLM interactions with persistent storage and custom agent building, designed around local-first principles.</p>
+                        <a href="https://github.com/rudyvdbrink/llmlynx" target="_blank" rel="noopener" class="card-link">View project</a>
                     </div>
-                    
+                </article>
 
-                </div> 
+                <!-- AutoHPSearch -->
+                <article class="card">
+                    <div class="card-plate">
+                        <img src="static/images/autohpsearch_logo.png" alt="AutoHPSearch" class="card-image" onclick="showImage(this)">
+                    </div>
+                    <div class="card-body">
+                        <p class="card-tags">Python library &middot; AutoML &middot; Fine&#8209;tuning</p>
+                        <h3 class="card-title">AutoHPSearch</h3>
+                        <p class="card-desc">A Python library for automated hyperparameter tuning and ML workflows. Build an end-to-end pipeline or fine-tune an LLM on consumer hardware in a few lines of code.</p>
+                        <a href="https://github.com/rudyvdbrink/autohpsearch" target="_blank" rel="noopener" class="card-link">View project</a>
+                    </div>
+                </article>
 
+                <!-- Making Audiobooks -->
+                <article class="card">
+                    <div class="card-plate card-plate--brand">
+                        <img src="static/images/bm_logo.png" alt="Making Audiobooks" class="card-image" onclick="showImage(this)">
+                    </div>
+                    <div class="card-body">
+                        <p class="card-tags">Text&#8209;to&#8209;speech &middot; Generative &middot; Open source</p>
+                        <h3 class="card-title">Making Audiobooks</h3>
+                        <p class="card-desc">A free, open-source application that turns ebooks into audiobooks, including a neural text-to-speech model.</p>
+                        <a href="https://github.com/rudyvdbrink/book_maker/blob/main/README.md" target="_blank" rel="noopener" class="card-link">View project</a>
+                    </div>
+                </article>
 
-                     
-     
+                <!-- Decoding Brain Signals -->
+                <article class="card">
+                    <div class="card-plate card-plate--cover">
+                        <img src="static/images/sr_decoding_performance_masked.png" alt="Decoding Brain Signals" class="card-image" onclick="showImage(this)">
+                    </div>
+                    <div class="card-body">
+                        <p class="card-tags">Neuroscience &middot; Classification &middot; Research</p>
+                        <h3 class="card-title">Decoding Brain Signals</h3>
+                        <p class="card-desc">A multi-year project building classifiers that recognize patterns in human brain activity linked to how we see the world. Published in <em>Neuron</em>.</p>
+                        <a href="https://www.cell.com/neuron/fulltext/S0896-6273(22)01032-7" target="_blank" rel="noopener" class="card-link">View project</a>
+                    </div>
+                </article>
 
+            </div>
         </section>
 
-
+        <!-- contact -->
         <section id="contact">
-            <div class="contact-page">
-                
-                <h1><span class="highlight">CONTACT</span></h1>
-                
-                <div class="contact-content">
-                    <div class="box-container">
-                        <h2>Email</h2>
-                        <p>
-                        If you'd like toget in touch, please fill out the <a href="https://app.youform.com/forms/iegl3uw3">contact form</a>, or email me at:                
-                        <a href="mailto:info@brinkdatascience.com">info@brinkdatascience.com</a> 
-                        for any inquiries or to set up a meeting.
-                        </p>
+            <div class="section-head">
+                <p class="eyebrow">Get in touch</p>
+                <h2 class="section-title">Let's talk</h2>
+                <p class="section-intro">
+                    Considering a project or want a consultation? The fastest way to reach me is the
+                    contact form &mdash; or email directly.
+                </p>
+            </div>
+
+            <div class="contact-grid">
+                <div class="contact-primary">
+                    <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Open the contact form</a>
+                    <p class="contact-email">
+                        or email <a href="mailto:info@brinkdatascience.com">info@brinkdatascience.com</a>
+                    </p>
+
+                    <ul class="contact-notes">
+                        <li>Educational background, through PhD, is in neuroscience.</li>
+                        <li>I work mainly in Python with the machine-learning and data-visualization ecosystem.</li>
+                        <li>Code examples live on my <a href="https://www.github.com/rudyvdbrink" target="_blank" rel="noopener">GitHub</a>.</li>
+                    </ul>
+                </div>
+
+                <div class="contact-side">
+                    <div class="contact-block">
+                        <p class="block-label">Tech stack</p>
+                        <ul class="tag-list">
+                            <li>Python</li>
+                            <li>PyTorch</li>
+                            <li>TensorFlow</li>
+                            <li>scikit-learn</li>
+                            <li>SQL</li>
+                            <li>Bash</li>
+                            <li>Git</li>
+                            <li>Linux</li>
+                            <li>MATLAB</li>
+                        </ul>
                     </div>
 
-                    <div class="box-container">
-                        <h2 style="margin-bottom: 0; padding-bottom: 0;">More information</h2>
-                        <p>
-                            <ul style="margin-top: 0; padding-top: 0;">
-                                <li>My main educational background (including PhD) is in neuroscience</li>
-                                <li>For more information on my professional history, see <a href="https://www.dropbox.com/s/vza0nrf7m3xru3n/CV_vandenBrink.pdf?dl=1">my CV</a></li>
-                                <li>I mainly work in Python and with packages for machine learning and data visualization</li>
-                                <li>My tech stack includes: </li>
-                            </ul> 
-
-                            <div style="text-align: left; margin-left:1.5rem">
-                                <img src="https://camo.githubusercontent.com/860c372b733c02a0f6f33f35351e020a2d29da417a18ec2d75a6f90e5f6845b2/68747470733a2f2f736b696c6c69636f6e732e6465762f69636f6e733f693d707974686f6e2c6d61746c61622c626173682c6d7973716c2c7673636f64652c6769746875622c6769742c6c696e75782c74656e736f72666c6f772c7079746f7263682c736b6c6561726e" alt="Tech Stack" class="tech-stack-image">
-                            </div>
-                            <ul>                        
-                                <li>Find code examples on my <a href="https://www.github.com/rudyvdbrink">GitHub page</a>.</li>
-                            </ul>
-                        </p>
-                    </div>
-
-                    <div class="box-container">
-                        <h2>Reach out</h2>
-                        <p>
-                            You can also find more information or reach out to me on the following platforms:
-                        </p>
-
-                        <div class="social-links">
-                            <a href="https://www.linkedin.com/in/rudy-van-den-brink-3301b5283/" target="_blank">
-                                <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
-                            </a>
-                            <a href="https://ruudvandenbrink.net/" target="_blank">
-                                <img src="https://img.shields.io/badge/Website-E67748?style=for-the-badge&logo=todoist&logoColor=white" alt="Website" />
-                            </a>
-                            <a href="https://github.com/rudyvdbrink" target="_blank">
-                                <img src="https://img.shields.io/badge/Github-333333?style=for-the-badge&logo=github&logoColor=white" alt="Github" />
-                            </a>
-                            <a href="https://www.dropbox.com/s/vza0nrf7m3xru3n/CV_vandenBrink.pdf?dl=1" target="_blank">
-                                <img src="https://img.shields.io/badge/Full CV-333333?style=for-the-badge&logo=read.cv&logoColor=white" alt="Full CV" />
-                            </a>
-                            <a href="https://scholar.google.com/citations?user=gKseug0AAAAJ&hl=de" target="_blank">
-                                <img src="https://img.shields.io/badge/Scholar-334333?style=for-the-badge&logo=google scholar&logoColor=white" alt="Scholar" />
-                            </a>
-                            <a href="https://bsky.app/profile/rudyvdbrink.bsky.social" target="_blank">
-                                <img src="https://img.shields.io/badge/Bluesky-0077B5?style=for-the-badge&logo=Bluesky&logoColor=white" alt="Bluesky" />
-                            </a>
-                        </div>
+                    <div class="contact-block">
+                        <p class="block-label">Elsewhere</p>
+                        <ul class="link-list">
+                            <li><a href="https://www.linkedin.com/in/rudy-van-den-brink-3301b5283/" target="_blank" rel="noopener">LinkedIn</a></li>
+                            <li><a href="https://ruudvandenbrink.net/" target="_blank" rel="noopener">Personal site</a></li>
+                            <li><a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener">GitHub</a></li>
+                            <li><a href="https://scholar.google.com/citations?user=gKseug0AAAAJ&hl=de" target="_blank" rel="noopener">Google Scholar</a></li>
+                            <li><a href="https://bsky.app/profile/rudyvdbrink.bsky.social" target="_blank" rel="noopener">Bluesky</a></li>
+                            <li><a href="https://www.dropbox.com/s/vza0nrf7m3xru3n/CV_vandenBrink.pdf?dl=1" target="_blank" rel="noopener">Full CV</a></li>
+                        </ul>
                     </div>
                 </div>
-                
-
-
-
-                
             </div>
-
-            
-
         </section>
 
-       
-        <section id="footer">
-            <div class="footer-content"> 
-                    <p>© 2022 Rudy van den Brink. All rights reserved.</p>
-            </div> 
-        </section>
+        </main>
 
-    </div>    
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+        </footer>
 
-    <!-- modal, when an image in the portfolio seciton is clicked -->
-    <div id="image-modal" class="modal">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <img class="modal-content" id="modal-image" style="background-color: white;">
     </div>
 
-    <!-- scripts for scrolling and modal functions etc -->
+    <!-- modal for portfolio images -->
+    <div id="image-modal" class="modal" role="dialog" aria-modal="true" aria-label="Project image">
+        <span class="close" onclick="closeModal()" role="button" aria-label="Close">&times;</span>
+        <img class="modal-content" id="modal-image" alt="">
+    </div>
+
     <script src="static/js/script.js"></script>
-    
-   
 </body>
 </html>

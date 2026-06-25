@@ -1,135 +1,99 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Function to enable smooth scrolling
-    function enableSmoothScrolling() {
-        const links = document.querySelectorAll('a[href^="#"]');
-        links.forEach(link => {
-            link.addEventListener('click', function(event) {
-                event.preventDefault();
-                // Remove focus to prevent sticky hover effects on touch devices
-                this.blur();
-                
-                const targetId = this.getAttribute('href').substring(1);
-                const targetSection = document.getElementById(targetId);
-                if (targetSection) {
-                    const offset = targetSection.offsetTop - document.getElementById('banner').offsetHeight;
-                    window.scrollTo({
-                        top: offset,
-                        behavior: 'smooth'
-                    });
-                }
-            });
+// ============================================================
+// Brink Data Science — interactions
+// Smooth scrolling is handled in CSS (scroll-behavior + scroll-margin-top).
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', function () {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ---- Scroll-spy: highlight the nav link for the section in view ----
+    const sections = document.querySelectorAll('main > section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    function setActive(id) {
+        navLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === '#' + id);
         });
     }
 
-    // Function to highlight the current section in the navigation bar
-    function highlightCurrentSection() {
-        const sections = document.querySelectorAll('section');
-        const navLinks = document.querySelectorAll('.nav-link');
-
-        window.addEventListener('scroll', function() {
-            let current = ''; 
-            // Loop through sections from top to bottom
-            const scrollPosition = window.scrollY + window.innerHeight / 3;
-
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                const sectionHeight = section.clientHeight;
-                
-                // If scroll position is within the section
-                if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-                    current = section.getAttribute('id');
-                }
+    if ('IntersectionObserver' in window) {
+        const spy = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) setActive(entry.target.id);
             });
-            
-            // Fallback: If at the very top, set to home
-            if (window.scrollY < 100) {
-                current = 'home';
-            }
-
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('href').includes(current)) {
-                    link.classList.add('active');
-                }
-            });
-        });
+        }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+        sections.forEach(section => spy.observe(section));
     }
 
-    // Enable smooth scrolling for all links with href starting with #
-    enableSmoothScrolling();
+    // ---- Reveal cards and section heads as they enter the viewport ----
+    const revealEls = document.querySelectorAll('.card, .section-head');
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+        revealEls.forEach(el => el.classList.add('is-visible'));
+    } else {
+        revealEls.forEach(el => el.classList.add('reveal'));
+        const revealer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    obs.unobserve(entry.target);
+                }
+            });
+        }, { rootMargin: '0px 0px -12% 0px', threshold: 0 });
+        revealEls.forEach(el => revealer.observe(el));
+    }
 
-    // Highlight the current section in the navigation bar
-    highlightCurrentSection();
-});
+    // ---- Pause the hero animation while it's scrolled out of view ----
+    const heroNet = document.querySelector('.hero-net');
+    const home = document.getElementById('home');
+    if (heroNet && home && !reduceMotion && 'IntersectionObserver' in window) {
+        const heroSpy = new IntersectionObserver((entries) => {
+            entries.forEach(entry => heroNet.classList.toggle('is-paused', !entry.isIntersecting));
+        }, { threshold: 0 });
+        heroSpy.observe(home);
+    }
 
-//function to link out in a new tab
-document.addEventListener('DOMContentLoaded', function() {
-    // Select all anchor elements with href starting with "https://"
-    const externalLinks = document.querySelectorAll('a[href^="https://"]');
-
-    // Add target="_blank" to each external link
-    externalLinks.forEach(link => {
-        link.setAttribute('target', '_blank');
+    // ---- Open external links in a new tab ----
+    document.querySelectorAll('a[href^="https://"]').forEach(link => {
+        if (!link.target) link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener');
     });
 });
 
-// Function to show the image in a modal
+// ============================================================
+// Portfolio image modal
+// ============================================================
+
+// White logos sit on a brand-teal plate; everything else on light.
+const BRAND_PLATE_IMAGES = ['llmlynx_logo_notext.png', 'bm_logo.png'];
+
 function showImage(img) {
     const modal = document.getElementById('image-modal');
     const modalImg = document.getElementById('modal-image');
+
+    // Swap the Smart Sampling thumbnail for the full-detail version.
+    modalImg.src = img.src.includes('smart_sampling_clean.png')
+        ? img.src.replace('smart_sampling_clean.png', 'smart_sampling.png')
+        : img.src;
+
+    modalImg.alt = img.alt || '';
+    modalImg.style.background = BRAND_PLATE_IMAGES.some(name => img.src.includes(name))
+        ? 'linear-gradient(135deg, #3C88A8, #266D8C)'
+        : 'var(--plate)';
+
     modal.style.display = 'block';
-    
-    if (img.src.includes('smart_sampling_clean.png')) {
-        modalImg.src = img.src.replace('smart_sampling_clean.png', 'smart_sampling.png');
-    } else {
-        modalImg.src = img.src;
-    }
-
-    if (img.src.includes('bm_logo.png') || img.src.includes('llmlynx_logo_notext.png')) {
-         modalImg.style.backgroundColor = 'rgba(60, 136, 168, 1)'; // Use standard theme dark blue/color
-    } else {
-         modalImg.style.backgroundColor = 'white';
-    }
-
-    // Add event listener to close the modal when clicking outside the image
-    modal.addEventListener('click', function(event) {
-        if (event.target === modal) {
-            closeModal();
-        }
-    });
+    document.addEventListener('keydown', onModalKey);
 }
 
-// Function to close the modal
 function closeModal() {
-    const modal = document.getElementById('image-modal');
-    modal.style.display = 'none';
-
-    // Remove the event listener to prevent multiple bindings
-    modal.removeEventListener('click', function(event) {
-        if (event.target === modal) {
-            closeModal();
-        }
-    });
+    document.getElementById('image-modal').style.display = 'none';
+    document.removeEventListener('keydown', onModalKey);
 }
 
-// document.addEventListener('DOMContentLoaded', function() {
-//     // Function to query the screen display resolution
-//     function getScreenResolution() {
-//         const screenWidth = window.screen.width;
-//         const screenHeight = window.screen.height;
-//         console.log(`Screen Resolution: ${screenWidth}x${screenHeight}`);
-//         return { width: screenWidth, height: screenHeight };
-//     }
+function onModalKey(event) {
+    if (event.key === 'Escape') closeModal();
+}
 
-//     // Function to scale the page if the resolution is below 4K
-//     function scalePageIfNeeded() {
-//         const resolution = getScreenResolution();
-//         if (resolution.width < 3840 || resolution.height < 2160) {
-//             document.body.style.transform = 'scale(0.8)';
-//             document.body.style.transformOrigin = 'top center';
-//         }
-//     }
-
-//     // Call the function to scale the page if needed
-//     scalePageIfNeeded();
-// });
+// Close when clicking the backdrop (outside the image).
+document.getElementById('image-modal').addEventListener('click', function (event) {
+    if (event.target === this) closeModal();
+});
