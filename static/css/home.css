@@ -95,7 +95,7 @@
 .viz-contours ellipse:nth-child(odd) { opacity: 0.08; }
 
 .viz-scatter circle {
-    fill: var(--violet);
+    fill: var(--teal-bright);
     opacity: 0.45;
 }
 

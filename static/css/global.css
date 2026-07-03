@@ -1,7 +1,7 @@
 /* ============================================================
    Brink Data Science — design tokens & global shell
    Redesign: midnight-indigo canvas, terracotta primary accent,
-   violet secondary. Berkeley Mono display (JetBrains Mono as the
+   teal secondary. Berkeley Mono display (JetBrains Mono as the
    webfont fallback) over Manrope body and IBM Plex Mono labels.
    The palette is anchored to the project imagery: both scientific
    figures use magma colormaps (deep purple → orange → yellow),
@@ -18,8 +18,9 @@
     --terra:       #E67748;
     --terra-soft:  #F0976F;
     --terra-deep:  #C2552E;
-    --violet:      #9D8CFF;
-    --violet-soft: #B8ABFF;
+    --teal:        #3C88A8;
+    --teal-deep:   #266D8C;
+    --teal-bright: #5BB0D0;
 
     /* Neutrals */
     --ivory:     #F3EFE4;   /* primary text */
@@ -86,7 +87,7 @@ body {
     z-index: -1;
     background:
         url(/static/images/noise.svg),
-        radial-gradient(1000px 660px at 84% -8%, rgba(157, 140, 255, 0.16), transparent 60%),
+        radial-gradient(1000px 660px at 84% -8%, rgba(60, 136, 168, 0.18), transparent 60%),
         radial-gradient(900px 640px at -8% 110%, rgba(230, 119, 72, 0.10), transparent 55%),
         linear-gradient(to bottom, var(--bg-0), #121D36);
     background-blend-mode: soft-light, normal, normal, normal;
