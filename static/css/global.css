@@ -1,6 +1,6 @@
 /* ============================================================
    Brink Data Science — design tokens & global shell
-   Redesign: midnight-indigo canvas, amber/gold primary accent,
+   Redesign: midnight-indigo canvas, terracotta primary accent,
    violet secondary. Berkeley Mono display (JetBrains Mono as the
    webfont fallback) over Manrope body and IBM Plex Mono labels.
    The palette is anchored to the project imagery: both scientific
@@ -15,9 +15,9 @@
     --bg-2:      #16213B;   /* panel surface */
 
     /* Accents */
-    --amber:       #F2B33D;
-    --amber-soft:  #FFC964;
-    --amber-deep:  #C98F1F;
+    --terra:       #E67748;
+    --terra-soft:  #F0976F;
+    --terra-deep:  #C2552E;
     --violet:      #9D8CFF;
     --violet-soft: #B8ABFF;
 
@@ -87,20 +87,20 @@ body {
     background:
         url(/static/images/noise.svg),
         radial-gradient(1000px 660px at 84% -8%, rgba(157, 140, 255, 0.16), transparent 60%),
-        radial-gradient(900px 640px at -8% 110%, rgba(242, 179, 61, 0.10), transparent 55%),
+        radial-gradient(900px 640px at -8% 110%, rgba(230, 119, 72, 0.10), transparent 55%),
         linear-gradient(to bottom, var(--bg-0), #121D36);
     background-blend-mode: soft-light, normal, normal, normal;
 }
 
 img { max-width: 100%; display: block; }
 
-a { color: var(--amber-soft); text-decoration: none; }
+a { color: var(--terra-soft); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-::selection { background: rgba(242, 179, 61, 0.28); }
+::selection { background: rgba(230, 119, 72, 0.28); }
 
 :focus-visible {
-    outline: 2px solid var(--amber);
+    outline: 2px solid var(--terra);
     outline-offset: 3px;
     border-radius: 3px;
 }
@@ -123,18 +123,18 @@ section {
     font-weight: 500;
     letter-spacing: 0.24em;
     text-transform: uppercase;
-    color: var(--amber);
+    color: var(--terra);
     margin: 0 0 1.1rem;
     display: flex;
     align-items: center;
     gap: 0.7rem;
 }
-/* A short amber rule in front of every eyebrow — the redesign's signature mark */
+/* A short terracotta rule in front of every eyebrow — the redesign's signature mark */
 .eyebrow::before {
     content: "";
     width: 2rem;
     height: 1px;
-    background: var(--amber);
+    background: var(--terra);
     flex: none;
 }
 
@@ -151,7 +151,7 @@ section {
 }
 .section-title em {
     font-style: italic;
-    color: var(--amber-soft);
+    color: var(--terra-soft);
 }
 
 .section-intro {
@@ -183,18 +183,18 @@ section {
 .btn:active { transform: translateY(0); }
 
 .btn-primary {
-    background-color: var(--amber);
-    color: #201503;
-    box-shadow: 0 8px 26px rgba(242, 179, 61, 0.25);
+    background-color: var(--terra);
+    color: #1A0F08;
+    box-shadow: 0 8px 26px rgba(230, 119, 72, 0.25);
 }
-.btn-primary:hover { background-color: var(--amber-soft); }
+.btn-primary:hover { background-color: var(--terra-soft); }
 
 .btn-ghost {
     background-color: transparent;
     color: var(--ivory);
     border-color: var(--line-strong);
 }
-.btn-ghost:hover { border-color: var(--amber); color: var(--amber-soft); }
+.btn-ghost:hover { border-color: var(--terra); color: var(--terra-soft); }
 
 /* ---------- Banner / nav ---------- */
 
@@ -233,8 +233,8 @@ section {
 .wordmark-node {
     width: 7px; height: 7px;
     border-radius: 50%;
-    background: var(--amber);
-    box-shadow: 0 0 0 4px rgba(242, 179, 61, 0.16);
+    background: var(--terra);
+    box-shadow: 0 0 0 4px rgba(230, 119, 72, 0.16);
     flex: none;
     align-self: center;
 }
@@ -252,13 +252,13 @@ nav { display: flex; align-items: center; gap: 0.25rem; }
     transition: color 0.2s ease;
 }
 .nav-link:hover { color: var(--ivory); text-decoration: none; }
-.nav-link.active { color: var(--amber); }
+.nav-link.active { color: var(--terra); }
 .nav-link.active::after {
     content: "";
     position: absolute;
     left: 0.7rem; right: 0.7rem; bottom: 0.15rem;
     height: 2px;
-    background: var(--amber);
+    background: var(--terra);
     border-radius: 2px;
 }
 
@@ -321,7 +321,7 @@ nav { display: flex; align-items: center; gap: 0.25rem; }
     cursor: pointer;
     transition: color 0.2s ease;
 }
-.close:hover { color: var(--amber); }
+.close:hover { color: var(--terra); }
 
 /* ---------- Scroll reveal ---------- */
 

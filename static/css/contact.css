@@ -17,7 +17,7 @@
     color: var(--muted);
     font-size: 1.02rem;
 }
-.contact-email a { color: var(--amber-soft); }
+.contact-email a { color: var(--terra-soft); }
 
 .contact-notes {
     list-style: none;
@@ -83,14 +83,14 @@
     color: var(--ivory);
     font-size: 0.95rem;
 }
-.link-list a:hover { color: var(--amber-soft); text-decoration: none; }
+.link-list a:hover { color: var(--terra-soft); text-decoration: none; }
 .link-list a::after {
     content: "\2197";
     color: var(--muted);
     font-size: 0.85rem;
     transition: transform 0.2s ease, color 0.2s ease;
 }
-.link-list a:hover::after { color: var(--amber-soft); transform: translate(2px, -2px); }
+.link-list a:hover::after { color: var(--terra-soft); transform: translate(2px, -2px); }
 
 /* ---------- Responsive ---------- */
 
