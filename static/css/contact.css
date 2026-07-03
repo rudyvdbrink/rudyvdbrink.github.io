@@ -5,7 +5,7 @@
 .contact-grid {
     display: grid;
     grid-template-columns: 1.2fr 0.8fr;
-    gap: clamp(2rem, 5vw, 4rem);
+    gap: clamp(2rem, 5vw, 4.5rem);
     margin-top: clamp(2.5rem, 5vw, 3.5rem);
     align-items: start;
 }
@@ -17,7 +17,7 @@
     color: var(--muted);
     font-size: 1.02rem;
 }
-.contact-email a { color: var(--teal-bright); }
+.contact-email a { color: var(--amber-soft); }
 
 .contact-notes {
     list-style: none;
@@ -26,25 +26,25 @@
     border-top: 1px solid var(--line);
 }
 .contact-notes li {
-    padding: 0.85rem 0;
+    padding: 0.9rem 0;
     border-bottom: 1px solid var(--line);
     color: var(--muted);
     font-size: 0.95rem;
-    line-height: 1.5;
+    line-height: 1.55;
 }
 
 /* Side column */
 .contact-side {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 2.25rem;
 }
 
 .block-label {
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 500;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--muted);
     margin: 0 0 0.9rem;
@@ -60,12 +60,13 @@
 }
 .tag-list li {
     font-family: var(--font-mono);
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     letter-spacing: 0.02em;
-    color: var(--paper);
-    padding: 0.35rem 0.7rem;
+    color: var(--ivory);
+    padding: 0.32rem 0.7rem;
     border: 1px solid var(--line-strong);
     border-radius: 999px;
+    background: rgba(243, 239, 228, 0.03);
 }
 
 .link-list {
@@ -79,17 +80,17 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.7rem 0;
-    color: var(--paper);
+    color: var(--ivory);
     font-size: 0.95rem;
 }
-.link-list a:hover { color: var(--teal-bright); text-decoration: none; }
+.link-list a:hover { color: var(--amber-soft); text-decoration: none; }
 .link-list a::after {
     content: "\2197";
     color: var(--muted);
     font-size: 0.85rem;
     transition: transform 0.2s ease, color 0.2s ease;
 }
-.link-list a:hover::after { color: var(--teal-bright); transform: translate(2px, -2px); }
+.link-list a:hover::after { color: var(--amber-soft); transform: translate(2px, -2px); }
 
 /* ---------- Responsive ---------- */
 

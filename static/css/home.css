@@ -1,139 +1,201 @@
 /* ============================================================
-   Hero / home
+   Hero / home + services strip
    ============================================================ */
 
 #home {
     position: relative;
-    min-height: 88vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding-top: calc(var(--banner-h) + 2rem);
-    padding-bottom: 4rem;
+    padding-bottom: 1rem;
 }
 
 .hero {
     display: grid;
-    grid-template-columns: 1.15fr 1fr;
+    grid-template-columns: 1.1fr 0.9fr;
     align-items: center;
-    gap: clamp(2rem, 5vw, 4rem);
+    gap: clamp(2rem, 5vw, 4.5rem);
     width: 100%;
+    min-height: calc(88vh - var(--banner-h));
 }
 
 .hero-title {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: clamp(2rem, 6vw, 4.8rem);
-    line-height: 1.0;
+    font-size: clamp(1.9rem, 4.6vw, 3.6rem);
+    line-height: 1.14;
     letter-spacing: -0.03em;
-    margin: 0 0 1.4rem;
-    color: var(--paper);
+    margin: 0 0 1.5rem;
+    color: var(--ivory);
+}
+.hero-title em {
+    font-style: italic;
+    color: var(--amber-soft);
 }
 
 .hero-lede {
-    font-size: clamp(1.02rem, 1.7vw, 1.2rem);
-    line-height: 1.65;
+    font-size: clamp(1.02rem, 1.7vw, 1.18rem);
+    line-height: 1.7;
     color: var(--muted);
-    max-width: 46ch;
-    margin: 0 0 2rem;
+    max-width: 48ch;
+    margin: 0 0 2.2rem;
 }
-.hero-lede strong { color: var(--paper); font-weight: 600; }
+.hero-lede strong { color: var(--ivory); font-weight: 700; }
 
 .hero-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.9rem;
-    margin-bottom: 1.4rem;
+    margin-bottom: 2.6rem;
 }
 
-.hero-meta {
+/* Credentials row — hairline-separated, no numbering */
+.hero-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(1.25rem, 3vw, 2.5rem);
     margin: 0;
-    font-family: var(--font-mono);
-    font-size: 0.82rem;
-    letter-spacing: 0.04em;
+    border-top: 1px solid var(--line);
+    padding-top: 1.4rem;
 }
-.hero-meta a { color: var(--muted); }
-.hero-meta a:hover { color: var(--teal-bright); }
+.stat { margin: 0; }
+.stat dt {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.3rem;
+}
+.stat dd {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    color: var(--ivory);
+}
+.stat dd a { color: var(--amber-soft); }
 
-/* Neural-network hero visual (echoes the molecule in the logo) */
+/* ---------- Hero visual: loss landscape + gradient descent ---------- */
+
 .hero-visual {
     justify-self: center;
     width: 100%;
     max-width: 560px;
 }
-.hero-net { width: 100%; height: auto; overflow: visible; }
+.hero-viz { width: 100%; height: auto; overflow: visible; }
 
-.net-edge {
-    stroke: var(--teal-bright);
-    stroke-width: 1;
-    opacity: 0.16;
-}
-.net-edge--active {
-    stroke: var(--terra);
-    stroke-width: 1.6;
-    opacity: 0.85;
+.viz-contours ellipse {
     fill: none;
-    stroke-dasharray: 6 10;
+    stroke: var(--ivory);
+    stroke-width: 1;
+    opacity: 0.13;
 }
-.net-node {
-    fill: var(--teal-bright);
-    opacity: 0.85;
+.viz-contours ellipse:nth-child(odd) { opacity: 0.08; }
+
+.viz-scatter circle {
+    fill: var(--violet);
+    opacity: 0.45;
 }
-.net-node--hot { fill: var(--terra); }
+
+.viz-descent {
+    fill: none;
+    stroke: var(--amber);
+    stroke-width: 1.8;
+    stroke-dasharray: 6 9;
+    opacity: 0.9;
+}
+
+.viz-steps circle {
+    fill: var(--bg-0);
+    stroke: var(--amber);
+    stroke-width: 1.6;
+}
+
+.viz-min {
+    fill: var(--amber);
+    filter: drop-shadow(0 0 8px rgba(242, 179, 61, 0.65));
+}
 
 /* Stop the animation repainting while the hero is scrolled out of view */
-.hero-net.is-paused .net-node,
-.hero-net.is-paused .net-edge--active { animation-play-state: paused; }
+.hero-viz.is-paused .viz-descent,
+.hero-viz.is-paused .viz-min { animation-play-state: paused; }
 
 @media (prefers-reduced-motion: no-preference) {
-    .net-node {
+    .viz-descent { animation: descentFlow 2.2s linear infinite; }
+    .viz-min {
         transform-box: fill-box;
         transform-origin: center;
-        animation: nodePulse 3.6s ease-in-out infinite;
-        animation-delay: calc(var(--i) * -0.4s);
+        animation: minPulse 3.4s ease-in-out infinite;
     }
-    .net-edge--active {
-        animation: signalFlow 1.6s linear infinite;
-        animation-delay: calc(var(--i) * 0.5s);
+    @keyframes descentFlow {
+        to { stroke-dashoffset: -30; }
     }
-    @keyframes nodePulse {
-        0%, 100% { opacity: 0.55; transform: scale(0.92); }
-        50%      { opacity: 1;    transform: scale(1.08); }
-    }
-    @keyframes signalFlow {
-        to { stroke-dashoffset: -32; }
+    @keyframes minPulse {
+        0%, 100% { transform: scale(0.9); opacity: 0.8; }
+        50%      { transform: scale(1.15); opacity: 1; }
     }
 }
 
-/* Scroll cue — centered beneath the neural network */
+/* Scroll cue — centered beneath the visual */
 .scroll-cue {
     display: flex;
     justify-content: center;
-    margin-top: 1.75rem;
-    opacity: 0.6;
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    margin-top: 2rem;
+    color: var(--muted);
+    opacity: 0.7;
+    transition: transform 0.3s ease, opacity 0.3s ease, color 0.3s ease;
 }
-.scroll-cue:hover { opacity: 1; transform: translateY(4px); }
-.scroll-cue img { width: 1.5rem; height: auto; }
+.scroll-cue:hover { opacity: 1; color: var(--amber); transform: translateY(4px); }
+
+/* ---------- Services strip ---------- */
+
+.services {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1.5rem, 3.5vw, 3.5rem);
+    border-top: 1px solid var(--line);
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+    padding-top: clamp(2rem, 4vw, 3rem);
+}
+
+.service-label {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--amber-soft);
+    margin: 0 0 0.6rem;
+}
+
+.service-desc {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--muted);
+    max-width: 38ch;
+}
 
 /* ---------- Responsive ---------- */
 
 @media (max-width: 900px) {
     #home {
-        min-height: auto;
         padding-top: calc(var(--banner-h) + 3rem);
-        padding-bottom: 5rem;
     }
     .hero {
         grid-template-columns: 1fr;
-        gap: 2rem;
+        gap: 2.5rem;
+        min-height: auto;
         text-align: left;
     }
     .hero-visual { max-width: 420px; justify-self: start; }
     .scroll-cue { display: none; }
+    .services { grid-template-columns: 1fr; gap: 1.75rem; }
+    .service-desc { max-width: 60ch; }
 }
 
 @media (max-width: 480px) {
     .hero-actions { gap: 0.7rem; }
     .hero-actions .btn { width: 100%; }
+    .hero-stats { flex-direction: column; gap: 1rem; }
 }

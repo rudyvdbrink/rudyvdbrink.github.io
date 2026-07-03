@@ -25,8 +25,8 @@ document.addEventListener('DOMContentLoaded', function () {
         sections.forEach(section => spy.observe(section));
     }
 
-    // ---- Reveal cards and section heads as they enter the viewport ----
-    const revealEls = document.querySelectorAll('.card, .section-head');
+    // ---- Reveal content as it enters the viewport ----
+    const revealEls = document.querySelectorAll('.section-head, .service, .project, .contact-grid');
     if (reduceMotion || !('IntersectionObserver' in window)) {
         revealEls.forEach(el => el.classList.add('is-visible'));
     } else {
@@ -38,16 +38,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     obs.unobserve(entry.target);
                 }
             });
-        }, { rootMargin: '0px 0px -12% 0px', threshold: 0 });
+        }, { rootMargin: '0px 0px -10% 0px', threshold: 0 });
         revealEls.forEach(el => revealer.observe(el));
     }
 
     // ---- Pause the hero animation while it's scrolled out of view ----
-    const heroNet = document.querySelector('.hero-net');
+    const heroViz = document.querySelector('.hero-viz');
     const home = document.getElementById('home');
-    if (heroNet && home && !reduceMotion && 'IntersectionObserver' in window) {
+    if (heroViz && home && !reduceMotion && 'IntersectionObserver' in window) {
         const heroSpy = new IntersectionObserver((entries) => {
-            entries.forEach(entry => heroNet.classList.toggle('is-paused', !entry.isIntersecting));
+            entries.forEach(entry => heroViz.classList.toggle('is-paused', !entry.isIntersecting));
         }, { threshold: 0 });
         heroSpy.observe(home);
     }
@@ -61,10 +61,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // ============================================================
 // Portfolio image modal
+// All project imagery sits on the dark panel surface, so the
+// modal plate is dark too (set in CSS via .modal-content).
 // ============================================================
-
-// White logos sit on a brand-teal plate; everything else on light.
-const BRAND_PLATE_IMAGES = ['llmlynx_logo_notext.png', 'bm_logo.png'];
 
 function showImage(img) {
     const modal = document.getElementById('image-modal');
@@ -76,10 +75,6 @@ function showImage(img) {
         : img.src;
 
     modalImg.alt = img.alt || '';
-    modalImg.style.background = BRAND_PLATE_IMAGES.some(name => img.src.includes(name))
-        ? 'linear-gradient(135deg, #3C88A8, #266D8C)'
-        : 'var(--plate)';
-
     modal.style.display = 'block';
     document.addEventListener('keydown', onModalKey);
 }
