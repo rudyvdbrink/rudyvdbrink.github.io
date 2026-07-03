@@ -20,6 +20,11 @@
     min-height: calc(88vh - var(--banner-h));
 }
 
+/* The hero eyebrow (and its leading rule) carries the teal accent;
+   all other eyebrows stay terracotta. */
+.hero-text .eyebrow { color: var(--teal-bright); }
+.hero-text .eyebrow::before { background: var(--teal-bright); }
+
 .hero-title {
     font-family: var(--font-display);
     font-weight: 700;
@@ -75,7 +80,7 @@
     font-size: 0.92rem;
     color: var(--ivory);
 }
-.stat dd a { color: var(--terra-soft); }
+.stat dd a { color: var(--teal-bright); }
 
 /* ---------- Hero visual: loss landscape + gradient descent ---------- */
 

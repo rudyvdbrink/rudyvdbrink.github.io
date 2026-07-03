@@ -150,22 +150,12 @@
     color: var(--terra-soft);
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    border-bottom: 1px solid rgba(230, 119, 72, 0.35);
-    padding-bottom: 2px;
-    transition: color 0.2s ease, border-color 0.2s ease, gap 0.2s ease;
-}
-.project-link::after {
-    content: "\2197";
-    font-size: 0.9em;
-    transition: transform 0.2s ease;
+    transition: color 0.2s ease;
 }
 .project-link:hover {
     text-decoration: none;
     color: var(--ivory);
-    border-color: var(--ivory);
 }
-.project-link:hover::after { transform: translate(2px, -2px); }
 
 /* ---------- Visual panel ---------- */
 
