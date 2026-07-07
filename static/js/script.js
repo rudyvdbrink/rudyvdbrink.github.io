@@ -52,6 +52,53 @@ document.addEventListener('DOMContentLoaded', function () {
         heroSpy.observe(home);
     }
 
+    // ---- Audio demo player (Making Audiobooks) ----
+    document.querySelectorAll('.audio-demo').forEach(demo => {
+        const audio = demo.querySelector('audio');
+        const button = demo.querySelector('.demo-play');
+        const track = demo.querySelector('.demo-track');
+        const progress = demo.querySelector('.demo-progress');
+        const time = demo.querySelector('.demo-time');
+
+        const format = s => {
+            s = Math.max(0, Math.floor(s || 0));
+            return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+        };
+
+        audio.addEventListener('loadedmetadata', () => { time.textContent = format(audio.duration); });
+
+        button.addEventListener('click', () => {
+            if (audio.paused) { audio.play(); } else { audio.pause(); }
+        });
+        audio.addEventListener('play', () => {
+            demo.classList.add('is-playing');
+            button.setAttribute('aria-label', 'Pause voice demo');
+        });
+        audio.addEventListener('pause', () => {
+            demo.classList.remove('is-playing');
+            button.setAttribute('aria-label', 'Play voice demo');
+        });
+        audio.addEventListener('ended', () => {
+            audio.currentTime = 0;
+            progress.style.width = '0%';
+            time.textContent = format(audio.duration);
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            if (!audio.duration) return;
+            progress.style.width = (audio.currentTime / audio.duration) * 100 + '%';
+            time.textContent = format(audio.currentTime);
+        });
+
+        // Click-to-seek on the track
+        track.addEventListener('click', event => {
+            if (!audio.duration) return;
+            const rect = track.getBoundingClientRect();
+            const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+            audio.currentTime = ratio * audio.duration;
+        });
+    });
+
     // ---- Open external links in a new tab ----
     document.querySelectorAll('a[href^="https://"]').forEach(link => {
         if (!link.target) link.setAttribute('target', '_blank');
