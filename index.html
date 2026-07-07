@@ -375,6 +375,18 @@
                         <figure class="panel panel--logo panel--glow-terra">
                             <img src="static/images/bm_logo.png" alt="Making Audiobooks logo" class="panel-image panel-image--mark" onclick="showImage(this)">
                         </figure>
+                        <div class="audio-demo" role="group" aria-label="Voice demo player">
+                            <button class="demo-play" type="button" aria-label="Play voice demo">
+                                <svg class="icon-play" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg>
+                                <svg class="icon-pause" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 1.5h3.6v13H3zM9.4 1.5H13v13H9.4z" fill="currentColor"/></svg>
+                            </button>
+                            <div class="demo-body">
+                                <p class="demo-label">Voice demo</p>
+                                <div class="demo-track" aria-hidden="true"><div class="demo-progress"></div></div>
+                            </div>
+                            <span class="demo-time">&ndash;:&ndash;&ndash;</span>
+                            <audio src="static/media/bookmaker.mp3" preload="metadata"></audio>
+                        </div>
                     </div>
                 </article>
 

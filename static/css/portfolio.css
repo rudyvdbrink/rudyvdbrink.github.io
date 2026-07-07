@@ -161,7 +161,9 @@
 
 .project-visual {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
     width: 100%;
 }
 
@@ -242,6 +244,76 @@
     .panel:hover .panel-image { transform: scale(1.025); }
 }
 
+/* ---------- Audio demo player (Making Audiobooks) ---------- */
+
+.audio-demo {
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(165deg, var(--bg-2), var(--bg-1));
+}
+.audio-demo audio { display: none; }
+
+.demo-play {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--terra);
+    color: #1A0F08;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+}
+.demo-play:hover { background: var(--terra-soft); transform: scale(1.06); }
+.demo-play .icon-play { margin-left: 2px; } /* optical centering of the triangle */
+.demo-play .icon-pause { display: none; }
+.audio-demo.is-playing .icon-play { display: none; }
+.audio-demo.is-playing .icon-pause { display: block; }
+
+.demo-body { flex: 1; min-width: 0; }
+
+.demo-label {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.demo-track {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(243, 239, 228, 0.14);
+    cursor: pointer;
+    overflow: hidden;
+}
+.demo-progress {
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: var(--terra);
+}
+
+.demo-time {
+    flex: none;
+    min-width: 2.8em;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 980px) {
@@ -258,7 +330,7 @@
         align-content: start;
     }
     .project-visual {
-        justify-content: flex-start;
+        align-items: flex-start;
         margin: 0.5rem 0 2.25rem;
     }
     .panel--logo { max-width: 380px; }
