@@ -324,6 +324,32 @@ nav { display: flex; align-items: center; gap: 0.25rem; }
 }
 .close:hover { color: var(--terra); }
 
+/* Prev/next chevrons — shown only when the opened image belongs to a set */
+.modal-nav {
+    display: none;
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    background: rgba(243, 239, 228, 0.06);
+    color: var(--ivory);
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+.modal.has-gallery .modal-nav { display: inline-flex; }
+.modal-prev { left: 22px; }
+.modal-next { right: 22px; }
+.modal-nav:hover {
+    color: var(--terra);
+    border-color: var(--terra);
+    background: rgba(243, 239, 228, 0.1);
+}
+
 /* ---------- Scroll reveal ---------- */
 
 .reveal {
