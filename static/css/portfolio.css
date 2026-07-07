@@ -221,6 +221,23 @@
     border-bottom: 1px solid var(--line);
 }
 
+/* Rotating image stack: the first image sets the panel size; the others
+   sit on top and crossfade in every rotation interval. */
+.panel-stack { position: relative; }
+.panel-stack .panel-image {
+    opacity: 0;
+    transition: opacity 0.9s ease, transform 0.35s ease;
+}
+.panel-stack .panel-image.is-active { opacity: 1; }
+.panel-stack .panel-image:not(.is-active) { pointer-events: none; }
+.panel-stack .panel-image:not(:first-child) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 .panel--pad {
     padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1.5rem, 3vw, 2.5rem) 0;
 }

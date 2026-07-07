@@ -52,6 +52,34 @@ document.addEventListener('DOMContentLoaded', function () {
         heroSpy.observe(home);
     }
 
+    // ---- Rotating panel images (Smart Sampling) ----
+    // Crossfade through the stacked images every 20 s, pausing while the
+    // panel is scrolled out of view. The modal never auto-rotates.
+    document.querySelectorAll('.panel-stack').forEach(stack => {
+        const images = Array.from(stack.querySelectorAll('img'));
+        if (images.length < 2) return;
+        const caption = stack.closest('.panel').querySelector('.panel-caption');
+        let index = 0;
+        let inView = true;
+
+        function setCaption() {
+            const label = images[index].dataset.caption;
+            if (caption && label) caption.textContent = label + ' — click to enlarge';
+        }
+        if ('IntersectionObserver' in window) {
+            new IntersectionObserver(entries => {
+                entries.forEach(entry => { inView = entry.isIntersecting; });
+            }, { threshold: 0 }).observe(stack);
+        }
+        setInterval(() => {
+            if (!inView) return;
+            index = (index + 1) % images.length;
+            images.forEach((img, i) => img.classList.toggle('is-active', i === index));
+            setCaption();
+        }, 20000);
+        setCaption();
+    });
+
     // ---- Audio demo player (Making Audiobooks) ----
     document.querySelectorAll('.audio-demo').forEach(demo => {
         const audio = demo.querySelector('audio');
@@ -110,20 +138,37 @@ document.addEventListener('DOMContentLoaded', function () {
 // Portfolio image modal
 // All project imagery sits on the dark panel surface, so the
 // modal plate is dark too (set in CSS via .modal-content).
+// Images inside a .panel-stack open as a small gallery with
+// prev/next chevrons; the modal itself never auto-rotates.
+// An image's data-full attribute points to a higher-detail
+// version to show in place of the thumbnail.
 // ============================================================
+
+let modalGallery = [];
+let modalIndex = 0;
+
+function renderModalImage() {
+    const item = modalGallery[modalIndex];
+    const modalImg = document.getElementById('modal-image');
+    modalImg.src = item.dataset.full || item.src;
+    modalImg.alt = item.alt || '';
+}
 
 function showImage(img) {
     const modal = document.getElementById('image-modal');
-    const modalImg = document.getElementById('modal-image');
-
-    // Swap the Smart Sampling thumbnail for the full-detail version.
-    modalImg.src = img.src.includes('smart_sampling_clean.png')
-        ? img.src.replace('smart_sampling_clean.png', 'smart_sampling.png')
-        : img.src;
-
-    modalImg.alt = img.alt || '';
+    const stack = img.closest('.panel-stack');
+    modalGallery = stack ? Array.from(stack.querySelectorAll('img')) : [img];
+    modalIndex = Math.max(0, modalGallery.indexOf(img));
+    modal.classList.toggle('has-gallery', modalGallery.length > 1);
+    renderModalImage();
     modal.style.display = 'block';
     document.addEventListener('keydown', onModalKey);
+}
+
+function stepModal(direction) {
+    if (modalGallery.length < 2) return;
+    modalIndex = (modalIndex + direction + modalGallery.length) % modalGallery.length;
+    renderModalImage();
 }
 
 function closeModal() {
@@ -133,6 +178,8 @@ function closeModal() {
 
 function onModalKey(event) {
     if (event.key === 'Escape') closeModal();
+    if (event.key === 'ArrowLeft') stepModal(-1);
+    if (event.key === 'ArrowRight') stepModal(1);
 }
 
 // Close when clicking the backdrop (outside the image).
