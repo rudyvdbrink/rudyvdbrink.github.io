@@ -259,7 +259,10 @@
                     </div>
                     <div class="project-visual">
                         <figure class="panel panel--figure">
-                            <img src="static/images/smart_sampling_clean.png" alt="Satellite imagery tiles alongside model output: building masks, instance maps, and confidence heatmaps" class="panel-image panel-image--bleed" onclick="showImage(this)">
+                            <div class="panel-stack">
+                                <img src="static/images/smart_sampling_clean.png" data-full="static/images/smart_sampling.png" data-caption="Model output on satellite tiles" alt="Satellite imagery tiles alongside model output: building masks, instance maps, and confidence heatmaps" class="panel-image panel-image--bleed is-active" onclick="showImage(this)">
+                                <img src="static/images/accra_preds.png" data-caption="Building predictions across Accra" alt="Satellite view of Accra overlaid with model-predicted building footprints" class="panel-image panel-image--bleed" loading="lazy" onclick="showImage(this)">
+                            </div>
                             <figcaption class="panel-caption">Model output on satellite tiles &mdash; click to enlarge</figcaption>
                         </figure>
                     </div>
@@ -375,6 +378,18 @@
                         <figure class="panel panel--logo panel--glow-terra">
                             <img src="static/images/bm_logo.png" alt="Making Audiobooks logo" class="panel-image panel-image--mark" onclick="showImage(this)">
                         </figure>
+                        <div class="audio-demo" role="group" aria-label="Voice demo player">
+                            <button class="demo-play" type="button" aria-label="Play voice demo">
+                                <svg class="icon-play" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg>
+                                <svg class="icon-pause" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 1.5h3.6v13H3zM9.4 1.5H13v13H9.4z" fill="currentColor"/></svg>
+                            </button>
+                            <div class="demo-body">
+                                <p class="demo-label">Voice demo</p>
+                                <div class="demo-track" aria-hidden="true"><div class="demo-progress"></div></div>
+                            </div>
+                            <span class="demo-time">&ndash;:&ndash;&ndash;</span>
+                            <audio src="static/media/bookmaker.mp3" preload="metadata"></audio>
+                        </div>
                     </div>
                 </article>
 
@@ -486,6 +501,12 @@
     <!-- modal for portfolio images -->
     <div id="image-modal" class="modal" role="dialog" aria-modal="true" aria-label="Project image">
         <span class="close" onclick="closeModal()" role="button" aria-label="Close">&times;</span>
+        <button class="modal-nav modal-prev" type="button" onclick="stepModal(-1)" aria-label="Previous image">
+            <svg viewBox="0 0 14 24" width="15" height="26" aria-hidden="true"><path d="M12 2L2 12l10 10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="modal-nav modal-next" type="button" onclick="stepModal(1)" aria-label="Next image">
+            <svg viewBox="0 0 14 24" width="15" height="26" aria-hidden="true"><path d="M2 2l10 10L2 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
         <img class="modal-content" id="modal-image" alt="">
     </div>
 
