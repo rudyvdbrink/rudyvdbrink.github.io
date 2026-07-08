@@ -192,7 +192,7 @@
 }
 /* Taller, portrait variant: same width, extra headroom above and below
    the content (used by the animated AutoHPSearch logo). */
-.panel--logo.panel--tall { aspect-ratio: 5 / 5.5; }
+.panel--logo.panel--tall { aspect-ratio: 5 / 5.1; }
 
 .panel--glow-teal {
     background:
