@@ -80,6 +80,124 @@ document.addEventListener('DOMContentLoaded', function () {
         setCaption();
     });
 
+    // ---- Animated AutoHPSearch logo ----
+    // The burst of the original logo, rebuilt as a symmetric sphere-like
+    // object and spun slowly about the central vertical axis. All spokes
+    // share one length and one dot size in 3D; spokes sit at 90° and 45°
+    // to the axis (plus the two poles on the axis itself). Each frame the
+    // tips are rotated and perspective-projected. Depth is conveyed by
+    // shading toward the panel color — never by transparency — and the
+    // dots are drawn back-to-front on top of the lines, so no line ever
+    // shows through a circle.
+    const hpSpin = document.querySelector('.hp-spin');
+    if (hpSpin) {
+        const SVG_NS = 'http://www.w3.org/2000/svg';
+        const BLUE = [0, 155, 235];   // #009BEB, the logo's own color
+        const SHADE = [19, 28, 51];   // panel-dark to shade distant spokes toward
+        const LEN = 92;
+        const DOT = 7;
+        const DIAGONAL_SCALE = 0.9;   // 45° spokes sit a touch shorter, dots a touch smaller
+        const PERSPECTIVE = 320;
+        const RAD = Math.PI / 180;
+        // View the sphere from a slightly raised vantage point: a fixed
+        // pitch applied after the spin, tipping the top toward the camera.
+        const TILT = -16 * RAD;
+        const TILT_SIN = Math.sin(TILT);
+        const TILT_COS = Math.cos(TILT);
+
+        // Poles + equator ring (90° to the axis) + two 45° rings,
+        // azimuthally staggered for even coverage.
+        const specs = [{ az: 0, el: 90 }, { az: 0, el: -90 }];
+        [0, 90, 180, 270].forEach(az => specs.push({ az: az, el: 0 }));
+        [45, 135, 225, 315].forEach(az => {
+            specs.push({ az: az, el: 45, diagonal: true });
+            specs.push({ az: az, el: -45, diagonal: true });
+        });
+
+        const burstLayer = document.createElementNS(SVG_NS, 'g');
+        hpSpin.appendChild(burstLayer);
+
+        const rays = specs.map(spec => {
+            const el = spec.el * RAD;
+            const az = spec.az * RAD;
+            const len = spec.diagonal ? LEN * DIAGONAL_SCALE : LEN;
+            const line = document.createElementNS(SVG_NS, 'line');
+            const circle = document.createElementNS(SVG_NS, 'circle');
+            line.setAttribute('stroke-linecap', 'round');
+            burstLayer.appendChild(line);
+            burstLayer.appendChild(circle);
+            return {
+                x: Math.cos(el) * Math.cos(az) * len,
+                y: -Math.sin(el) * len,
+                z: Math.cos(el) * Math.sin(az) * len,
+                dot: spec.diagonal ? DOT * DIAGONAL_SCALE : DOT,
+                line: line,
+                circle: circle,
+                lineDepth: 0,
+                dotDepth: 0
+            };
+        });
+
+        function depthColor(depth) {
+            // depth 1 = nearest (pure logo blue), 0 = farthest (shaded)
+            const mix = 0.6 * (1 - depth);
+            const channel = i => Math.round(BLUE[i] + (SHADE[i] - BLUE[i]) * mix);
+            return 'rgb(' + channel(0) + ',' + channel(1) + ',' + channel(2) + ')';
+        }
+
+        function renderBurst(theta) {
+            const sin = Math.sin(theta);
+            const cos = Math.cos(theta);
+            rays.forEach(ray => {
+                // spin about the vertical axis...
+                const x = ray.x * cos + ray.z * sin;
+                const zSpun = -ray.x * sin + ray.z * cos;
+                // ...then pitch for the raised viewpoint
+                const y = ray.y * TILT_COS - zSpun * TILT_SIN;
+                const z = ray.y * TILT_SIN + zSpun * TILT_COS;
+                const scale = PERSPECTIVE / (PERSPECTIVE - z);
+                const color = depthColor((z / LEN + 1) / 2);
+                // Painter's algorithm keys: a line spans from the center
+                // (z = 0) to its tip, so its midpoint depth stands in for
+                // the whole stroke; the dot sorts by its tip depth but
+                // never before its own line, so it always caps the spoke.
+                ray.lineDepth = z / 2;
+                ray.dotDepth = Math.max(z, ray.lineDepth) + 0.01;
+                ray.line.setAttribute('x2', x * scale);
+                ray.line.setAttribute('y2', y * scale);
+                ray.line.setAttribute('stroke-width', 2.2 * scale);
+                ray.line.setAttribute('stroke', color);
+                ray.circle.setAttribute('cx', x * scale);
+                ray.circle.setAttribute('cy', y * scale);
+                ray.circle.setAttribute('r', ray.dot * scale);
+                ray.circle.setAttribute('fill', color);
+            });
+            // Repaint every primitive back-to-front so what's on top on
+            // screen matches what's nearest in 3D space
+            rays.flatMap(ray => [
+                { depth: ray.lineDepth, node: ray.line },
+                { depth: ray.dotDepth, node: ray.circle }
+            ]).sort((a, b) => a.depth - b.depth)
+              .forEach(item => burstLayer.appendChild(item.node));
+        }
+
+        if (reduceMotion) {
+            renderBurst(0.6); // a fixed, gently angled pose
+        } else {
+            let spinning = true;
+            if ('IntersectionObserver' in window) {
+                new IntersectionObserver(entries => {
+                    entries.forEach(entry => { spinning = entry.isIntersecting; });
+                }, { threshold: 0 }).observe(hpSpin);
+            }
+            const REVOLUTION_MS = 18000;
+            requestAnimationFrame(function tick(now) {
+                if (spinning) renderBurst((now / REVOLUTION_MS) * 2 * Math.PI);
+                requestAnimationFrame(tick);
+            });
+        }
+    }
+
     // ---- Audio demo player (Making Audiobooks) ----
     document.querySelectorAll('.audio-demo').forEach(demo => {
         const audio = demo.querySelector('audio');
