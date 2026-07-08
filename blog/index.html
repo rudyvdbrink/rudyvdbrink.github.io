@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Practical articles on machine learning, AI, and the engineering around them — from the fundamentals of ML and agentic AI to hands-on guides for Streamlit, Hugging Face, CUDA, PyTorch, and Docker.">
+    <meta name="keywords" content="machine learning blog, AI tutorials, agentic AI, Streamlit chatbot, Hugging Face Hub, CUDA, PyTorch, Docker, data science">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/">
+
+    <meta property="og:title" content="Blog — Brink Data Science">
+    <meta property="og:description" content="Practical articles on machine learning, AI, and the engineering around them.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/">
+    <meta property="og:type" content="website">
+
+    <title>Blog — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "name": "Brink Data Science Blog",
+      "url": "https://www.brinkdatascience.com/blog/",
+      "description": "Practical articles on machine learning, AI, and the engineering around them.",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      }
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <!-- banner with navigation -->
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <section id="blog">
+                <div class="section-head">
+                    <p class="eyebrow">Blog</p>
+                    <h1 class="section-title">Notes from the <em>practice</em>.</h1>
+                    <p class="section-intro">
+                        Practical writing on machine learning and the engineering around it &mdash;
+                        fundamentals, tooling, and the setup work that never makes it into papers.
+                    </p>
+                </div>
+
+                <div class="post-list">
+
+                    <a class="post-card" href="/blog/local-llm-inference-ollama/">
+                        <p class="post-card-meta"><span class="post-topic">Local-first</span> &middot; July 7, 2026</p>
+                        <h2 class="post-card-title">Local LLM Inference with Ollama: A Practical Guide</h2>
+                        <p class="post-card-excerpt">
+                            Run large language models on your own hardware: installation, picking a model that
+                            fits your memory, quantization, the Python API, and Modelfile customization.
+                        </p>
+                    </a>
+
+                    <a class="post-card" href="/blog/agentic-systems-langgraph/">
+                        <p class="post-card-meta"><span class="post-topic">Build</span> &middot; June 23, 2026</p>
+                        <h2 class="post-card-title">Building Agentic Systems with LangGraph: ReAct Agents and RAG</h2>
+                        <p class="post-card-excerpt">
+                            Agents as graphs: a ReAct agent from scratch with tools and memory, a RAG pipeline
+                            as a graph, and agentic RAG that decides for itself when to retrieve.
+                        </p>
+                    </a>
+
+                    <a class="post-card" href="/blog/how-to-use-docker/">
+                        <p class="post-card-meta"><span class="post-topic">Engineering</span> &middot; June 9, 2026</p>
+                        <h2 class="post-card-title">How to Use Docker: A Practical Introduction for Data Scientists</h2>
+                        <p class="post-card-excerpt">
+                            Images, containers, Dockerfiles, volumes, and GPU access &mdash; the working
+                            vocabulary and commands you need to ship a machine learning project in a container.
+                        </p>
+                    </a>
+
+                    <a class="post-card" href="/blog/install-cuda-pytorch/">
+                        <p class="post-card-meta"><span class="post-topic">Setup</span> &middot; May 12, 2026</p>
+                        <h2 class="post-card-title">How to Install CUDA and Find the Right PyTorch Version</h2>
+                        <p class="post-card-excerpt">
+                            What CUDA actually is, why <code>nvidia-smi</code> doesn't show what you think it
+                            shows, and how to install a PyTorch build that matches your driver on the first try.
+                        </p>
+                    </a>
+
+                    <a class="post-card" href="/blog/huggingface-hub-python/">
+                        <p class="post-card-meta"><span class="post-topic">Tooling</span> &middot; April 14, 2026</p>
+                        <h2 class="post-card-title">How to Sign In to the Hugging Face Hub from Python</h2>
+                        <p class="post-card-excerpt">
+                            Authenticate with an access token, push models and tokenizers to the Hub, and pull
+                            them back down &mdash; from scripts, notebooks, and CI environments.
+                        </p>
+                    </a>
+
+                    <a class="post-card" href="/blog/ai-chatbot-streamlit/">
+                        <p class="post-card-meta"><span class="post-topic">Build</span> &middot; March 17, 2026</p>
+                        <h2 class="post-card-title">How to Build an AI Chatbot with Streamlit and Python</h2>
+                        <p class="post-card-excerpt">
+                            A complete, streaming chat interface in under fifty lines of Python &mdash;
+                            session state, chat components, and a large language model behind it.
+                        </p>
+                    </a>
+
+                    <a class="post-card" href="/blog/what-is-agentic-ai/">
+                        <p class="post-card-meta"><span class="post-topic">Concepts</span> &middot; February 24, 2026</p>
+                        <h2 class="post-card-title">What Is Agentic AI? From Chatbots to AI Agents</h2>
+                        <p class="post-card-excerpt">
+                            What makes an AI system "agentic", how tool use and the agent loop work,
+                            and when an agent is the right architecture &mdash; and when it isn't.
+                        </p>
+                    </a>
+
+                    <a class="post-card" href="/blog/what-is-machine-learning/">
+                        <p class="post-card-meta"><span class="post-topic">Concepts</span> &middot; January 20, 2026</p>
+                        <h2 class="post-card-title">What Is Machine Learning? What Is AI? A Historical Perspective</h2>
+                        <p class="post-card-excerpt">
+                            From Turing's question to transformers: how AI and machine learning relate,
+                            how the field got here, and what the main types of learning actually mean.
+                        </p>
+                    </a>
+
+                </div>
+            </section>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>

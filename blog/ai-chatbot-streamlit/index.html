@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Build a streaming AI chatbot with Streamlit and Python in under fifty lines of code: chat components, session state, secrets management, and a large language model behind it.">
+    <meta name="keywords" content="Streamlit chatbot, AI chatbot Python, Streamlit chat_input, chat_message, LLM chat app, build a chatbot, Streamlit tutorial">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/ai-chatbot-streamlit/">
+
+    <meta property="og:title" content="How to Build an AI Chatbot with Streamlit and Python">
+    <meta property="og:description" content="A complete, streaming chat interface in under fifty lines of Python.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/ai-chatbot-streamlit/">
+    <meta property="og:type" content="article">
+
+    <title>How to Build an AI Chatbot with Streamlit and Python — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "How to Build an AI Chatbot with Streamlit and Python",
+      "description": "A complete, streaming chat interface in under fifty lines of Python.",
+      "author": { "@type": "Person", "name": "Rudy van den Brink" },
+      "publisher": { "@type": "Organization", "name": "Brink Data Science", "url": "https://www.brinkdatascience.com" },
+      "datePublished": "2026-03-17",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/ai-chatbot-streamlit/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Build</p>
+                    <h1 class="post-title">How to build an AI chatbot with <em>Streamlit</em> and Python.</h1>
+                    <p class="post-meta">
+                        <span>March 17, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~8 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>
+                        Streamlit is the fastest way I know to put a working interface in front of a machine
+                        learning model, and its built-in chat components make an LLM chatbot almost embarrassingly
+                        short to write. In this guide we'll build a complete, streaming chat app &mdash; message
+                        history, typing-as-it-generates output, proper secrets handling &mdash; in under fifty
+                        lines of Python.
+                    </p>
+
+                    <h2>Setup</h2>
+                    <p>You need Python 3.10+ and two packages:</p>
+                    <pre data-lang="bash"><code>pip install streamlit anthropic</code></pre>
+                    <p>
+                        We'll use the Anthropic API as the model behind the chat (any provider with a Python SDK
+                        works the same way &mdash; and see the end of the post for running a fully local model
+                        instead). Create an API key in the
+                        <a href="https://platform.claude.com/">Claude developer console</a> and expose it to the app.
+                        For local development, an environment variable is fine:
+                    </p>
+                    <pre data-lang="bash"><code># macOS / Linux
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+# Windows (PowerShell)
+$env:ANTHROPIC_API_KEY = "sk-ant-..."</code></pre>
+                    <p>
+                        For anything you deploy, use Streamlit's secrets mechanism instead: create a file called
+                        <code>.streamlit/secrets.toml</code> (and add it to <code>.gitignore</code>):
+                    </p>
+                    <pre data-lang="toml"><code>ANTHROPIC_API_KEY = "sk-ant-..."</code></pre>
+
+                    <h2>The three Streamlit primitives you need</h2>
+                    <p>Streamlit's chat support rests on three pieces:</p>
+                    <ul>
+                        <li>
+                            <code>st.chat_input()</code> &mdash; a chat text box pinned to the bottom of the page.
+                            Returns the submitted string, or <code>None</code> if nothing was submitted this run.
+                        </li>
+                        <li>
+                            <code>st.chat_message(role)</code> &mdash; a message bubble container with an avatar,
+                            used as a context manager: <code>with st.chat_message("user"): ...</code>
+                        </li>
+                        <li>
+                            <code>st.session_state</code> &mdash; a dictionary that survives across reruns.
+                            This one is essential: <strong>Streamlit re-executes your entire script from top to
+                            bottom on every interaction</strong>, so any state you don't stash in
+                            <code>session_state</code> is lost the moment the user does anything.
+                        </li>
+                    </ul>
+                    <p>
+                        That rerun model is the only conceptually tricky part of Streamlit. Once you internalize
+                        "the script runs fresh every time, state lives in <code>session_state</code>," the rest
+                        is straightforward.
+                    </p>
+
+                    <h2>The complete app</h2>
+                    <p>Save this as <code>app.py</code>:</p>
+                    <pre data-lang="python"><code>import os
+import streamlit as st
+import anthropic
+
+st.title("💬 Chat")
+
+SYSTEM_PROMPT = "You are a concise, helpful assistant."
+
+# Read the key from Streamlit secrets if present, else the environment
+api_key = st.secrets.get("ANTHROPIC_API_KEY", os.environ.get("ANTHROPIC_API_KEY"))
+if not api_key:
+    st.error("No API key found. Set ANTHROPIC_API_KEY in .streamlit/secrets.toml.")
+    st.stop()
+
+client = anthropic.Anthropic(api_key=api_key)
+
+# 1. Initialize the conversation once per session
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# 2. Re-render the full history on every rerun
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# 3. Handle new input
+if prompt := st.chat_input("Ask me anything"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # 4. Stream the model's reply token by token
+    with st.chat_message("assistant"):
+        with client.messages.stream(
+            model="claude-opus-4-8",
+            max_tokens=1024,
+            system=SYSTEM_PROMPT,
+            messages=st.session_state.messages,
+        ) as stream:
+            reply = st.write_stream(stream.text_stream)
+
+    st.session_state.messages.append({"role": "assistant", "content": reply})</code></pre>
+                    <p>Run it:</p>
+                    <pre data-lang="bash"><code>streamlit run app.py</code></pre>
+                    <p>
+                        Your browser opens at <code>http://localhost:8501</code> with a working chatbot: full
+                        conversation memory, and responses that stream in as the model generates them.
+                    </p>
+
+                    <h2>How it works, line by line</h2>
+                    <ul>
+                        <li>
+                            <strong>Step 1</strong> creates the message list exactly once. On later reruns the
+                            <code>if "messages" not in st.session_state</code> guard is false, so history survives.
+                        </li>
+                        <li>
+                            <strong>Step 2</strong> redraws every stored message on each rerun. This is idiomatic
+                            Streamlit &mdash; you re-render the world from state rather than mutating a UI.
+                        </li>
+                        <li>
+                            <strong>Step 3</strong> uses the walrus operator to both read and test the chat input.
+                            The user's message is stored <em>and</em> rendered immediately, so it appears while the
+                            model is still thinking.
+                        </li>
+                        <li>
+                            <strong>Step 4</strong> is the nice part. The SDK's <code>stream()</code> helper yields
+                            text chunks via <code>stream.text_stream</code>, and Streamlit's
+                            <code>st.write_stream()</code> consumes any generator, rendering chunks as they arrive
+                            &mdash; and returns the concatenated full text when done, which we store back into
+                            history. The whole conversation is sent on every turn because LLM APIs are stateless;
+                            the model only "remembers" what you resend.
+                        </li>
+                    </ul>
+
+                    <h2>Useful upgrades</h2>
+                    <h3>A system prompt selector and a clear button</h3>
+                    <p>Streamlit's sidebar makes small control panels trivial:</p>
+                    <pre data-lang="python"><code>with st.sidebar:
+    persona = st.selectbox("Persona", ["Concise assistant", "Socratic tutor", "Code reviewer"])
+    if st.button("Clear conversation"):
+        st.session_state.messages = []
+        st.rerun()</code></pre>
+
+                    <h3>Capping the history</h3>
+                    <p>
+                        Costs (and context windows) grow with conversation length, since the full history is resent
+                        each turn. A simple guard is to keep only the last <em>N</em> messages:
+                    </p>
+                    <pre data-lang="python"><code>MAX_TURNS = 20  # keep the last 20 messages
+history = st.session_state.messages[-MAX_TURNS:]</code></pre>
+                    <p>…and pass <code>history</code> instead of the full list to the API call.</p>
+
+                    <h3>Running a local model instead</h3>
+                    <p>
+                        If your data can't leave your machine, the same UI works with a locally hosted model.
+                        Install <a href="https://ollama.com/">Ollama</a>, pull a model
+                        (<code>ollama pull llama3.1</code>), install the <code>ollama</code> Python package,
+                        and replace step 4 with:
+                    </p>
+                    <pre data-lang="python"><code>import ollama
+
+with st.chat_message("assistant"):
+    stream = ollama.chat(
+        model="llama3.1",
+        messages=[{"role": "system", "content": SYSTEM_PROMPT}]
+                 + st.session_state.messages,
+        stream=True,
+    )
+    reply = st.write_stream(chunk["message"]["content"] for chunk in stream)</code></pre>
+                    <p>
+                        No API key, no per-token cost, and your conversations stay local &mdash; the trade-off is
+                        that you need the hardware to run the model at a usable speed. (Local-first LLM interfaces
+                        are something of a theme of mine &mdash; see <a href="/#llmlynx">LLMLynx</a>.)
+                    </p>
+
+                    <h2>Deploying</h2>
+                    <p>
+                        The lowest-friction option is <strong>Streamlit Community Cloud</strong>: push the repo to
+                        GitHub, connect it at <a href="https://share.streamlit.io/">share.streamlit.io</a>, and add
+                        your API key in the app's <em>Secrets</em> settings (the same TOML format as the local
+                        file). For anything internal or production-grade, run the app in a container behind your
+                        usual reverse proxy &mdash; <code>streamlit run app.py --server.port 8501</code> works the
+                        same anywhere, and pairs naturally with <a href="/blog/how-to-use-docker/">Docker</a>.
+                    </p>
+                    <p class="note">
+                        Two production notes. First, never commit API keys &mdash; keep
+                        <code>secrets.toml</code> out of version control. Second, a public chatbot with your API key
+                        behind it is an open wallet: add authentication or rate limiting before sharing a link
+                        beyond people you trust.
+                    </p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want a chatbot that knows your documents, your data, or your product?</strong>
+                            That's retrieval-augmented generation &mdash; and it's the kind of system I design and
+                            build end to end.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>

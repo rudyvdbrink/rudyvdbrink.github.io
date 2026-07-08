@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="What is machine learning, and how does it relate to artificial intelligence? A historical overview from Turing and the Dartmouth workshop to deep learning and large language models, with the core concepts explained.">
+    <meta name="keywords" content="what is machine learning, what is AI, artificial intelligence history, deep learning, supervised learning, unsupervised learning, reinforcement learning, neural networks">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/what-is-machine-learning/">
+
+    <meta property="og:title" content="What Is Machine Learning? What Is AI? A Historical Perspective">
+    <meta property="og:description" content="How AI and machine learning relate, how the field got here, and what the main types of learning actually mean.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/what-is-machine-learning/">
+    <meta property="og:type" content="article">
+
+    <title>What Is Machine Learning? What Is AI? A Historical Perspective — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "What Is Machine Learning? What Is AI? A Historical Perspective",
+      "description": "How AI and machine learning relate, how the field got here, and what the main types of learning actually mean.",
+      "author": { "@type": "Person", "name": "Rudy van den Brink" },
+      "publisher": { "@type": "Organization", "name": "Brink Data Science", "url": "https://www.brinkdatascience.com" },
+      "datePublished": "2026-01-20",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/what-is-machine-learning/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Concepts</p>
+                    <h1 class="post-title">What is machine learning? What is AI? A <em>historical</em> perspective.</h1>
+                    <p class="post-meta">
+                        <span>January 20, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~12 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>
+                        "Artificial intelligence" and "machine learning" are often used interchangeably, but they
+                        are not the same thing. Getting the distinction right makes it much easier to understand
+                        what today's systems actually do &mdash; and why the field looks the way it does. This
+                        article gives working definitions, then walks through the history that produced them:
+                        from a question posed in 1950 to the large language models of today.
+                    </p>
+
+                    <h2>The definitions, in one place</h2>
+                    <p>
+                        <strong>Artificial intelligence (AI)</strong> is the broad field concerned with building
+                        systems that perform tasks we associate with intelligence: reasoning, planning, perceiving,
+                        understanding language, making decisions. It says nothing about <em>how</em> those tasks
+                        are accomplished. A hand-written chess program from the 1970s is AI; so is a modern
+                        neural network.
+                    </p>
+                    <p>
+                        <strong>Machine learning (ML)</strong> is a subfield of AI. Instead of programming behavior
+                        explicitly, you give an algorithm data and let it infer the rules itself. The classic
+                        framing comes from Tom Mitchell (1997): a program learns if its performance at a task,
+                        measured by some metric, improves with experience. In practice, "experience" means data.
+                    </p>
+                    <p>
+                        <strong>Deep learning</strong> is, in turn, a subfield of machine learning: it uses neural
+                        networks with many layers ("deep" networks) that learn hierarchical representations of the
+                        data. Nearly everything that has made headlines since 2012 &mdash; image recognition,
+                        speech recognition, machine translation, large language models &mdash; is deep learning.
+                    </p>
+                    <p>So the relationship is a set of nested circles:</p>
+                    <pre data-lang="text"><code>AI  ⊃  machine learning  ⊃  deep learning  ⊃  large language models</code></pre>
+                    <p>
+                        Everything in the inner circles belongs to the outer ones, but not the other way around.
+                        A decision tree is machine learning but not deep learning. A rule-based expert system is
+                        AI but not machine learning at all.
+                    </p>
+
+                    <h2>1950–1956: the founding questions</h2>
+                    <p>
+                        The field's origin is usually traced to Alan Turing's 1950 paper
+                        <em>Computing Machinery and Intelligence</em>, which opens with the question "Can machines
+                        think?" and, recognizing that "think" is hopelessly vague, replaces it with an operational
+                        test: can a machine hold a conversation indistinguishable from a human's? That test &mdash;
+                        the imitation game, now called the Turing test &mdash; reframed intelligence as observable
+                        behavior rather than inner experience, a move the field never really walked back.
+                    </p>
+                    <p>
+                        The name "artificial intelligence" came six years later. In the summer of 1956, John
+                        McCarthy organized a workshop at Dartmouth College with Marvin Minsky, Claude Shannon,
+                        and others, proposing to study "how to make machines use language, form abstractions and
+                        concepts, solve kinds of problems now reserved for humans, and improve themselves."
+                        The Dartmouth workshop is conventionally treated as the founding event of AI as a
+                        research field.
+                    </p>
+
+                    <h2>1957–1969: perceptrons and symbolic AI</h2>
+                    <p>
+                        Two research programs emerged almost immediately, and their rivalry shaped the next half
+                        century. The first was <strong>connectionism</strong>: building learning systems loosely
+                        modeled on neurons. Frank Rosenblatt's perceptron (1958) was a single artificial neuron
+                        that could learn to classify simple patterns by adjusting its weights from examples &mdash;
+                        recognizably the ancestor of every neural network trained today.
+                    </p>
+                    <p>
+                        The second was <strong>symbolic AI</strong>: intelligence as the manipulation of symbols
+                        according to logical rules, with knowledge programmed in by hand. Early successes like
+                        Newell and Simon's Logic Theorist made this look like the fast lane, and for decades it was
+                        the dominant paradigm.
+                    </p>
+                    <p>
+                        In 1969, Minsky and Papert's book <em>Perceptrons</em> gave a rigorous account of what
+                        single-layer perceptrons could not do (the XOR problem being the famous example). Multi-layer
+                        networks could in principle overcome those limits, but nobody had a practical way to train
+                        them yet. Funding and attention drained away from neural networks for over a decade.
+                    </p>
+
+                    <h2>1970s–1980s: winters and expert systems</h2>
+                    <p>
+                        AI has repeatedly over-promised, and the field's history includes two "AI winters" &mdash;
+                        periods when funding collapsed after inflated expectations met hard reality. The first hit
+                        in the mid-1970s, after reports (notably the UK's Lighthill Report in 1973) concluded that
+                        AI had failed to deliver on its grand claims.
+                    </p>
+                    <p>
+                        The 1980s brought a commercial boom in <strong>expert systems</strong>: symbolic AI programs
+                        that encoded a human specialist's knowledge as thousands of hand-written if&ndash;then rules.
+                        Systems like MYCIN (medical diagnosis) and XCON (computer configuration at DEC) showed real
+                        value, but the approach scaled poorly &mdash; the rules were brittle, expensive to maintain,
+                        and could not cope with situations their authors hadn't anticipated. When the market for
+                        specialized AI hardware collapsed in the late 1980s, the second AI winter followed.
+                    </p>
+                    <p>
+                        Amid the symbolic boom, connectionism quietly revived. In 1986, Rumelhart, Hinton, and
+                        Williams popularized <strong>backpropagation</strong> &mdash; an efficient algorithm for
+                        training multi-layer neural networks by propagating errors backwards through the layers.
+                        This solved exactly the problem <em>Perceptrons</em> had exposed. The ingredients of modern
+                        deep learning existed by the late 1980s; what was missing was data and compute.
+                    </p>
+
+                    <h2>1990s–2000s: machine learning becomes statistics</h2>
+                    <p>
+                        Through the 1990s the field reinvented itself around a humbler, more rigorous goal: instead
+                        of building general intelligence, learn specific functions from data, with mathematical
+                        guarantees where possible. This is the era when machine learning matured as a discipline
+                        distinct from symbolic AI &mdash; support vector machines, decision trees and ensembles,
+                        Bayesian methods, and the formalization of the train/test methodology that still underpins
+                        all applied ML today.
+                    </p>
+                    <p>
+                        The symbolic tradition had one last headline moment: in 1997, IBM's Deep Blue defeated world
+                        chess champion Garry Kasparov. Deep Blue learned nothing from data &mdash; it won through
+                        specialized hardware, brute-force search, and hand-tuned evaluation functions. It was a
+                        triumph of engineering, and also a demonstration of that approach's ceiling: the techniques
+                        did not transfer to anything but chess.
+                    </p>
+                    <p>
+                        Meanwhile the web began generating datasets of unprecedented size, and graphics cards
+                        (GPUs), built to render video games, turned out to be nearly ideal for the matrix
+                        multiplications at the heart of neural networks. The stage was set.
+                    </p>
+
+                    <h2>2012–2017: the deep learning era</h2>
+                    <p>
+                        The turning point has a date: in 2012, a deep convolutional neural network called
+                        <strong>AlexNet</strong> (Krizhevsky, Sutskever, and Hinton) won the ImageNet image
+                        classification challenge by a margin so large it ended the debate. Trained on GPUs over
+                        1.2 million labeled images, it cut the error rate of the best traditional computer vision
+                        methods by roughly ten percentage points. Within two years, essentially every competitive
+                        entry was a deep network.
+                    </p>
+                    <p>
+                        The recipe &mdash; deep networks, big data, GPU compute &mdash; then swept one field after
+                        another: speech recognition, machine translation, game playing. In 2016, DeepMind's AlphaGo
+                        defeated Go champion Lee Sedol, a feat many researchers had placed a decade further out,
+                        by combining deep networks with reinforcement learning and tree search.
+                    </p>
+                    <p>
+                        In 2017, a Google team published <em>Attention Is All You Need</em>, introducing the
+                        <strong>transformer</strong> architecture. Transformers process sequences using an attention
+                        mechanism instead of recurrence, which makes them dramatically more parallelizable &mdash;
+                        and therefore scalable. Virtually every large language model since is a transformer variant.
+                    </p>
+
+                    <h2>2018–present: large language models</h2>
+                    <p>
+                        Researchers noticed that transformer language models improve smoothly and predictably as you
+                        scale up parameters, data, and compute &mdash; the "scaling laws." GPT-2 (2019) and GPT-3
+                        (2020) demonstrated that a model trained only to predict the next word acquires, as a side
+                        effect, the ability to translate, summarize, answer questions, and write code. The public
+                        release of ChatGPT in November 2022 turned this from a research curiosity into a
+                        general-purpose technology, and models from OpenAI, Anthropic, Google, Meta, and a fast-growing
+                        open-weights ecosystem have iterated rapidly since.
+                    </p>
+                    <p>
+                        It is worth noting the historical irony: the connectionist program that was declared a dead
+                        end in 1969 now powers systems that pass the conversational bar Turing proposed in 1950 in
+                        many practical settings &mdash; while researchers continue to debate what that does and
+                        doesn't tell us about "thinking."
+                    </p>
+
+                    <h2>The three kinds of machine learning</h2>
+                    <p>Modern ML is conventionally divided into three paradigms, by the kind of feedback available:</p>
+                    <ul>
+                        <li>
+                            <strong>Supervised learning</strong> &mdash; learn from labeled examples: inputs paired
+                            with correct outputs. Classification (is this transaction fraud?) and regression
+                            (what will this house sell for?) are the two canonical task types. Most commercial ML
+                            is supervised.
+                        </li>
+                        <li>
+                            <strong>Unsupervised learning</strong> &mdash; find structure in unlabeled data:
+                            clustering customers into segments, reducing dimensionality, detecting anomalies.
+                            The closely related <em>self-supervised</em> learning &mdash; generating labels from the
+                            data itself, like predicting the next word of a sentence &mdash; is how large language
+                            models are pretrained.
+                        </li>
+                        <li>
+                            <strong>Reinforcement learning</strong> &mdash; learn by acting: an agent takes actions
+                            in an environment and receives rewards, gradually discovering a strategy that maximizes
+                            them. It powered AlphaGo, and a variant (reinforcement learning from human feedback,
+                            RLHF) is a key step in aligning language models with what users actually want.
+                        </li>
+                    </ul>
+
+                    <h2>What this looks like in code</h2>
+                    <p>
+                        Machine learning sounds abstract until you see how compact the workflow is. Here is a
+                        complete supervised learning example in Python with scikit-learn: train a random forest to
+                        classify tumors as malignant or benign, and evaluate it on data the model has never seen.
+                    </p>
+                    <pre data-lang="python"><code>from sklearn.datasets import load_breast_cancer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# Load a labeled dataset: 569 tumors, 30 measurements each
+X, y = load_breast_cancer(return_X_y=True)
+
+# Hold out 25% of the data for testing
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=42
+)
+
+# "Learning" happens here: the model infers rules from examples
+model = RandomForestClassifier(n_estimators=200, random_state=42)
+model.fit(X_train, y_train)
+
+# Evaluate on data the model has never seen
+predictions = model.predict(X_test)
+print(f"Accuracy: {accuracy_score(y_test, predictions):.3f}")</code></pre>
+                    <p>
+                        Nobody wrote a rule about tumor radius or cell texture. The model derived its own decision
+                        logic from 426 training examples &mdash; that inversion, <em>rules from data</em> instead of
+                        <em>rules from programmers</em>, is the entire conceptual leap of machine learning. The
+                        train/test split matters just as much: a model is only as good as its performance on data
+                        it hasn't memorized.
+                    </p>
+
+                    <h2>Why the history matters</h2>
+                    <p>
+                        Three lessons from seventy years of AI research are directly useful when deciding what to
+                        build today:
+                    </p>
+                    <ul>
+                        <li>
+                            <strong>Method follows data and compute.</strong> Neural networks didn't win because the
+                            idea was new &mdash; it was six decades old. They won when data and hardware caught up.
+                            Evaluate techniques against your actual data volume, not the headline results.
+                        </li>
+                        <li>
+                            <strong>Hand-written rules don't scale; learned rules need data.</strong> Expert systems
+                            died of maintenance costs. But if you don't have (or can't get) representative data,
+                            a simple rule-based baseline is still often the right first system.
+                        </li>
+                        <li>
+                            <strong>Hype cycles are part of the pattern.</strong> The field has over-promised before,
+                            and the winters that followed were caused by the gap between claims and delivery.
+                            The technology is real; so is the value of scoping projects to what's demonstrably
+                            achievable.
+                        </li>
+                    </ul>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Wondering where machine learning would (and wouldn't) pay off in your
+                            organization?</strong> That assessment is a core part of what I do &mdash; grounded in a
+                            decade of research and industry work.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>

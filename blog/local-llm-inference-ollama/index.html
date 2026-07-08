@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Run large language models locally with Ollama: installation, choosing a model that fits your hardware, quantization explained, the Python API and REST endpoints, streaming, embeddings, and Modelfile customization.">
+    <meta name="keywords" content="Ollama tutorial, local LLM, run LLM locally, Ollama Python, llama.cpp, GGUF quantization, Ollama API, self-hosted LLM, local AI">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/local-llm-inference-ollama/">
+
+    <meta property="og:title" content="Local LLM Inference with Ollama: A Practical Guide">
+    <meta property="og:description" content="Run large language models on your own hardware: installation, model selection, quantization, the Python API, and customization.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/local-llm-inference-ollama/">
+    <meta property="og:type" content="article">
+
+    <title>Local LLM Inference with Ollama: A Practical Guide — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Local LLM Inference with Ollama: A Practical Guide",
+      "description": "Run large language models on your own hardware: installation, model selection, quantization, the Python API, and customization.",
+      "author": { "@type": "Person", "name": "Rudy van den Brink" },
+      "publisher": { "@type": "Organization", "name": "Brink Data Science", "url": "https://www.brinkdatascience.com" },
+      "datePublished": "2026-07-07",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/local-llm-inference-ollama/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Local-first</p>
+                    <h1 class="post-title">Local LLM inference with <em>Ollama</em>: a practical guide.</h1>
+                    <p class="post-meta">
+                        <span>July 7, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~11 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>
+                        Cloud LLM APIs are convenient, but they come with three strings attached: your data leaves
+                        your machine, you pay per token, and the service can change or disappear under you. For a
+                        lot of work &mdash; anything involving sensitive data, high-volume batch processing, or
+                        just tinkering &mdash; running the model locally is the better trade. Ollama has become the
+                        de facto standard for doing that with minimal friction, and local-first LLM tooling is
+                        something I care about enough to have built <a href="/#llmlynx">a whole application</a>
+                        around. This guide takes you from installation to serving models to your own code.
+                    </p>
+
+                    <h2>What Ollama actually is</h2>
+                    <p>
+                        Ollama is a local model server built on top of <code>llama.cpp</code>, the C/C++ inference
+                        engine that made running LLMs on consumer hardware practical. It wraps three things into
+                        one tool:
+                    </p>
+                    <ul>
+                        <li>a <strong>model manager</strong> &mdash; pull, list, and remove models from a curated library, like Docker for LLMs;</li>
+                        <li>an <strong>inference runtime</strong> &mdash; runs models on your GPU (NVIDIA and AMD on Windows/Linux, Apple Silicon on macOS), spilling over to CPU when the model doesn't fully fit;</li>
+                        <li>a <strong>local API server</strong> &mdash; an HTTP API on <code>localhost:11434</code> that any application on your machine can call.</li>
+                    </ul>
+                    <p>
+                        The models it serves are open-weights models &mdash; Meta's Llama family, Alibaba's Qwen,
+                        Mistral, Google's Gemma, DeepSeek's distills, and many more &mdash; in the quantized GGUF
+                        format (more on quantization below).
+                    </p>
+
+                    <h2>Installation and first run</h2>
+                    <p>
+                        On Windows and macOS, download the installer from
+                        <a href="https://ollama.com/download">ollama.com/download</a>. On Linux:
+                    </p>
+                    <pre data-lang="bash"><code>curl -fsSL https://ollama.com/install.sh | sh</code></pre>
+                    <p>Then pull and run a model in one command:</p>
+                    <pre data-lang="bash"><code>ollama run llama3.1</code></pre>
+                    <p>
+                        The first run downloads the model (a few GB); after that you're in an interactive chat in
+                        your terminal. Exit with <code>/bye</code>. The day-to-day commands:
+                    </p>
+                    <pre data-lang="bash"><code>ollama pull qwen2.5:14b     # download a model without starting a chat
+ollama list                 # models on disk
+ollama ps                   # models currently loaded in memory
+ollama show llama3.1        # details: parameters, context length, quantization
+ollama stop llama3.1        # unload from memory
+ollama rm qwen2.5:14b       # delete from disk</code></pre>
+                    <p>
+                        Model names use a <code>name:tag</code> scheme, where tags select size and variant:
+                        <code>llama3.1</code> defaults to <code>llama3.1:8b</code>, while
+                        <code>llama3.1:70b</code> is the big one. Browse what's available at
+                        <a href="https://ollama.com/library">ollama.com/library</a>.
+                    </p>
+
+                    <h2>Choosing a model that fits your hardware</h2>
+                    <p>
+                        The library models are <strong>quantized</strong>: their weights are compressed from 16-bit
+                        floats down to (typically) ~4 bits each, which cuts memory to roughly a quarter with a
+                        modest quality loss. That's the trick that makes an 8-billion-parameter model fit
+                        comfortably on a laptop. As a rule of thumb, a 4-bit model needs about
+                        <strong>0.6&ndash;0.7 GB of memory per billion parameters</strong>, plus a little headroom
+                        for the context window:
+                    </p>
+                    <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>Model size</th><th>Memory needed (~4-bit)</th><th>Runs well on</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>3&ndash;4B</td><td>~3 GB</td><td>Almost anything, CPU included</td></tr>
+                            <tr><td>7&ndash;9B</td><td>~5&ndash;6 GB</td><td>8 GB GPU, Apple Silicon, decent CPU</td></tr>
+                            <tr><td>13&ndash;14B</td><td>~9&ndash;10 GB</td><td>12&ndash;16 GB GPU / 16 GB unified memory</td></tr>
+                            <tr><td>30&ndash;35B</td><td>~20 GB</td><td>24 GB GPU (e.g. RTX 3090/4090)</td></tr>
+                            <tr><td>70B</td><td>~40+ GB</td><td>Multi-GPU or 64 GB+ Apple Silicon</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                    <p>
+                        If a model doesn't fully fit in GPU memory, Ollama splits it between GPU and CPU &mdash;
+                        it works, but tokens-per-second drops sharply, so it's usually better to pick a smaller
+                        model or a smaller quantization than to spill. On pure CPU, small models (3&ndash;8B) are
+                        genuinely usable; large ones are not.
+                    </p>
+                    <p>
+                        A sane starting lineup as of mid-2026: <code>llama3.1:8b</code> or <code>qwen2.5:7b</code>
+                        as general-purpose workhorses, <code>qwen2.5-coder</code> for code,
+                        <code>gemma3:4b</code> when resources are tight, and a <code>deepseek-r1</code> distill
+                        if you want visible chain-of-thought reasoning locally. Expectations matter: an 8B local
+                        model is not a frontier model. It is, however, remarkably capable for summarization,
+                        extraction, classification, drafting, and RAG over your own documents &mdash; the
+                        bread-and-butter tasks that make up most real workloads.
+                    </p>
+
+                    <h2>Talking to Ollama from code</h2>
+                    <p>
+                        Everything Ollama does is exposed through the local HTTP API on port 11434, which means
+                        <em>any</em> language can use it:
+                    </p>
+                    <pre data-lang="bash"><code>curl http://localhost:11434/api/chat -d '{
+  "model": "llama3.1",
+  "messages": [{"role": "user", "content": "Why is the sky blue?"}],
+  "stream": false
+}'</code></pre>
+                    <p>From Python, the official client is nicer. <code>pip install ollama</code>, then:</p>
+                    <pre data-lang="python"><code>import ollama
+
+response = ollama.chat(
+    model="llama3.1",
+    messages=[
+        {"role": "system", "content": "You are a concise technical assistant."},
+        {"role": "user", "content": "Explain quantization in two sentences."},
+    ],
+)
+print(response["message"]["content"])</code></pre>
+                    <p>Streaming, so output appears token by token:</p>
+                    <pre data-lang="python"><code>stream = ollama.chat(
+    model="llama3.1",
+    messages=[{"role": "user", "content": "Write a haiku about GPUs."}],
+    stream=True,
+)
+for chunk in stream:
+    print(chunk["message"]["content"], end="", flush=True)</code></pre>
+                    <p>
+                        Structured output is supported too &mdash; pass a JSON schema as the <code>format</code>
+                        argument and the model's response is constrained to valid JSON matching it. That turns a
+                        local model into a dependable extraction engine:
+                    </p>
+                    <pre data-lang="python"><code>from pydantic import BaseModel
+
+class Invoice(BaseModel):
+    vendor: str
+    total: float
+    currency: str
+
+response = ollama.chat(
+    model="llama3.1",
+    messages=[{"role": "user", "content": f"Extract the invoice fields:\n\n{invoice_text}"}],
+    format=Invoice.model_json_schema(),
+)
+invoice = Invoice.model_validate_json(response["message"]["content"])</code></pre>
+                    <p>
+                        And for <a href="/blog/agentic-systems-langgraph/">RAG systems</a>, Ollama serves embedding
+                        models as well &mdash; so the entire pipeline, embeddings included, can run offline:
+                    </p>
+                    <pre data-lang="python"><code>ollama.pull("nomic-embed-text")
+result = ollama.embed(model="nomic-embed-text", input=["chunk one", "chunk two"])
+vectors = result["embeddings"]   # ready for your vector store</code></pre>
+
+                    <h3>The OpenAI-compatible endpoint</h3>
+                    <p>
+                        Ollama also exposes an OpenAI-compatible API at <code>http://localhost:11434/v1</code>.
+                        Practically, this means most tools and libraries built for cloud APIs can point at your
+                        local server by changing two settings &mdash; base URL and model name &mdash; with any
+                        non-empty string as the API key. It's the quickest way to make an existing codebase
+                        local-first without rewriting it.
+                    </p>
+
+                    <h2>Customizing models with a Modelfile</h2>
+                    <p>
+                        A <strong>Modelfile</strong> is to models what a Dockerfile is to images: a small recipe
+                        that layers your configuration on top of a base model. Save this as <code>Modelfile</code>:
+                    </p>
+                    <pre data-lang="dockerfile"><code>FROM llama3.1
+
+# Sampling and context settings
+PARAMETER temperature 0.3
+PARAMETER num_ctx 8192
+
+# Baked-in system prompt
+SYSTEM """You are a code review assistant. You answer tersely,
+point out concrete defects, and never rewrite code unasked."""</code></pre>
+                    <pre data-lang="bash"><code>ollama create reviewer -f Modelfile
+ollama run reviewer</code></pre>
+                    <p>
+                        Two parameters deserve special mention. <code>temperature</code> you know. But
+                        <code>num_ctx</code> &mdash; the context window &mdash; is the one that bites people:
+                        Ollama defaults to a modest context length regardless of what the model supports, and
+                        <strong>input beyond it is silently truncated</strong>. If your RAG answers mysteriously
+                        ignore the documents you stuffed into the prompt, this is almost always why. Raise
+                        <code>num_ctx</code> in a Modelfile (or pass <code>options={"num_ctx": 8192}</code> per
+                        request from Python); note that a larger context costs more memory.
+                    </p>
+
+                    <h2>Operational notes</h2>
+                    <ul>
+                        <li>
+                            <strong>Model loading and keep-alive</strong> &mdash; the first request after a quiet
+                            period pays a load-from-disk cost; by default models unload again a few minutes after
+                            last use. For a service, set <code>keep_alive</code> (per request, or
+                            <code>OLLAMA_KEEP_ALIVE=-1</code> to pin the model in memory).
+                        </li>
+                        <li>
+                            <strong>Serving beyond localhost</strong> &mdash; by default Ollama listens only on
+                            127.0.0.1. Set <code>OLLAMA_HOST=0.0.0.0</code> to expose it on your network &mdash;
+                            and put a reverse proxy with authentication in front if you do, because the API itself
+                            has none.
+                        </li>
+                        <li>
+                            <strong>Where models live</strong> &mdash; <code>~/.ollama/models</code> by default;
+                            move it with <code>OLLAMA_MODELS</code> if your system drive is small. Models are
+                            multi-GB; prune with <code>ollama rm</code>.
+                        </li>
+                        <li>
+                            <strong>Containers</strong> &mdash; the official <code>ollama/ollama</code> image plus
+                            <code>--gpus all</code> gives you a reproducible, deployable inference server; mount a
+                            volume at <code>/root/.ollama</code> so models persist. (Details on GPU containers in
+                            <a href="/blog/how-to-use-docker/">the Docker post</a>.)
+                        </li>
+                        <li>
+                            <strong>When you outgrow it</strong> &mdash; Ollama is optimized for simplicity and
+                            single-machine use. If you need to serve many concurrent users at maximum throughput,
+                            that's the point to look at batching-oriented servers like vLLM; the application code
+                            barely changes thanks to the OpenAI-compatible interface.
+                        </li>
+                    </ul>
+
+                    <h2>When local inference is the right call</h2>
+                    <p>
+                        The decision usually comes down to four factors. <strong>Privacy:</strong> medical,
+                        legal, and proprietary data may simply not be allowed to leave your infrastructure &mdash;
+                        local inference makes the question moot. <strong>Cost shape:</strong> APIs bill per token,
+                        hardware is a fixed cost; at sustained high volume the crossover comes fast.
+                        <strong>Control:</strong> a pinned local model never changes behavior under you, which is
+                        worth a lot in regulated or evaluation-heavy settings. <strong>Capability:</strong> the
+                        one factor that favors the cloud &mdash; frontier models remain meaningfully stronger, so
+                        hard reasoning tasks may justify the API. Many of the best systems I've built are hybrids:
+                        local models for the private, high-volume work; a cloud model for the rare hard cases.
+                    </p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Weighing local against cloud LLMs for your use case &mdash; or want a private,
+                            self-hosted AI system built?</strong> Local-first machine learning is a specialty of
+                            mine, from laptops to edge devices.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>

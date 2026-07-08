@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Build agentic systems with LangGraph: how graph-based agents work, a ReAct agent from scratch with tools and memory, a RAG pipeline as a graph, and agentic RAG that decides when to retrieve.">
+    <meta name="keywords" content="LangGraph tutorial, LangGraph ReAct agent, LangGraph RAG, agentic RAG, StateGraph, ToolNode, LangChain agents, build AI agents Python">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/agentic-systems-langgraph/">
+
+    <meta property="og:title" content="Building Agentic Systems with LangGraph: ReAct Agents and RAG">
+    <meta property="og:description" content="Graph-based agents explained: a ReAct agent from scratch, a RAG pipeline as a graph, and agentic RAG that decides when to retrieve.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/agentic-systems-langgraph/">
+    <meta property="og:type" content="article">
+
+    <title>Building Agentic Systems with LangGraph: ReAct Agents and RAG — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Building Agentic Systems with LangGraph: ReAct Agents and RAG",
+      "description": "Graph-based agents explained: a ReAct agent from scratch, a RAG pipeline as a graph, and agentic RAG that decides when to retrieve.",
+      "author": { "@type": "Person", "name": "Rudy van den Brink" },
+      "publisher": { "@type": "Organization", "name": "Brink Data Science", "url": "https://www.brinkdatascience.com" },
+      "datePublished": "2026-06-23",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/agentic-systems-langgraph/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Build</p>
+                    <h1 class="post-title">Building agentic systems with <em>LangGraph</em>: ReAct agents and RAG.</h1>
+                    <p class="post-meta">
+                        <span>June 23, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~14 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>
+                        In <a href="/blog/what-is-agentic-ai/">the agentic AI post</a> we built an agent loop by
+                        hand: a <code>while</code> loop, a model, some tools. That works, and it's the right way
+                        to learn the mechanics &mdash; but real systems quickly outgrow it. You want persistent
+                        conversation state, streaming, branching logic, retries, human approval steps, and the
+                        ability to actually <em>see</em> what your agent did. LangGraph is a framework built for
+                        exactly this. In this post we'll build two of the most useful patterns with it: a
+                        <strong>ReAct agent</strong> with tools and memory, and a <strong>RAG system</strong> &mdash;
+                        first as a fixed pipeline, then as an agent that decides for itself when to retrieve.
+                    </p>
+
+                    <h2>The core idea: agents as graphs</h2>
+                    <p>
+                        LangGraph models an LLM application as a <strong>state machine</strong>. Three concepts
+                        cover almost everything:
+                    </p>
+                    <ul>
+                        <li>
+                            <strong>State</strong> &mdash; a typed dictionary that flows through the system. For a
+                            chat agent it's usually just the message history; for a pipeline it can be anything
+                            (question, retrieved documents, draft answer, &hellip;).
+                        </li>
+                        <li>
+                            <strong>Nodes</strong> &mdash; plain Python functions. Each takes the current state and
+                            returns a <em>partial update</em> to it. A node might call the model, run a tool, or
+                            execute ordinary code.
+                        </li>
+                        <li>
+                            <strong>Edges</strong> &mdash; the wiring between nodes. Edges can be fixed
+                            ("after retrieval, always generate") or <em>conditional</em> ("if the model requested a
+                            tool, go to the tool node; otherwise finish"). Conditional edges are where agency
+                            lives: a cycle between a model node and a tool node <em>is</em> the agent loop.
+                        </li>
+                    </ul>
+                    <p>
+                        Compared to the hand-rolled loop, the payoff is structure you don't have to build yourself:
+                        every step is checkpointable (so conversations persist and can be resumed), streamable,
+                        interruptible (pause for human approval, then continue), and inspectable. The graph is the
+                        architecture diagram, except it runs.
+                    </p>
+
+                    <h2>Setup</h2>
+                    <pre data-lang="bash"><code>pip install langgraph langchain-anthropic langchain-huggingface langchain-text-splitters</code></pre>
+                    <p>
+                        We'll use Claude as the model via the <code>langchain-anthropic</code> integration
+                        (set <code>ANTHROPIC_API_KEY</code> in your environment). Everything below is
+                        model-agnostic, though &mdash; swap in any chat model with tool-calling support, including
+                        a local one served by <a href="/blog/local-llm-inference-ollama/">Ollama</a> via
+                        <code>langchain-ollama</code>.
+                    </p>
+
+                    <h2>Part 1: a ReAct agent from scratch</h2>
+                    <p>
+                        <strong>ReAct</strong> (Reason + Act) is the canonical agent pattern: the model alternates
+                        between reasoning about what to do and acting through tools, folding each tool result into
+                        its next reasoning step. In graph terms it's beautifully small &mdash; two nodes and one
+                        conditional edge:
+                    </p>
+                    <pre data-lang="text"><code>START ──▶ agent ──(tool calls?)──▶ tools ──▶ agent ──▶ ... ──▶ END</code></pre>
+                    <p>First, the tools. LangGraph uses LangChain's <code>@tool</code> decorator &mdash; the function's signature and docstring become the schema the model sees, so write the docstring as if you were explaining the tool to a new colleague:</p>
+                    <pre data-lang="python"><code>from langchain_core.tools import tool
+
+@tool
+def multiply(a: float, b: float) -> float:
+    """Multiply two numbers and return the result."""
+    return a * b
+
+@tool
+def get_exchange_rate(currency: str) -> str:
+    """Get the current exchange rate from EUR to the given currency code (e.g. 'USD')."""
+    rates = {"USD": 1.09, "GBP": 0.85, "JPY": 168.2}   # in real life: call an API
+    return f"1 EUR = {rates.get(currency.upper(), 'unknown')} {currency.upper()}"
+
+tools = [multiply, get_exchange_rate]</code></pre>
+                    <p>Now the graph itself:</p>
+                    <pre data-lang="python"><code>from langchain_anthropic import ChatAnthropic
+from langgraph.graph import StateGraph, MessagesState, START, END
+from langgraph.prebuilt import ToolNode, tools_condition
+
+llm = ChatAnthropic(model="claude-opus-4-8", max_tokens=1024)
+llm_with_tools = llm.bind_tools(tools)
+
+# The "agent" node: one model call on the running message history
+def call_model(state: MessagesState):
+    response = llm_with_tools.invoke(state["messages"])
+    return {"messages": [response]}   # partial update: appended, not replaced
+
+builder = StateGraph(MessagesState)
+builder.add_node("agent", call_model)
+builder.add_node("tools", ToolNode(tools))     # executes whatever tools the model requested
+
+builder.add_edge(START, "agent")
+builder.add_conditional_edges("agent", tools_condition)  # tool calls? → "tools", else → END
+builder.add_edge("tools", "agent")             # results flow back to the model
+
+graph = builder.compile()</code></pre>
+                    <p>
+                        A few things worth pausing on. <code>MessagesState</code> is a prebuilt state schema with a
+                        single <code>messages</code> field whose update rule is "append" &mdash; that's why
+                        <code>call_model</code> returns a one-message list rather than the whole history.
+                        <code>ToolNode</code> reads the tool calls from the last model message, executes the
+                        matching Python functions, and appends the results as tool messages. And
+                        <code>tools_condition</code> is the entire ReAct decision: it routes to the tool node if
+                        the model asked for tools, and to <code>END</code> when it produced a final answer.
+                    </p>
+                    <p>Run it:</p>
+                    <pre data-lang="python"><code>result = graph.invoke(
+    {"messages": [{"role": "user", "content":
+        "What is 2500 EUR in USD, and what is that squared?"}]}
+)
+print(result["messages"][-1].content)</code></pre>
+                    <p>
+                        Behind that one call, the model looked up the exchange rate, multiplied, called
+                        <code>multiply</code> again to square the result, and composed an answer &mdash; four model
+                        turns and three tool executions, none of which you orchestrated.
+                    </p>
+
+                    <h3>Adding memory (checkpointing)</h3>
+                    <p>
+                        As written, the graph forgets everything between calls. LangGraph's checkpointer saves the
+                        state after every node, keyed by a <code>thread_id</code> &mdash; which gives you persistent
+                        multi-turn conversations for free:
+                    </p>
+                    <pre data-lang="python"><code>from langgraph.checkpoint.memory import InMemorySaver
+
+graph = builder.compile(checkpointer=InMemorySaver())
+config = {"configurable": {"thread_id": "user-42"}}
+
+graph.invoke({"messages": [{"role": "user", "content": "Convert 100 EUR to GBP."}]}, config)
+result = graph.invoke({"messages": [{"role": "user", "content": "And to JPY?"}]}, config)
+# "And to JPY?" is understood — the thread's history was restored from the checkpoint</code></pre>
+                    <p>
+                        In production you'd swap <code>InMemorySaver</code> for a database-backed checkpointer
+                        (SQLite and Postgres implementations ship as packages) &mdash; same code, durable state.
+                        Checkpointing is also what enables human-in-the-loop interrupts: you can compile the graph
+                        to pause before the tool node, inspect the pending tool call, and resume.
+                    </p>
+                    <p class="note">
+                        If you don't need to see the wiring, the prebuilt one-liner builds this exact graph for
+                        you: <code>create_agent(model, tools)</code> (from <code>langchain.agents</code>; older
+                        LangGraph versions call it <code>create_react_agent</code>). Knowing the explicit version
+                        pays off the moment you need to customize &mdash; which, in my experience, is always.
+                    </p>
+
+                    <h2>Part 2: RAG as a graph</h2>
+                    <p>
+                        <strong>Retrieval-augmented generation (RAG)</strong> grounds the model's answers in your
+                        own documents: retrieve the passages relevant to a question, put them in the prompt, and
+                        instruct the model to answer from them. It's the standard cure for two LLM diseases at
+                        once &mdash; hallucination, and ignorance of anything private or recent.
+                    </p>
+                    <p>First we need an indexed document collection. This part is plain LangChain, no graph yet:</p>
+                    <pre data-lang="python"><code>from langchain_core.documents import Document
+from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+docs = [
+    Document(page_content=open("handbook.md", encoding="utf-8").read(),
+             metadata={"source": "handbook.md"}),
+    # ... in practice: load PDFs, wikis, tickets with document loaders
+]
+
+# Split into overlapping chunks — retrieval works on chunks, not whole files
+chunks = RecursiveCharacterTextSplitter(
+    chunk_size=1000, chunk_overlap=200
+).split_documents(docs)
+
+# Embed the chunks and index them (local, free embedding model)
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+vector_store = InMemoryVectorStore(embeddings)
+vector_store.add_documents(chunks)</code></pre>
+                    <p>
+                        (For anything beyond a demo, use a persistent vector store &mdash; Chroma, Qdrant, pgvector
+                        &mdash; via the same interface. The chunking parameters matter more than people expect:
+                        chunks need to be small enough to be specific, large enough to be self-contained.)
+                    </p>
+                    <p>
+                        Now the pipeline as a two-node graph, with a custom state instead of
+                        <code>MessagesState</code> &mdash; this is where LangGraph's "state is whatever you say it
+                        is" design shines:
+                    </p>
+                    <pre data-lang="python"><code>from typing_extensions import TypedDict
+
+class RAGState(TypedDict):
+    question: str
+    context: list      # retrieved Documents
+    answer: str
+
+def retrieve(state: RAGState):
+    docs = vector_store.similarity_search(state["question"], k=4)
+    return {"context": docs}
+
+def generate(state: RAGState):
+    context_text = "\n\n".join(
+        f"[{d.metadata.get('source', '?')}]\n{d.page_content}" for d in state["context"]
+    )
+    prompt = (
+        "Answer the question using ONLY the context below. "
+        "If the context is not sufficient, say so.\n\n"
+        f"Context:\n{context_text}\n\nQuestion: {state['question']}"
+    )
+    response = llm.invoke(prompt)
+    return {"answer": response.content}
+
+builder = StateGraph(RAGState)
+builder.add_node("retrieve", retrieve)
+builder.add_node("generate", generate)
+builder.add_edge(START, "retrieve")
+builder.add_edge("retrieve", "generate")
+builder.add_edge("generate", END)
+rag_graph = builder.compile()
+
+result = rag_graph.invoke({"question": "What is our parental leave policy?"})
+print(result["answer"])
+for doc in result["context"]:
+    print("source:", doc.metadata["source"])   # citations come free with the state</code></pre>
+                    <p>
+                        Notice what keeping <code>context</code> in the state buys you: the retrieved documents
+                        come back alongside the answer, so showing sources to the user &mdash; the single best
+                        trust feature a RAG system can have &mdash; is a loop over state, not extra plumbing.
+                    </p>
+                    <p>
+                        A fixed graph like this is a <em>workflow</em>, not an agent &mdash; and per
+                        <a href="/blog/what-is-agentic-ai/">the rule from the agents post</a>, that's a feature:
+                        it always retrieves exactly once, costs the same every time, and is trivial to evaluate.
+                        Make it more sophisticated only when the failure cases demand it. Which brings us to&hellip;
+                    </p>
+
+                    <h2>Part 3: agentic RAG</h2>
+                    <p>
+                        The fixed pipeline has two blind spots. It retrieves even when the question doesn't need it
+                        ("summarize your last answer"), and it retrieves <em>once</em> even when the question needs
+                        several searches ("compare the 2024 and 2025 policies"). The fix is to hand the retriever to
+                        the ReAct agent from Part 1 as just another tool &mdash; the model then decides whether,
+                        when, and how often to search, and can rewrite its query when the first attempt comes back
+                        empty:
+                    </p>
+                    <pre data-lang="python"><code>@tool
+def search_handbook(query: str) -> str:
+    """Search the company handbook for passages relevant to the query.
+    Use a short, specific search phrase, not a full sentence."""
+    docs = vector_store.similarity_search(query, k=4)
+    if not docs:
+        return "No results. Try a different phrasing."
+    return "\n\n".join(f"[{d.metadata.get('source', '?')}]\n{d.page_content}" for d in docs)
+
+llm_with_tools = llm.bind_tools([search_handbook])
+
+def call_model(state: MessagesState):
+    system = ("You answer questions about the company handbook. "
+              "Search before answering anything factual; cite the sources you used. "
+              "If the handbook doesn't cover it, say so.")
+    response = llm_with_tools.invoke(
+        [{"role": "system", "content": system}] + state["messages"]
+    )
+    return {"messages": [response]}
+
+builder = StateGraph(MessagesState)
+builder.add_node("agent", call_model)
+builder.add_node("tools", ToolNode([search_handbook]))
+builder.add_edge(START, "agent")
+builder.add_conditional_edges("agent", tools_condition)
+builder.add_edge("tools", "agent")
+agentic_rag = builder.compile(checkpointer=InMemorySaver())</code></pre>
+                    <p>
+                        Same graph shape as Part 1 &mdash; that's the point. "Agentic RAG" isn't a new architecture,
+                        it's the ReAct pattern with retrieval as a tool. On a multi-part question you'll now see the
+                        agent search two or three times with different queries before answering; on small talk it
+                        won't search at all.
+                    </p>
+                    <p>The trade-offs cut both ways, and it's worth being explicit about them:</p>
+                    <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th></th><th>Pipeline RAG (Part 2)</th><th>Agentic RAG (Part 3)</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>Latency / cost</strong></td><td>Fixed, low</td><td>Variable, higher</td></tr>
+                            <tr><td><strong>Multi-hop questions</strong></td><td>Poor</td><td>Good</td></tr>
+                            <tr><td><strong>Query rewriting on miss</strong></td><td>No</td><td>Yes</td></tr>
+                            <tr><td><strong>Predictability / evaluation</strong></td><td>Easy</td><td>Harder</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                    <p>
+                        A pattern that serves production systems well: pipeline RAG as the default path, agentic
+                        RAG for queries the pipeline flags as complex. My <a href="/#neurolex">NeuroLex</a> system
+                        &mdash; multi-agent RAG over a century of neuroscience literature &mdash; is built on
+                        exactly these ingredients, with separate agents for query understanding, retrieval, and
+                        answer composition.
+                    </p>
+
+                    <h2>Where to go from here</h2>
+                    <ul>
+                        <li><strong>Streaming</strong> &mdash; <code>graph.stream(..., stream_mode="values")</code> yields state after each step, so users watch the agent work instead of staring at a spinner.</li>
+                        <li><strong>Human-in-the-loop</strong> &mdash; compile with <code>interrupt_before=["tools"]</code> to pause for approval before any tool runs; resume from the checkpoint after sign-off.</li>
+                        <li><strong>Subgraphs and multi-agent</strong> &mdash; a compiled graph can be a node in a bigger graph, which is how orchestrator/specialist architectures are assembled.</li>
+                        <li><strong>Observability</strong> &mdash; trace your graphs (LangSmith or any OpenTelemetry-compatible backend) from day one; debugging an agent without traces is archaeology.</li>
+                        <li><strong>Evaluation</strong> &mdash; for RAG especially: build a small set of question/expected-answer pairs early, and measure retrieval quality separately from answer quality. Most RAG failures are retrieval failures.</li>
+                    </ul>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Building an agent or RAG system over your own data?</strong> I design and ship
+                            these end to end &mdash; retrieval pipelines, agent orchestration, evaluation, and
+                            deployment.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>

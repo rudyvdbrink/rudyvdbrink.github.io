@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="How to set up CUDA for deep learning and install the matching PyTorch build: what the driver, toolkit, and runtime actually are, what nvidia-smi really shows, and how to verify your GPU works.">
+    <meta name="keywords" content="install CUDA, PyTorch CUDA version, nvidia-smi CUDA version, torch.cuda.is_available false, PyTorch GPU install, CUDA toolkit, NVIDIA driver">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/install-cuda-pytorch/">
+
+    <meta property="og:title" content="How to Install CUDA and Find the Right PyTorch Version">
+    <meta property="og:description" content="What CUDA actually is, what nvidia-smi really shows, and how to install a PyTorch build that matches your driver on the first try.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/install-cuda-pytorch/">
+    <meta property="og:type" content="article">
+
+    <title>How to Install CUDA and Find the Right PyTorch Version — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "How to Install CUDA and Find the Right PyTorch Version",
+      "description": "What CUDA actually is, what nvidia-smi really shows, and how to install a PyTorch build that matches your driver on the first try.",
+      "author": { "@type": "Person", "name": "Rudy van den Brink" },
+      "publisher": { "@type": "Organization", "name": "Brink Data Science", "url": "https://www.brinkdatascience.com" },
+      "datePublished": "2026-05-12",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/install-cuda-pytorch/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Setup</p>
+                    <h1 class="post-title">How to install <em>CUDA</em> and find the right PyTorch to go with it.</h1>
+                    <p class="post-meta">
+                        <span>May 12, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~9 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>
+                        Getting a GPU working with PyTorch is a rite of passage, and it's harder than it should be
+                        for one reason: the word "CUDA" refers to three different things, and most guides don't say
+                        which one they mean. Untangle that, and the installation becomes a five-minute job. This
+                        guide does the untangling first, then the installing.
+                    </p>
+
+                    <h2>The three things called "CUDA"</h2>
+                    <ul>
+                        <li>
+                            <strong>The NVIDIA driver</strong> &mdash; the low-level software that lets your
+                            operating system talk to the GPU at all. Installed system-wide, versioned like
+                            <code>580.xx</code>.
+                        </li>
+                        <li>
+                            <strong>The CUDA runtime libraries</strong> &mdash; the libraries a program like PyTorch
+                            uses to launch work on the GPU (<code>cudart</code>, cuBLAS, cuDNN, and friends).
+                            Versioned like <code>12.6</code>.
+                        </li>
+                        <li>
+                            <strong>The CUDA Toolkit</strong> &mdash; the full development kit, including the
+                            <code>nvcc</code> compiler, headers, and profilers. Also versioned like
+                            <code>12.6</code>, but a much bigger install.
+                        </li>
+                    </ul>
+                    <p>Now the fact that saves you an afternoon:</p>
+                    <p class="note">
+                        <strong>PyTorch's pip wheels bundle their own CUDA runtime libraries.</strong> To run
+                        PyTorch on a GPU you need exactly one thing installed system-wide: a sufficiently recent
+                        NVIDIA driver. You do <em>not</em> need to install the CUDA Toolkit from NVIDIA's website
+                        unless you plan to compile CUDA code yourself.
+                    </p>
+                    <p>
+                        Most broken setups come from people fighting with toolkit installers they never needed,
+                        or from mismatched expectations about what <code>nvidia-smi</code> reports &mdash; which
+                        brings us to step one.
+                    </p>
+
+                    <h2>Step 1: check your driver with nvidia-smi</h2>
+                    <p>Open a terminal and run:</p>
+                    <pre data-lang="bash"><code>nvidia-smi</code></pre>
+                    <p>The header of the output looks like this:</p>
+                    <pre data-lang="text"><code>+-----------------------------------------------------------------------------+
+| NVIDIA-SMI 580.65      Driver Version: 580.65      CUDA Version: 13.0       |
++-----------------------------------------------------------------------------+</code></pre>
+                    <p>
+                        Here is the single most misunderstood line in deep learning setup: that
+                        <strong>"CUDA Version" is not the CUDA version you have installed.</strong> It is the
+                        <em>maximum</em> CUDA runtime version your current driver supports. In the example above,
+                        the driver can run applications built against CUDA 13.0 <em>or anything older</em> &mdash;
+                        drivers are backward compatible with earlier CUDA runtimes.
+                    </p>
+                    <p>So the rule for choosing a PyTorch build is simply:</p>
+                    <blockquote>
+                        Pick any PyTorch CUDA variant whose version is &le; the "CUDA Version" shown by
+                        <code>nvidia-smi</code>.
+                    </blockquote>
+                    <p>
+                        If <code>nvidia-smi</code> isn't found, or the supported CUDA version is old, install or
+                        update the driver first:
+                    </p>
+                    <ul>
+                        <li>
+                            <strong>Windows</strong> &mdash; install the current GeForce/Studio driver from
+                            <a href="https://www.nvidia.com/drivers/">nvidia.com/drivers</a> (or via GeForce
+                            Experience / NVIDIA App). Reboot.
+                        </li>
+                        <li>
+                            <strong>Linux</strong> &mdash; use your distribution's packaged driver
+                            (e.g. on Ubuntu: <code>sudo ubuntu-drivers install</code>, or
+                            <code>sudo apt install nvidia-driver-580</code> for a specific series). Reboot.
+                        </li>
+                        <li>
+                            <strong>WSL2</strong> &mdash; install the <em>Windows</em> driver only. Do not install
+                            a Linux display driver inside WSL; the Windows driver exposes the GPU to WSL
+                            automatically, and <code>nvidia-smi</code> will work inside your Linux shell.
+                        </li>
+                    </ul>
+
+                    <h2>Step 2: install the matching PyTorch build</h2>
+                    <p>
+                        Go to the official selector at
+                        <a href="https://pytorch.org/get-started/locally/">pytorch.org/get-started/locally</a>,
+                        pick your OS, package manager, and a CUDA version your driver supports, and it generates the
+                        exact command. The commands it produces look like this:
+                    </p>
+                    <pre data-lang="bash"><code># PyTorch built against CUDA 12.6 (works with any driver supporting CUDA ≥ 12.6)
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+
+# Older driver? Pick a lower CUDA build instead, e.g. CUDA 11.8
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+
+# No NVIDIA GPU at all: the CPU-only build
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu</code></pre>
+                    <p>
+                        The <code>cu126</code>-style suffix is the CUDA runtime version the wheel was built against.
+                        The exact set on offer changes with each PyTorch release &mdash; older CUDA builds are
+                        retired and new ones added &mdash; which is why the selector page, not a blog post, should
+                        always be your source for the literal command. The logic for choosing, however, doesn't
+                        change: <strong>highest CUDA variant that is &le; your driver's supported version.</strong>
+                    </p>
+                    <p class="note">
+                        <strong>Windows pitfall:</strong> a plain <code>pip install torch</code> (without the
+                        <code>--index-url</code>) installs a CPU-only build on Windows. If
+                        <code>torch.cuda.is_available()</code> returns <code>False</code> on a Windows machine with
+                        a healthy GPU, this is the most likely reason. On Linux, the default PyPI wheel does ship
+                        with CUDA support.
+                    </p>
+                    <p>
+                        Using conda? Recent PyTorch releases have moved to pip as the primary distribution channel,
+                        so the cleanest pattern is a conda environment with PyTorch pip-installed inside it using
+                        the same commands as above.
+                    </p>
+
+                    <h2>Step 3: verify</h2>
+                    <pre data-lang="python"><code>import torch
+
+print(torch.__version__)              # e.g. 2.7.1+cu126
+print(torch.version.cuda)             # CUDA runtime bundled with this build, e.g. 12.6
+print(torch.cuda.is_available())      # True, if all is well
+print(torch.cuda.get_device_name(0))  # e.g. NVIDIA GeForce RTX 4070</code></pre>
+                    <p>And the smoke test that actually exercises the GPU:</p>
+                    <pre data-lang="python"><code>x = torch.rand(4096, 4096, device="cuda")
+y = x @ x
+print(y.mean().item())  # if this prints a number, your GPU pipeline works</code></pre>
+
+                    <h2>When you do need the full CUDA Toolkit</h2>
+                    <p>
+                        Everything above covers <em>running</em> PyTorch. You need the actual CUDA Toolkit
+                        (with <code>nvcc</code>) only when something must be <em>compiled</em> against CUDA on your
+                        machine &mdash; typically custom CUDA extensions or packages built from source, such as
+                        <code>flash-attn</code> or exotic kernels from research code. In that case:
+                    </p>
+                    <ul>
+                        <li>
+                            Install a toolkit whose major.minor version matches the CUDA version of your PyTorch
+                            build (check <code>torch.version.cuda</code>) &mdash; compiling an extension against a
+                            different CUDA version than PyTorch's is a classic source of import errors.
+                        </li>
+                        <li>
+                            Get it from NVIDIA's <a href="https://developer.nvidia.com/cuda-toolkit-archive">CUDA
+                            Toolkit archive</a> (multiple versions can coexist under <code>/usr/local/cuda-XX.X</code>
+                            on Linux), or install it into a conda environment via the <code>nvidia</code> channel's
+                            <code>cuda-toolkit</code> package to keep it project-local.
+                        </li>
+                        <li>
+                            Verify with <code>nvcc --version</code> &mdash; this, unlike <code>nvidia-smi</code>,
+                            <em>does</em> report an installed toolkit.
+                        </li>
+                    </ul>
+
+                    <h2>Troubleshooting</h2>
+                    <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>Symptom</th><th>Likely cause &amp; fix</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>torch.cuda.is_available()</code> is <code>False</code>, and <code>torch.version.cuda</code> is <code>None</code></td>
+                                <td>You installed a CPU-only build. Reinstall with the correct <code>--index-url</code>.</td>
+                            </tr>
+                            <tr>
+                                <td><code>is_available()</code> is <code>False</code>, but <code>torch.version.cuda</code> shows a version</td>
+                                <td>Driver problem: missing, too old for the build you installed, or not loaded. Run <code>nvidia-smi</code>; update the driver or pick a lower CUDA build.</td>
+                            </tr>
+                            <tr>
+                                <td><code>nvidia-smi</code> works in Windows but not in WSL</td>
+                                <td>Old Windows driver or old WSL kernel. Update both (<code>wsl --update</code>); don't install a driver inside WSL.</td>
+                            </tr>
+                            <tr>
+                                <td><code>CUDA out of memory</code></td>
+                                <td>Not an install problem &mdash; the model or batch doesn't fit in VRAM. Reduce batch size, use mixed precision, or use a smaller model.</td>
+                            </tr>
+                            <tr>
+                                <td>Building <code>flash-attn</code> or similar fails</td>
+                                <td>Missing or mismatched toolkit: install the CUDA Toolkit matching <code>torch.version.cuda</code> so <code>nvcc</code> agrees with PyTorch.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <h2>The short version</h2>
+                    <ol>
+                        <li>Install/update the NVIDIA <strong>driver</strong>; check <code>nvidia-smi</code>.</li>
+                        <li>The "CUDA Version" it reports is a <em>ceiling</em>, not an installed version.</li>
+                        <li>From <a href="https://pytorch.org/get-started/locally/">pytorch.org</a>, install a PyTorch build at or below that ceiling.</li>
+                        <li>Verify with <code>torch.cuda.is_available()</code>.</li>
+                        <li>Skip the CUDA Toolkit unless you're compiling CUDA code yourself.</li>
+                    </ol>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Environment sorted, but the model training itself is the hard part?</strong>
+                            I train and tune models on everything from consumer GPUs to cloud clusters &mdash;
+                            happy to help you get the most out of your hardware.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>

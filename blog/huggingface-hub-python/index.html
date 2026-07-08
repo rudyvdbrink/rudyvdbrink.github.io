@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="How to authenticate with the Hugging Face Hub from Python: create an access token, log in from scripts, notebooks, and CI, and push and pull models, tokenizers, and datasets.">
+    <meta name="keywords" content="Hugging Face login, huggingface_hub, push_to_hub, from_pretrained, HF_TOKEN, notebook_login, upload model Hugging Face, download model Hugging Face">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/huggingface-hub-python/">
+
+    <meta property="og:title" content="How to Sign In to the Hugging Face Hub from Python">
+    <meta property="og:description" content="Authenticate with an access token, push models to the Hub, and pull them back down — from scripts, notebooks, and CI.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/huggingface-hub-python/">
+    <meta property="og:type" content="article">
+
+    <title>How to Sign In to the Hugging Face Hub from Python — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "How to Sign In to the Hugging Face Hub from Python",
+      "description": "Authenticate with an access token, push models to the Hub, and pull them back down — from scripts, notebooks, and CI.",
+      "author": { "@type": "Person", "name": "Rudy van den Brink" },
+      "publisher": { "@type": "Organization", "name": "Brink Data Science", "url": "https://www.brinkdatascience.com" },
+      "datePublished": "2026-04-14",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/huggingface-hub-python/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Tooling</p>
+                    <h1 class="post-title">How to sign in to the <em>Hugging Face Hub</em> from Python.</h1>
+                    <p class="post-meta">
+                        <span>April 14, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~7 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>
+                        The Hugging Face Hub is where the machine learning world stores its models &mdash; and
+                        sooner or later every practitioner needs to do more than anonymously download from it:
+                        pull a gated or private model, or push a fine-tuned model of their own. Both require
+                        authentication. This guide covers the whole flow: creating a token, logging in from
+                        scripts, notebooks, and CI, and the actual push/pull commands.
+                    </p>
+
+                    <h2>Step 1: create an access token</h2>
+                    <p>
+                        Authentication on the Hub is token-based. With a (free) Hugging Face account, go to
+                        <a href="https://huggingface.co/settings/tokens">Settings &rarr; Access Tokens</a> and
+                        create one. You'll choose a token type:
+                    </p>
+                    <ul>
+                        <li><strong>Read</strong> &mdash; download models and datasets, including private and gated ones you have access to. Enough for most consumption use.</li>
+                        <li><strong>Write</strong> &mdash; everything read can do, plus creating repos and uploading files. Needed to push models.</li>
+                        <li><strong>Fine-grained</strong> &mdash; scoped permissions per repo or organization. The right choice for shared machines and CI, because a leaked token can only touch what you scoped it to.</li>
+                    </ul>
+                    <p>
+                        The token is shown once, starts with <code>hf_</code>, and should be treated like a
+                        password: don't paste it into code, don't commit it, and rotate it if it ever appears
+                        in a log.
+                    </p>
+
+                    <h2>Step 2: install the client library</h2>
+                    <pre data-lang="bash"><code>pip install huggingface_hub</code></pre>
+                    <p>
+                        If you use <code>transformers</code>, <code>datasets</code>, or <code>diffusers</code>,
+                        you already have it &mdash; they all depend on <code>huggingface_hub</code> and share its
+                        authentication automatically. Log in once and the whole ecosystem is signed in.
+                    </p>
+
+                    <h2>Step 3: log in</h2>
+                    <p>There are four ways to authenticate, in rough order of how often you'll want each:</p>
+
+                    <h3>From the terminal (interactive machines)</h3>
+                    <pre data-lang="bash"><code>hf auth login</code></pre>
+                    <p>
+                        (On older installs the equivalent command is <code>huggingface-cli login</code>.) Paste
+                        your token at the prompt. It's stored in your Hugging Face home directory (by default
+                        <code>~/.cache/huggingface/token</code>), and every subsequent Python session on that
+                        machine is authenticated &mdash; nothing to add to your code at all. Verify with:
+                    </p>
+                    <pre data-lang="bash"><code>hf auth whoami</code></pre>
+
+                    <h3>From Python</h3>
+                    <pre data-lang="python"><code>from huggingface_hub import login
+
+# Interactive: prompts for the token and stores it
+login()
+
+# Non-interactive: pass the token explicitly (e.g. read from a secrets manager)
+login(token=my_token)</code></pre>
+
+                    <h3>From a notebook (Jupyter / Colab)</h3>
+                    <pre data-lang="python"><code>from huggingface_hub import notebook_login
+
+notebook_login()  # renders a login widget in the notebook</code></pre>
+                    <p>
+                        In Google Colab there's an even nicer route: store the token once under the key
+                        <code>HF_TOKEN</code> in Colab's Secrets panel (the key icon in the sidebar), grant the
+                        notebook access, and the library picks it up automatically.
+                    </p>
+
+                    <h3>From an environment variable (CI, servers, containers)</h3>
+                    <pre data-lang="bash"><code>export HF_TOKEN="hf_..."</code></pre>
+                    <p>
+                        The library reads <code>HF_TOKEN</code> automatically &mdash; no login call needed. This is
+                        the right pattern for GitHub Actions (set it as a repository secret), Docker containers
+                        (pass it with <code>-e HF_TOKEN</code>), and any headless environment. An explicitly passed
+                        <code>token=</code> argument takes precedence over the environment variable, which in turn
+                        takes precedence over the token stored by <code>login</code>.
+                    </p>
+                    <p>Whichever route you used, confirm it worked:</p>
+                    <pre data-lang="python"><code>from huggingface_hub import whoami
+
+print(whoami()["name"])  # your username</code></pre>
+
+                    <h2>Pushing a model to the Hub</h2>
+                    <p>
+                        With a write-capable token, uploading a transformers model is one method call. This is the
+                        typical end-of-fine-tuning sequence:
+                    </p>
+                    <pre data-lang="python"><code>from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+model = AutoModelForSequenceClassification.from_pretrained("./my-finetuned-model")
+tokenizer = AutoTokenizer.from_pretrained("./my-finetuned-model")
+
+# Creates the repo if it doesn't exist, then uploads
+model.push_to_hub("your-username/my-model")
+tokenizer.push_to_hub("your-username/my-model")
+
+# Private repo instead:
+model.push_to_hub("your-username/my-model", private=True)</code></pre>
+                    <p>
+                        For arbitrary files &mdash; custom architectures, checkpoints, anything that isn't a
+                        standard transformers model &mdash; use the lower-level API:
+                    </p>
+                    <pre data-lang="python"><code>from huggingface_hub import HfApi
+
+api = HfApi()
+api.create_repo("your-username/my-model", exist_ok=True, private=True)
+api.upload_folder(
+    folder_path="./my-finetuned-model",
+    repo_id="your-username/my-model",
+)</code></pre>
+                    <p>
+                        Every repo on the Hub is a Git repository under the hood, so uploads are versioned: each
+                        push creates a commit, and you can pin, diff, and roll back. Add a model card
+                        (<code>README.md</code>) with training details and intended use &mdash; it's the first
+                        thing users of your model (including future you) will look for.
+                    </p>
+
+                    <h2>Pulling models from the Hub</h2>
+                    <p>Downloading is the mirror image. For transformers models:</p>
+                    <pre data-lang="python"><code>from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+# Works for public, private, and gated repos — auth is picked up automatically
+model = AutoModelForSequenceClassification.from_pretrained("your-username/my-model")
+tokenizer = AutoTokenizer.from_pretrained("your-username/my-model")
+
+# Pin an exact version for reproducibility (any git revision works)
+model = AutoModelForSequenceClassification.from_pretrained(
+    "your-username/my-model", revision="v1.0"
+)</code></pre>
+                    <p>For single files or full snapshots without the transformers machinery:</p>
+                    <pre data-lang="python"><code>from huggingface_hub import hf_hub_download, snapshot_download
+
+config_path = hf_hub_download(repo_id="your-username/my-model", filename="config.json")
+local_dir = snapshot_download(repo_id="your-username/my-model")</code></pre>
+                    <p>
+                        Downloads land in a local cache (<code>~/.cache/huggingface/hub</code> by default), so
+                        repeated <code>from_pretrained</code> calls don't re-download. On disk-constrained machines,
+                        point the cache elsewhere by setting the <code>HF_HOME</code> environment variable.
+                    </p>
+
+                    <h2>Common problems</h2>
+                    <ul>
+                        <li>
+                            <strong>401 Unauthorized on a public model</strong> &mdash; usually a gated repo
+                            (Llama, Gemma, and friends): you must accept the license on the model's page with your
+                            account first, and then be authenticated when downloading.
+                        </li>
+                        <li>
+                            <strong>403 Forbidden when pushing</strong> &mdash; your token is read-only, or a
+                            fine-grained token doesn't include that repo. Check the token's scope.
+                        </li>
+                        <li>
+                            <strong>Works locally, fails in CI</strong> &mdash; the login stored by
+                            <code>hf auth login</code> lives on your machine, not in the runner. Set
+                            <code>HF_TOKEN</code> as a secret in the CI environment.
+                        </li>
+                        <li>
+                            <strong>Token committed to Git</strong> &mdash; revoke it immediately in your token
+                            settings and create a new one. Hugging Face also scans public repos for leaked tokens
+                            and will invalidate ones it finds, but don't rely on that.
+                        </li>
+                    </ul>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Fine-tuning a model and want the training, evaluation, and deployment pipeline
+                            around it done right?</strong> That's exactly the kind of end-to-end work I take on.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
