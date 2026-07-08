@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A practical Docker introduction for data scientists: images vs containers, writing a Dockerfile for a Python ML app, volumes, ports, Docker Compose, and GPU access with the NVIDIA Container Toolkit.">
+    <meta name="keywords" content="how to use Docker, Docker tutorial, Dockerfile Python, Docker for data science, Docker volumes, docker compose, Docker GPU, nvidia container toolkit">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/how-to-use-docker/">
+
+    <meta property="og:title" content="How to Use Docker: A Practical Introduction for Data Scientists">
+    <meta property="og:description" content="Images, containers, Dockerfiles, volumes, and GPU access — the working vocabulary and commands to ship an ML project in a container.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/how-to-use-docker/">
+    <meta property="og:type" content="article">
+
+    <title>How to Use Docker: A Practical Introduction for Data Scientists — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "How to Use Docker: A Practical Introduction for Data Scientists",
+      "description": "Images, containers, Dockerfiles, volumes, and GPU access — the working vocabulary and commands to ship an ML project in a container.",
+      "author": { "@type": "Person", "name": "Rudy van den Brink" },
+      "publisher": { "@type": "Organization", "name": "Brink Data Science", "url": "https://www.brinkdatascience.com" },
+      "datePublished": "2026-06-09",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/how-to-use-docker/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Engineering</p>
+                    <h1 class="post-title">How to use <em>Docker</em>: a practical introduction.</h1>
+                    <p class="post-meta">
+                        <span>June 9, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~10 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>
+                        "It works on my machine" is where machine learning projects go to die. The model runs
+                        beautifully in your environment &mdash; with your Python version, your library versions,
+                        your system packages &mdash; and falls over the moment anyone else, or any server, tries to
+                        run it. Docker solves this by packaging your code <em>together with</em> its entire
+                        environment into a unit that runs identically everywhere. This guide covers the mental
+                        model and the handful of commands that account for 95% of day-to-day use.
+                    </p>
+
+                    <h2>The mental model: images and containers</h2>
+                    <p>Docker has exactly two core nouns, and the relationship between them explains everything else:</p>
+                    <ul>
+                        <li>
+                            <strong>An image</strong> is a frozen snapshot of a filesystem plus metadata: an OS
+                            base layer, your installed packages, your code, and the command to run. Images are
+                            immutable and shareable &mdash; think of one as a <em>class</em>, or a recipe.
+                        </li>
+                        <li>
+                            <strong>A container</strong> is a running instance of an image &mdash; the
+                            <em>object</em> made from the class. You can start many containers from one image;
+                            each gets its own isolated filesystem, processes, and network. Stop it, delete it,
+                            start a fresh one: the image is untouched.
+                        </li>
+                    </ul>
+                    <p>
+                        Unlike a virtual machine, a container doesn't emulate hardware or boot its own OS kernel
+                        &mdash; it shares the host's kernel and isolates at the process level. That's why containers
+                        start in milliseconds and add near-zero runtime overhead, which is exactly what you want
+                        when serving a model.
+                    </p>
+                    <p>
+                        <strong>Installing:</strong> on Windows and macOS, install
+                        <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> (on Windows it
+                        runs on WSL2). On Linux servers, install Docker Engine from Docker's apt/yum repositories.
+                        Verify with:
+                    </p>
+                    <pre data-lang="bash"><code>docker run hello-world</code></pre>
+
+                    <h2>The commands you'll actually use</h2>
+                    <pre data-lang="bash"><code>docker pull python:3.12-slim      # download an image from Docker Hub
+docker images                     # list images on this machine
+docker run -it python:3.12-slim  bash   # start a container, interactive shell
+docker ps                         # list running containers
+docker ps -a                      # ...including stopped ones
+docker logs -f &lt;name&gt;             # follow a container's output
+docker exec -it &lt;name&gt; bash       # open a shell inside a running container
+docker stop &lt;name&gt;                # stop
+docker rm &lt;name&gt;                  # remove a stopped container
+docker rmi &lt;image&gt;                # remove an image
+docker system prune               # clean up stopped containers & dangling layers</code></pre>
+                    <p>
+                        Two <code>docker run</code> flags do most of the heavy lifting: <code>-it</code> gives you
+                        an interactive terminal, and <code>--rm</code> auto-deletes the container when it exits
+                        &mdash; ideal for experiments so you don't accumulate dead containers.
+                    </p>
+
+                    <h2>Writing a Dockerfile</h2>
+                    <p>
+                        A <strong>Dockerfile</strong> is the recipe that builds an image. Here is a realistic one
+                        for a Python ML service &mdash; say, a FastAPI app serving model predictions:
+                    </p>
+                    <pre data-lang="dockerfile"><code># Start from an official slim Python base image
+FROM python:3.12-slim
+
+# Set the working directory inside the image
+WORKDIR /app
+
+# Copy ONLY the requirements first, then install.
+# This layer is cached and only re-runs when requirements.txt changes.
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Now copy the rest of the code (changes often, so it comes last)
+COPY . .
+
+# Document the port the app listens on
+EXPOSE 8000
+
+# The command the container runs on start
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]</code></pre>
+                    <p>Build it and run it:</p>
+                    <pre data-lang="bash"><code>docker build -t my-model-api .
+docker run --rm -p 8000:8000 my-model-api</code></pre>
+                    <p>
+                        <code>-p 8000:8000</code> maps port 8000 on your machine to port 8000 in the container
+                        (<code>host:container</code>) &mdash; the service is now at
+                        <code>http://localhost:8000</code>, exactly as it will be on any other machine that runs
+                        this image.
+                    </p>
+                    <p class="note">
+                        The ordering in that Dockerfile is deliberate. Docker builds images in <strong>layers</strong>
+                        and caches each one; a layer is rebuilt only if it (or a layer above it) changed. Copying
+                        <code>requirements.txt</code> and installing dependencies <em>before</em> copying your code
+                        means editing a Python file doesn't trigger a ten-minute reinstall of PyTorch &mdash; the
+                        dependency layer replays from cache. This one habit saves more build time than any other
+                        Docker trick.
+                    </p>
+                    <p>
+                        Also add a <code>.dockerignore</code> file (same syntax as <code>.gitignore</code>) listing
+                        <code>.git</code>, <code>__pycache__</code>, datasets, and model checkpoints you don't want
+                        baked into the image &mdash; it keeps builds fast and images small.
+                    </p>
+
+                    <h2>Volumes: data that outlives the container</h2>
+                    <p>
+                        A container's filesystem is ephemeral &mdash; delete the container and everything written
+                        inside it is gone. That's a feature for reproducibility and a disaster for datasets and
+                        model outputs. The fix is to <strong>mount</strong> storage from the host:
+                    </p>
+                    <pre data-lang="bash"><code># Bind mount: a host folder appears inside the container
+docker run --rm -v /path/to/data:/app/data my-model-api
+
+# Named volume: Docker-managed storage, survives container removal
+docker volume create model-cache
+docker run --rm -v model-cache:/root/.cache/huggingface my-model-api</code></pre>
+                    <p>
+                        Bind mounts are ideal during development (edit code on the host, run it in the container);
+                        named volumes are better for caches and databases. That second example is a favorite of
+                        mine: mounting the Hugging Face cache means containers don't re-download multi-gigabyte
+                        model weights on every run.
+                    </p>
+
+                    <h2>Docker Compose: multi-container setups in one file</h2>
+                    <p>
+                        Real projects rarely stay single-container: the API needs a database, or a vector store,
+                        or a worker. <strong>Docker Compose</strong> declares the whole stack in one YAML file.
+                        Save this as <code>compose.yaml</code>:
+                    </p>
+                    <pre data-lang="yaml"><code>services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/app
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:</code></pre>
+                    <pre data-lang="bash"><code>docker compose up --build    # build and start everything
+docker compose down          # stop and remove it all</code></pre>
+                    <p>
+                        Note the networking: the API reaches the database at the hostname <code>db</code> &mdash;
+                        Compose gives every service a DNS name matching its key in the file. One command now brings
+                        up the entire stack on any machine, which is transformative for onboarding collaborators.
+                    </p>
+
+                    <h2>Using GPUs in containers</h2>
+                    <p>
+                        Containers can use NVIDIA GPUs at full speed, and this is how most ML training and inference
+                        is deployed in practice. On a Linux host (or WSL2) with the NVIDIA driver installed, install
+                        the <strong>NVIDIA Container Toolkit</strong> once, then pass <code>--gpus all</code>:
+                    </p>
+                    <pre data-lang="bash"><code># Verify GPU access from inside a container
+docker run --rm --gpus all nvidia/cuda:12.6.2-base-ubuntu24.04 nvidia-smi
+
+# Run your training image on the GPU
+docker run --rm --gpus all -v ./data:/app/data my-training-image</code></pre>
+                    <p>
+                        A convenient property (covered in more depth in
+                        <a href="/blog/install-cuda-pytorch/">the CUDA post</a>): the container brings its own CUDA
+                        runtime, and the host only needs the driver. Official images like
+                        <code>pytorch/pytorch</code> come with PyTorch and CUDA preinstalled, so a pinned image
+                        gives you a fully reproducible training environment &mdash; same CUDA, same libraries,
+                        every run, on any machine with an NVIDIA card.
+                    </p>
+
+                    <h2>Habits worth adopting early</h2>
+                    <ul>
+                        <li><strong>Pin your versions</strong> &mdash; base images (<code>python:3.12-slim</code>, not <code>python:latest</code>) and requirements. Unpinned builds drift and break silently.</li>
+                        <li><strong>Prefer slim base images</strong> &mdash; smaller images build, push, and start faster; install only what the app needs.</li>
+                        <li><strong>Pass secrets via the environment</strong> (<code>-e API_KEY=...</code> or an <code>env_file</code>), never bake them into the image &mdash; anyone with the image can read every layer.</li>
+                        <li><strong>One process per container</strong> &mdash; API and database in separate containers, composed together, not one mega-container.</li>
+                        <li><strong>Clean up periodically</strong> &mdash; <code>docker system df</code> shows what's eating disk; <code>docker system prune</code> reclaims it.</li>
+                    </ul>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Need a model packaged into something your team can actually deploy and run?</strong>
+                            Production-ready pipelines and deployment are the "software" half of what I do.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>

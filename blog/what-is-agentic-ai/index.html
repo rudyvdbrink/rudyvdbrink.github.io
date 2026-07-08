@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="What is agentic AI? How AI agents differ from chatbots and workflows, how the agent loop and tool use work (with a Python example), and when an agent is actually the right architecture.">
+    <meta name="keywords" content="agentic AI, AI agents, what is an AI agent, LLM agents, tool use, function calling, agent loop, multi-agent systems, MCP">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/what-is-agentic-ai/">
+
+    <meta property="og:title" content="What Is Agentic AI? From Chatbots to AI Agents">
+    <meta property="og:description" content="What makes an AI system agentic, how the agent loop works, and when an agent is the right architecture.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/what-is-agentic-ai/">
+    <meta property="og:type" content="article">
+
+    <title>What Is Agentic AI? From Chatbots to AI Agents — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "What Is Agentic AI? From Chatbots to AI Agents",
+      "description": "What makes an AI system agentic, how the agent loop works, and when an agent is the right architecture.",
+      "author": { "@type": "Person", "name": "Rudy van den Brink" },
+      "publisher": { "@type": "Organization", "name": "Brink Data Science", "url": "https://www.brinkdatascience.com" },
+      "datePublished": "2026-02-24",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/what-is-agentic-ai/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Concepts</p>
+                    <h1 class="post-title">What is <em>agentic</em> AI?</h1>
+                    <p class="post-meta">
+                        <span>February 24, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~10 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>
+                        "Agentic AI" is the term of the moment, and like most terms of the moment it gets applied
+                        to everything from a chatbot with a search button to fully autonomous software engineers.
+                        Underneath the marketing there is a precise and genuinely useful idea. This article explains
+                        what it is, how it works mechanically, and &mdash; just as important &mdash; when it's the
+                        wrong tool.
+                    </p>
+
+                    <h2>The core idea: a model in a loop</h2>
+                    <p>
+                        A plain large language model call is a one-shot function: text in, text out. The model can
+                        reason impressively, but it can't <em>do</em> anything &mdash; it can't look something up,
+                        run code, query your database, or send an email. It also can't check its own work against
+                        reality.
+                    </p>
+                    <p>
+                        An <strong>AI agent</strong> is a language model placed in a loop and given
+                        <strong>tools</strong>: functions it can invoke to act on the world. Each cycle of the loop
+                        looks like this:
+                    </p>
+                    <ol>
+                        <li>The model receives the task plus everything that has happened so far.</li>
+                        <li>It decides on the next step: either call a tool, or declare the task finished.</li>
+                        <li>If it called a tool, your code executes the call and feeds the result back.</li>
+                        <li>Repeat until done.</li>
+                    </ol>
+                    <p>
+                        That's it. "Agentic" doesn't refer to a special kind of model &mdash; the same model powers
+                        chat and agents alike. It refers to the architecture: <em>the model directs its own control
+                        flow</em>. Rather than a programmer specifying "first search, then summarize, then draft,"
+                        the model observes intermediate results and decides what to do next, including recovering
+                        from errors and taking paths nobody scripted.
+                    </p>
+
+                    <h2>Agents vs. workflows vs. chatbots</h2>
+                    <p>A useful mental model has three tiers, in increasing order of autonomy:</p>
+                    <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>Tier</th><th>Who controls the flow</th><th>Example</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Single call</strong></td>
+                                <td>Your code, one step</td>
+                                <td>Summarize a document, classify a ticket</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Workflow</strong></td>
+                                <td>Your code, fixed steps with LLM calls inside</td>
+                                <td>Extract &rarr; validate &rarr; format, always in that order</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Agent</strong></td>
+                                <td>The model decides step by step</td>
+                                <td>"Find the cause of this failing test and fix it"</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                    <p>
+                        The distinction matters because autonomy is a cost, not just a capability. Workflows are
+                        predictable, cheap, and easy to test; agents trade all three of those for flexibility.
+                        The right question is never "how do I add agents?" but "does this task have a knowable,
+                        fixed sequence of steps?" If yes, build a workflow. Agents earn their keep on open-ended
+                        tasks where the path genuinely depends on what's discovered along the way.
+                    </p>
+
+                    <h2>The anatomy of an agent</h2>
+                    <p>Production agent systems, whatever the framework, are assembled from the same few parts:</p>
+                    <ul>
+                        <li>
+                            <strong>The model</strong> &mdash; the reasoning engine. Capability here bounds
+                            everything else; a model that plans poorly can't be prompted into planning well.
+                        </li>
+                        <li>
+                            <strong>Tools</strong> &mdash; typed function interfaces the model may call: web search,
+                            code execution, file editing, database queries, internal APIs. Each tool is declared
+                            with a name, a description, and a schema for its parameters. Tool descriptions are
+                            effectively prompts &mdash; they determine when the model reaches for the tool.
+                        </li>
+                        <li>
+                            <strong>Memory / context management</strong> &mdash; the conversation history is the
+                            agent's working memory, and it's finite. Long-running agents need strategies for
+                            summarizing or pruning old context, and often a persistent store (files, a database)
+                            for knowledge that must survive across sessions.
+                        </li>
+                        <li>
+                            <strong>The harness</strong> &mdash; the surrounding code: it executes tool calls,
+                            enforces permissions and timeouts, limits the number of iterations, logs what happened,
+                            and decides which actions need human approval.
+                        </li>
+                    </ul>
+                    <p>
+                        The influential ReAct pattern (Yao et al., 2022) formalized the interleaving of
+                        <em>reasoning</em> ("the test fails because the fixture is missing") and <em>acting</em>
+                        (run the test, read the file). Modern APIs have absorbed the idea natively: current models
+                        are trained for tool use and emit structured tool calls directly, no prompt tricks required.
+                    </p>
+
+                    <h2>A minimal agent in Python</h2>
+                    <p>
+                        Here is the agent loop with no framework at all, using the Anthropic API. We give the model
+                        one tool &mdash; a weather lookup &mdash; and let it decide when to call it. The same
+                        skeleton scales to real tool sets.
+                    </p>
+                    <pre data-lang="python"><code>import anthropic
+
+client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from the environment
+
+tools = [
+    {
+        "name": "get_weather",
+        "description": "Get the current weather for a city.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "city": {"type": "string", "description": "City name"},
+            },
+            "required": ["city"],
+        },
+    }
+]
+
+def get_weather(city: str) -> str:
+    # In real life: call a weather API here
+    return f"18°C and cloudy in {city}"
+
+messages = [{"role": "user", "content": "Should I bike to work in Amsterdam today?"}]
+
+# The agent loop: keep going until the model stops calling tools
+while True:
+    response = client.messages.create(
+        model="claude-opus-4-8",
+        max_tokens=1024,
+        tools=tools,
+        messages=messages,
+    )
+
+    if response.stop_reason != "tool_use":
+        break  # the model has produced its final answer
+
+    # Append the model's turn, then execute every tool it requested
+    messages.append({"role": "assistant", "content": response.content})
+    tool_results = []
+    for block in response.content:
+        if block.type == "tool_use":
+            result = get_weather(**block.input)
+            tool_results.append({
+                "type": "tool_result",
+                "tool_use_id": block.id,
+                "content": result,
+            })
+    messages.append({"role": "user", "content": tool_results})
+
+final_text = next(b.text for b in response.content if b.type == "text")
+print(final_text)</code></pre>
+                    <p>
+                        Note what the code does <em>not</em> contain: no instruction to check the weather. The model
+                        reads the question, recognizes that answering it requires information it doesn't have, calls
+                        the tool, and folds the result into its answer. Swap in tools for your database, your
+                        ticketing system, or a code sandbox, and the same twenty lines become a very different agent.
+                    </p>
+                    <p class="note">
+                        In production you'd add guardrails to this loop: a cap on iterations, timeouts and error
+                        handling around tool execution, logging of every call, and human confirmation for
+                        irreversible actions. Most provider SDKs now ship a "tool runner" that manages the loop
+                        for you.
+                    </p>
+
+                    <h2>Multi-agent systems</h2>
+                    <p>
+                        Once one agent works, the natural next step is several: an orchestrator that decomposes a
+                        task and delegates subtasks to specialized sub-agents (a researcher, a coder, a reviewer),
+                        each with its own context window and tool set. This is how my own
+                        <a href="/#neurolex">NeuroLex</a> system works &mdash; cooperating agents handle query
+                        understanding, retrieval over a scientific corpus, and answer composition.
+                    </p>
+                    <p>
+                        Multi-agent architectures shine when subtasks are genuinely independent (they can run in
+                        parallel) or when isolating context improves focus &mdash; a reviewer agent that hasn't
+                        seen the author's reasoning makes a more honest critic. They add real overhead in cost,
+                        latency, and debugging complexity, so the same rule applies as before: start with one
+                        agent, split only when you hit a concrete limit.
+                    </p>
+                    <p>
+                        Standardization is also arriving. The <strong>Model Context Protocol (MCP)</strong>, an open
+                        standard introduced by Anthropic in 2024 and since adopted broadly across the industry,
+                        gives tools a common interface &mdash; so a database connector or a browser tool can be
+                        written once and plugged into any MCP-capable agent, rather than reimplemented per framework.
+                    </p>
+
+                    <h2>When agents are the wrong answer</h2>
+                    <p>An honest checklist before reaching for an agent:</p>
+                    <ul>
+                        <li>
+                            <strong>Is the task actually open-ended?</strong> If you can write the steps down,
+                            write them down &mdash; a fixed workflow will be cheaper, faster, and far easier to test.
+                        </li>
+                        <li>
+                            <strong>Can errors be caught and undone?</strong> Agents fail in creative ways. They're
+                            a good fit where verification is cheap (tests, review, rollback) and a poor fit where a
+                            single wrong action is expensive and irreversible.
+                        </li>
+                        <li>
+                            <strong>Does the value justify the cost?</strong> An agent may burn dozens of model
+                            calls on a task a single prompt could approximate. That's a fine trade for a task worth
+                            hours of human time, and a bad one for high-volume, low-value requests.
+                        </li>
+                    </ul>
+                    <p>
+                        The systems that work in production tend to be boring in the best way: a scoped task, a
+                        small set of well-described tools, tight guardrails, and a human in the loop wherever the
+                        cost of error is high. Autonomy is added gradually, as trust is earned &mdash; not granted
+                        up front.
+                    </p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Considering an agentic system &mdash; or unsure whether a simpler workflow would
+                            do?</strong> I build production agent and RAG systems, and part of the job is telling
+                            you when you don't need one.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
