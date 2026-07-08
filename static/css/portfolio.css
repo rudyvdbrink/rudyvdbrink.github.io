@@ -190,6 +190,10 @@
     align-items: center;
     justify-content: center;
 }
+/* Taller, portrait variant: same width, extra headroom above and below
+   the content (used by the animated AutoHPSearch logo). */
+.panel--logo.panel--tall { aspect-ratio: 5 / 5.5; }
+
 .panel--glow-teal {
     background:
         radial-gradient(60% 55% at 50% 46%, rgba(60, 136, 168, 0.22), transparent 70%),
@@ -259,6 +263,30 @@
 
 @media (hover: hover) {
     .panel:hover .panel-image { transform: scale(1.025); }
+}
+
+/* ---------- Animated AutoHPSearch logo ---------- */
+/* The burst is drawn and rotated by script.js; the wordmark matches the
+   logo's own blue (#009BEB), which is deliberately kept as-is. */
+
+.hp-logo {
+    width: min(66%, 280px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.hp-spin {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+.hp-wordmark {
+    margin: 2rem 0 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.5rem, 2.8vw, 2.05rem);
+    letter-spacing: -0.01em;
+    color: #009BEB;
 }
 
 /* ---------- Audio demo player (Making Audiobooks) ---------- */
@@ -356,5 +384,6 @@
 
 @media (max-width: 480px) {
     .panel--logo { aspect-ratio: 4 / 3; }
+    .panel--logo.panel--tall { aspect-ratio: 5 / 5.5; }
     .panel-image--mark { width: min(62%, 210px); }
 }
