@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A comprehensive guide to diagnosing overfitting and underfitting in deep learning: learning curves, validation loss patterns, weight and gradient distributions, the random-label test, calibration, and more — with PyTorch code.">
+    <meta name="keywords" content="overfitting deep learning, validation loss, learning curves, underfitting, early stopping, weight distributions, generalization gap, model calibration, PyTorch training diagnostics">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/diagnosing-overfitting-deep-learning/">
+
+    <meta property="og:title" content="Diagnosing Overfitting in Deep Learning: A Field Guide">
+    <meta property="og:description" content="Learning curves, weight distributions, gradient norms, the random-label test, calibration — every signal that tells you how well your model actually fits.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/diagnosing-overfitting-deep-learning/">
+    <meta property="og:type" content="article">
+
+    <title>Diagnosing Overfitting in Deep Learning: A Field Guide — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Diagnosing Overfitting in Deep Learning: A Field Guide",
+      "description": "Learning curves, weight distributions, gradient norms, the random-label test, calibration — every signal that tells you how well your model actually fits.",
+      "author": { "@type": "Person", "name": "Rudy van den Brink" },
+      "publisher": { "@type": "Organization", "name": "Brink Data Science", "url": "https://www.brinkdatascience.com" },
+      "datePublished": "2026-01-20",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/diagnosing-overfitting-deep-learning/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Training</p>
+                    <h1 class="post-title">Diagnosing <em>overfitting</em> in deep learning: a field guide.</h1>
+                    <p class="post-meta">
+                        <span>January 20, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~14 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>
+                        Every deep learning model walks a line between two failure modes: learning too little from
+                        the data, and learning the data itself instead of the pattern behind it. Knowing which side
+                        of that line your model is on &mdash; and how far over &mdash; is the single most important
+                        diagnostic skill in applied deep learning. This post is a field guide to it: what over- and
+                        underfitting are, and then the full toolbox of signals that reveal fit quality, from the
+                        everyday (validation curves) to the less commonly used (weight distributions, gradient
+                        norms, the random-label test, calibration).
+                    </p>
+
+                    <h2>Overfitting and underfitting, properly defined</h2>
+                    <p>
+                        A model is trained to minimize error on the <strong>training set</strong>, but what we
+                        actually care about is error on <strong>data it has never seen</strong> &mdash; the
+                        generalization error. The two failure modes are defined by the relationship between them:
+                    </p>
+                    <ul>
+                        <li>
+                            <strong>Underfitting</strong> &mdash; the model is too simple, too constrained, or too
+                            under-trained to capture the real structure in the data. Symptom: <em>high error on the
+                            training set itself</em>. If the model can't even fit the data it has seen, it has no
+                            chance on data it hasn't.
+                        </li>
+                        <li>
+                            <strong>Overfitting</strong> &mdash; the model has captured not just the signal but also
+                            the noise: quirks, coincidences, and even individual examples of the training set that
+                            don't hold in the population. Symptom: <em>low training error, but substantially higher
+                            error on held-out data</em>. The difference between the two is called the
+                            <strong>generalization gap</strong>.
+                        </li>
+                    </ul>
+                    <p>
+                        The classical framing is the <strong>bias&ndash;variance trade-off</strong>: simple models
+                        have high bias (systematically wrong, everywhere), complex models have high variance
+                        (exquisitely right on the training set, unstable off it), and you tune capacity to sit in
+                        the valley between them. Deep learning complicates this tidy picture &mdash; heavily
+                        overparameterized networks can generalize well despite having the capacity to memorize
+                        everything, and the test error curve can even improve again past the point of interpolation
+                        (the "double descent" phenomenon). But the practical diagnosis workflow is unchanged: you
+                        measure training performance and held-out performance, and read the gap.
+                    </p>
+                    <p>
+                        One prerequisite makes all of the following meaningful: a clean split into
+                        <strong>training</strong> (fit the weights), <strong>validation</strong> (tune decisions:
+                        hyperparameters, early stopping, architecture), and <strong>test</strong> (touched once, at
+                        the end, to report performance). Every diagnostic below leans on the validation set &mdash;
+                        and every one of them is silently invalidated by leakage between the splits, which is why
+                        leakage gets its own section near the end.
+                    </p>
+
+                    <h2>Signal 1: learning curves — train vs. validation loss</h2>
+                    <p>
+                        The workhorse. Log training loss and validation loss every epoch and plot them together;
+                        the <em>shape</em> of the two curves is a remarkably complete diagnosis:
+                    </p>
+                    <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>Pattern</th><th>Diagnosis</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Both curves high and flat (or still falling together at the end of training)</td>
+                                <td><strong>Underfitting.</strong> Train longer, increase capacity, raise the learning rate, or reduce regularization.</td>
+                            </tr>
+                            <tr>
+                                <td>Training loss keeps falling; validation loss bottoms out and climbs back up</td>
+                                <td><strong>Overfitting</strong>, and the turning point marks where it begins. The gap between the curves is memorization, not learning.</td>
+                            </tr>
+                            <tr>
+                                <td>Both fall together, small stable gap</td>
+                                <td><strong>Good fit.</strong> A modest gap is normal — training data is always slightly easier for the model than unseen data.</td>
+                            </tr>
+                            <tr>
+                                <td>Validation loss <em>below</em> training loss</td>
+                                <td>Usually an artifact, not brilliance: dropout/augmentation active during training but not evaluation, training loss averaged over the epoch while validation is measured after it — or a leaky/too-easy validation set.</td>
+                            </tr>
+                            <tr>
+                                <td>Validation loss noisy and erratic while training loss is smooth</td>
+                                <td>Validation set too small to give a stable estimate, or batch effects. Fix the measurement before trusting any of it.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                    <p>The corresponding training loop, with the logging and early stopping built in:</p>
+                    <pre data-lang="python"><code>import copy
+import torch
+
+def train(model, train_loader, val_loader, loss_fn, optimizer,
+          max_epochs=200, patience=10):
+    history = {"train_loss": [], "val_loss": []}
+    best_val, best_state, wait = float("inf"), None, 0
+
+    for epoch in range(max_epochs):
+        # --- training pass ---
+        model.train()
+        train_loss = 0.0
+        for X, y in train_loader:
+            optimizer.zero_grad()
+            loss = loss_fn(model(X), y)
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item() * len(X)
+        train_loss /= len(train_loader.dataset)
+
+        # --- validation pass: no gradients, eval mode ---
+        model.eval()
+        val_loss = 0.0
+        with torch.no_grad():
+            for X, y in val_loader:
+                val_loss += loss_fn(model(X), y).item() * len(X)
+        val_loss /= len(val_loader.dataset)
+
+        history["train_loss"].append(train_loss)
+        history["val_loss"].append(val_loss)
+        print(f"epoch {epoch:3d}  train {train_loss:.4f}  val {val_loss:.4f}")
+
+        # --- early stopping on validation loss ---
+        if val_loss < best_val:
+            best_val, wait = val_loss, 0
+            best_state = copy.deepcopy(model.state_dict())
+        else:
+            wait += 1
+            if wait >= patience:
+                print(f"early stop at epoch {epoch}, best val {best_val:.4f}")
+                break
+
+    model.load_state_dict(best_state)   # roll back to the best epoch
+    return history</code></pre>
+                    <p>
+                        <strong>Early stopping</strong> &mdash; halting when validation loss hasn't improved for
+                        <code>patience</code> epochs and restoring the best checkpoint &mdash; is both a diagnostic
+                        and the cheapest regularizer you own: it simply refuses to keep training into the
+                        memorization regime. Note the two easy-to-miss details in the code:
+                        <code>model.eval()</code> (disables dropout, freezes batch-norm statistics) and
+                        <code>torch.no_grad()</code> during validation. Getting either wrong corrupts the very
+                        curve you're diagnosing with.
+                    </p>
+
+                    <h2>Signal 2: metrics beyond the loss</h2>
+                    <p>
+                        Track the metric you actually care about (accuracy, F1, AUC, MAE) on both splits, alongside
+                        the loss &mdash; because the two can disagree, and the disagreement is informative. A
+                        classic example: validation <em>loss</em> rises while validation <em>accuracy</em> holds
+                        steady. That usually means the model's predictions are still mostly correct but growing
+                        overconfident &mdash; wrong answers are becoming <em>very</em> confidently wrong, which
+                        cross-entropy punishes hard. That's mild overfitting in confidence before it shows up in
+                        correctness, and a hint that calibration (signal 6) is drifting.
+                    </p>
+                    <p>
+                        For imbalanced problems, loss and accuracy can both look fine while the minority-class
+                        recall collapses &mdash; slice your validation metrics by class and by any segment you care
+                        about (time period, user group, data source). Overfitting is often local: the model
+                        memorizes the sparse regions of the data first.
+                    </p>
+
+                    <h2>Signal 3: weight distributions and norms</h2>
+                    <p>
+                        The loss curves tell you <em>that</em> something is wrong; the weights can tell you
+                        <em>what</em>. A healthy network's weight distribution typically stays roughly zero-centered
+                        and bell-shaped as training progresses, drifting smoothly from its initialization. Two
+                        patterns are worth watching for:
+                    </p>
+                    <ul>
+                        <li>
+                            <strong>Growing weight magnitudes / heavy tails.</strong> A steadily climbing weight
+                            norm, or histograms sprouting extreme outliers, often accompanies memorization:
+                            fitting noise tends to require large, finely tuned weights, which is precisely why
+                            weight decay (L2 regularization) &mdash; a penalty on that norm &mdash; combats
+                            overfitting. If the norm inflates in lockstep with a widening train/val gap, you have
+                            converging evidence.
+                        </li>
+                        <li>
+                            <strong>Dead or collapsed layers.</strong> Histograms frozen at initialization, or
+                            collapsed onto a spike at zero, indicate a layer that isn't learning (vanishing
+                            gradients, dead ReLUs, a too-aggressive learning rate earlier in training). That's an
+                            underfitting signature, localized to a layer.
+                        </li>
+                    </ul>
+                    <p>Logging this costs three lines with TensorBoard:</p>
+                    <pre data-lang="python"><code>from torch.utils.tensorboard import SummaryWriter
+
+writer = SummaryWriter("runs/experiment-1")
+
+# inside the epoch loop:
+for name, param in model.named_parameters():
+    writer.add_histogram(f"weights/{name}", param, epoch)
+writer.add_scalar("weights/global_l2_norm",
+                  torch.sqrt(sum(p.pow(2).sum() for p in model.parameters())),
+                  epoch)
+writer.add_scalar("loss/train", train_loss, epoch)
+writer.add_scalar("loss/val", val_loss, epoch)</code></pre>
+                    <p>
+                        Then <code>tensorboard --logdir runs</code> gives you per-layer histograms over time. Read
+                        them comparatively &mdash; against earlier epochs of the same run and against a run that
+                        generalized well &mdash; rather than hunting for an absolute "good" shape; architectures
+                        differ too much for universal thresholds.
+                    </p>
+
+                    <h2>Signal 4: gradient norms</h2>
+                    <p>
+                        Gradients are the training signal itself, and their magnitude over time is a useful fit
+                        thermometer. Log the global gradient norm each step (before
+                        <code>optimizer.step()</code>):
+                    </p>
+                    <pre data-lang="python"><code>grad_norm = torch.sqrt(sum(
+    p.grad.pow(2).sum() for p in model.parameters() if p.grad is not None
+))
+writer.add_scalar("grad_norm/global", grad_norm, step)</code></pre>
+                    <ul>
+                        <li>
+                            <strong>Gradients collapsing toward zero while training loss is still high</strong> —
+                            the optimizer has stalled (vanishing gradients, saturated activations, learning rate
+                            decayed too far): an underfitting mechanism.
+                        </li>
+                        <li>
+                            <strong>Exploding or spiky norms</strong> — unstable optimization; the loss curves that
+                            result are too noisy to diagnose fit from. Fix stability first (gradient clipping,
+                            lower learning rate), then re-read the curves.
+                        </li>
+                        <li>
+                            <strong>Near-zero training loss with near-zero gradients</strong> — the model has fully
+                            fit the training set. Whatever the validation curve says at this point is final; more
+                            epochs can only entrench memorization.
+                        </li>
+                    </ul>
+
+                    <h2>Signal 5: the random-label test — measuring memorization capacity</h2>
+                    <p>
+                        A famous result (<a href="https://arxiv.org/abs/1611.03530">Zhang et al., 2017</a>) showed that standard deep networks can reach
+                        near-perfect <em>training</em> accuracy on datasets whose labels have been randomly
+                        shuffled &mdash; pure memorization, since there is no signal left to learn. You can turn
+                        this into a practical diagnostic for your own setup:
+                    </p>
+                    <pre data-lang="python"><code>import torch
+
+shuffled = torch.randperm(len(y_train))
+y_random = y_train[shuffled]          # destroys the input–label relationship
+
+# train an identical fresh model on (X_train, y_random) and watch training loss</code></pre>
+                    <p>
+                        Two readings come out of it. If your model drives training loss to zero on random labels
+                        <em>quickly</em>, its capacity vastly exceeds what the dataset constrains &mdash; not fatal,
+                        but a warning that regularization and early stopping are load-bearing. And comparing the
+                        real-label and random-label training curves shows how much of your model's training
+                        performance could be achieved by memorization alone: the earlier and lower the real-label
+                        curve separates from the random-label curve, the more actual structure it is learning.
+                        As a bonus, a model that reaches high accuracy on <em>validation</em> data under shuffled
+                        training labels has just proven your pipeline leaks (see signal 7).
+                    </p>
+
+                    <h2>Signal 6: prediction confidence and calibration</h2>
+                    <p>
+                        An overfit classifier is typically an <strong>overconfident</strong> one: softmax
+                        probabilities pile up near 1.0, including on the examples it gets wrong. Calibration
+                        measures whether confidence means what it says &mdash; among predictions made with 80%
+                        confidence, are about 80% correct? The standard tools are the reliability diagram (plot
+                        accuracy against binned confidence; the diagonal is perfect calibration) and its scalar
+                        summary, <strong>expected calibration error (ECE)</strong>:
+                    </p>
+                    <pre data-lang="python"><code>import torch
+
+@torch.no_grad()
+def expected_calibration_error(model, loader, n_bins=10):
+    model.eval()
+    confs, correct = [], []
+    for X, y in loader:
+        probs = torch.softmax(model(X), dim=1)
+        conf, pred = probs.max(dim=1)
+        confs.append(conf)
+        correct.append(pred.eq(y))
+    conf = torch.cat(confs); corr = torch.cat(correct).float()
+
+    ece = torch.zeros(1)
+    edges = torch.linspace(0, 1, n_bins + 1)
+    for lo, hi in zip(edges[:-1], edges[1:]):
+        in_bin = (conf > lo) & (conf <= hi)
+        if in_bin.any():
+            ece += in_bin.float().mean() * (corr[in_bin].mean() - conf[in_bin].mean()).abs()
+    return ece.item()</code></pre>
+                    <p>
+                        Rising ECE on the validation set across training epochs is overfitting-in-confidence, and it
+                        often precedes the accuracy drop. It also matters in its own right: downstream systems that
+                        threshold on model confidence (triage, human-in-the-loop routing) silently degrade when
+                        calibration drifts, even at constant accuracy.
+                    </p>
+
+                    <h2>Signal 7: too good to be true — data leakage</h2>
+                    <p>
+                        The inverted diagnosis: validation performance that is <em>suspiciously good</em>, or a
+                        validation curve glued to the training curve on a hard problem. Before celebrating, rule
+                        out leakage &mdash; information from the validation set reaching training. The usual
+                        suspects:
+                    </p>
+                    <ul>
+                        <li><strong>Duplicates</strong> (or near-duplicates) present in both splits &mdash; endemic in scraped and augmented datasets. Deduplicate <em>before</em> splitting.</li>
+                        <li><strong>Group leakage</strong> — multiple samples from the same patient, user, session, or recording split across train and validation. Split by group, not by row.</li>
+                        <li><strong>Temporal leakage</strong> — random splits on time series let the model train on the future. Split by time.</li>
+                        <li><strong>Preprocessing leakage</strong> — normalization statistics, feature selection, or augmentation policies computed on the full dataset before splitting. Fit all preprocessing on the training split only.</li>
+                    </ul>
+                    <p>
+                        Leakage is the most expensive fit-quality failure in practice because it inverts your
+                        compass: it makes the overfit model look like the best one, and everything downstream
+                        (model selection, early stopping, reported metrics) inherits the error. When a result looks
+                        too good, treat that as a bug report until proven otherwise.
+                    </p>
+
+                    <h2>Signal 8: robustness checks — does the fit survive contact with variation?</h2>
+                    <p>Three quick probes that reveal fragile fits which look fine on the standard curves:</p>
+                    <ul>
+                        <li>
+                            <strong>Seed variance.</strong> Retrain with 3&ndash;5 random seeds. Large spread in
+                            validation performance means your model's fate hangs on initialization noise &mdash;
+                            a high-variance (overfitting-side) regime, and a sign that single-run comparisons
+                            between architectures or hyperparameters are meaningless.
+                        </li>
+                        <li>
+                            <strong>Input perturbation.</strong> Evaluate on lightly corrupted validation data
+                            (noise, small shifts, paraphrases &mdash; whatever is natural for the modality).
+                            A model whose accuracy craters under perturbations that don't confuse a human has
+                            fit surface statistics rather than the underlying concept.
+                        </li>
+                        <li>
+                            <strong>Out-of-distribution slices.</strong> Hold out an entire site, year, or cohort
+                            during training and evaluate on it. Standard validation measures generalization to
+                            <em>the same distribution</em>; deployment rarely has that courtesy. (In my
+                            <a href="/#smart-sampling">satellite-imagery work</a>, region-held-out evaluation is
+                            the difference between a model that works in the training country and one that works
+                            across Western Africa.)
+                        </li>
+                    </ul>
+                    <p>
+                        Relatedly, for small datasets, prefer <strong>k-fold cross-validation</strong> over a single
+                        split: it both stabilizes the estimate (every sample gets a turn in validation) and exposes
+                        variance across folds, which is itself a fit-quality signal.
+                    </p>
+
+                    <h2>A worked diagnosis routine</h2>
+                    <p>Putting it together as the checklist I actually run when a model's quality is in doubt:</p>
+                    <ol>
+                        <li><strong>Sanity-check the measurement</strong> — clean splits (grouped/temporal where needed), preprocessing fit on train only, validation set large enough for stable numbers.</li>
+                        <li><strong>Read the learning curves</strong> — classify into underfit / overfit / good fit from the table above; note where validation loss bottoms out.</li>
+                        <li><strong>Overlay the task metric</strong> — check for loss/metric divergence and per-slice collapse.</li>
+                        <li><strong>Check the weights and gradients</strong> — norm inflation, dead layers, optimization stalls; distinguish "can't learn" from "learned too much."</li>
+                        <li><strong>Probe memorization and confidence</strong> — random-label run if capacity is in question; ECE trend if downstream uses confidence.</li>
+                        <li><strong>Stress the fit</strong> — seeds, perturbations, held-out slices.</li>
+                        <li><strong>Then, and only then, intervene</strong> — more data or augmentation, weight decay, dropout, smaller model, earlier stopping for overfitting; more capacity, longer training, higher learning rate, less regularization for underfitting. Change one thing at a time and re-read the curves.</li>
+                    </ol>
+                    <p class="note">
+                        A closing note on the modern regime: with pretrained backbones and foundation models,
+                        classical overfitting on the pretraining corpus is rarely your problem &mdash; but
+                        overfitting during <em>fine-tuning</em> on your small task dataset absolutely is, and it
+                        moves fast (sometimes within a fraction of an epoch). Everything above applies, just on a
+                        compressed timescale: validate frequently, not once per epoch, and keep the early-stopping
+                        patience short.
+                    </p>
+
+                    <h2>References</h2>
+                    <ul>
+                        <li>
+                            Zhang, C., Bengio, S., Hardt, M., Recht, B., &amp; Vinyals, O. (2017).
+                            <a href="https://arxiv.org/abs/1611.03530"><em>Understanding deep learning requires
+                            rethinking generalization</em></a>. International Conference on Learning
+                            Representations (ICLR 2017). arXiv:1611.03530.
+                        </li>
+                    </ul>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Have a model that performs beautifully in training and disappoints in
+                            production?</strong> Diagnosing and closing that gap &mdash; data, training, and
+                            evaluation &mdash; is exactly the kind of work I do.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
