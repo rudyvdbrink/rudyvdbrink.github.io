@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="What are world models in AI? A source-backed deep dive: why large language models degrade on long multi-step reasoning, how world models from Dreamer to JEPA and Genie aim to learn the dynamics of the physical world, and what the evidence actually shows about longer prediction horizons.">
+    <meta name="keywords" content="world models, world model AI, JEPA, V-JEPA 2, DreamerV3, Genie 3, model-based reinforcement learning, LLM reasoning limits, model collapse, physical AI, video generation physics">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/what-are-world-models/">
+
+    <meta property="og:title" content="What Are World Models? The Bet on AI That Learns How the World Works">
+    <meta property="og:description" content="Why LLMs degrade on long reasoning chains, what world models actually are, and what the evidence says about whether they really learn physics.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/what-are-world-models/">
+    <meta property="og:type" content="article">
+
+    <title>What Are World Models? The Bet on AI That Learns How the World Works — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "What Are World Models? The Bet on AI That Learns How the World Works",
+      "description": "Why LLMs degrade on long reasoning chains, what world models actually are, and what the evidence says about whether they really learn physics.",
+      "author": { "@type": "Person", "name": "Rudy van den Brink" },
+      "publisher": { "@type": "Organization", "name": "Brink Data Science", "url": "https://www.brinkdatascience.com" },
+      "datePublished": "2026-07-14",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/what-are-world-models/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Concepts</p>
+                    <h1 class="post-title">What are world models? The bet on AI that learns how the world <em>works</em>.</h1>
+                    <p class="post-meta">
+                        <span>July 14, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~18 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>
+                        If you follow AI research at all, you have heard the term <strong>world model</strong> a
+                        lot lately. Google DeepMind's Genie 3 generates interactive environments you can walk
+                        around in. Meta's V-JEPA 2 watched a million hours of video and then controlled a robot
+                        arm it had never seen. NVIDIA built an entire platform (Cosmos) around the idea, Fei-Fei
+                        Li's World Labs raised hundreds of millions to pursue "spatial intelligence", and Yann
+                        LeCun left Meta after twelve years to found a startup dedicated to the concept &mdash;
+                        reportedly raising over a billion dollars before shipping anything.
+                    </p>
+                    <p>
+                        The pitch behind all of this goes roughly as follows. Large language models learn the
+                        statistics of text, and text is a thin, lossy description of reality. A world model
+                        instead learns the <em>dynamics</em> of an environment &mdash; how the state of the
+                        world evolves, and how actions change it &mdash; from video and interaction. Because
+                        such a model captures something closer to the causal structure of the physical world,
+                        the argument goes, it can support prediction and planning over much longer horizons
+                        than a system that generates one token at a time and hopes for the best.
+                    </p>
+                    <p>
+                        A claim this popular deserves a careful look. In this article I want to do three things:
+                        pin down the terminology (one term in particular gets misused constantly, and I'll
+                        explain why it matters), lay out what world models actually are and where the
+                        long-horizon argument comes from, and then &mdash; most importantly &mdash; look at what
+                        the empirical evidence says. The short version: the diagnosis of LLM limitations is
+                        largely sound, the there is theoretical motivation for world models, and the evidence
+                        that current systems actually learn physics is considerably weaker than the marketing 
+                        suggests. 
+                    </p>
+
+                    <h2>First, the terminology: "model collapse" is something else</h2>
+                    <p>
+                        A common framing of the motivation &mdash; one I've heard in many conversations &mdash;
+                        is that LLMs suffer "model collapse" when reasoning across many steps. The failure is
+                        real, but that isn't what model collapse means, and the distinction is worth getting
+                        right because the two problems have entirely different causes and fixes.
+                    </p>
+                    <p class="note">
+                        <strong>Model collapse</strong> is a training-time phenomenon: when generative models are
+                        trained on data produced by earlier generative models, rare events disappear from the
+                        learned distribution and output diversity degrades over successive generations
+                        (<a href="https://www.nature.com/articles/s41586-024-07566-y">Shumailov et al., 2024</a>). It is about data provenance, not reasoning.
+                        The failure of LLMs on long reasoning chains is an inference-time phenomenon, described
+                        in the literature as <strong>compounding errors</strong> (<a href="https://arxiv.org/abs/2305.18654">Dziri et al., 2023</a>) or
+                        <strong>accuracy collapse</strong> (<a href="https://arxiv.org/abs/2506.06941">Shojaee et al., 2025</a>).
+                    </p>
+                    <p>
+                        With that sorted, the inference-time problem itself is well documented, and it is the
+                        one that matters for the world-model story.
+                    </p>
+
+                    <h2>How LLMs actually fail on long reasoning chains</h2>
+                    <p>
+                        The cleanest study of the mechanism is <em>Faith and Fate: Limits of Transformers on
+                        Compositionality</em> (<a href="https://arxiv.org/abs/2305.18654">Dziri et al., 2023</a>). The authors formalize multi-step
+                        problems &mdash; multi-digit multiplication, logic grid puzzles, a classic dynamic
+                        programming task &mdash; as computation graphs, and measure how transformer performance
+                        varies with the size and depth of the graph. The pattern is consistent: accuracy is high
+                        when the required computation is shallow, then decays rapidly toward zero as the number
+                        of dependent steps grows. Two findings stand out. First, errors made early in a chain
+                        propagate: a small per-step error rate compounds across dependent steps. Second, much of
+                        the apparent reasoning success is what the authors call linearized subgraph matching
+                        &mdash; the model succeeds when large portions of the required computation resemble
+                        patterns it saw in training, which is pattern reuse rather than general procedure
+                        execution.
+                    </p>
+                    <p>
+                        Apple's 2025 paper <em>The Illusion of Thinking</em> (<a href="https://arxiv.org/abs/2506.06941">Shojaee et al., 2025</a>) extended this to
+                        dedicated reasoning models &mdash; the ones that generate long chains of thought before
+                        answering. Using puzzles with controllable complexity (Tower of Hanoi, river crossing,
+                        blocks world), they found that accuracy doesn't degrade gracefully as problems get
+                        harder: it holds up to a complexity threshold and then collapses to zero, and near the
+                        threshold the models paradoxically <em>reduce</em> their reasoning effort, as if giving
+                        up. I should note this paper is contested &mdash; a widely circulated rebuttal (<a href="https://arxiv.org/abs/2506.09250">Opus &amp; Lawsen, 2025</a>) argued
+                        that part of the collapse is an artifact of output-token limits and task encoding
+                        &mdash; but the qualitative finding is consistent with independent work. On PlanBench,
+                        a benchmark of simple symbolic planning problems, OpenAI's o1 scored 97.8% on standard
+                        Blocksworld puzzles but fell to 37.3% on a semantically obfuscated version of the
+                        <em>same underlying problems</em>, and pre-reasoning LLMs scored below 5%
+                        (<a href="https://arxiv.org/abs/2409.13373">Valmeekam et al., 2024</a>). If the models were executing a general planning procedure,
+                        renaming the objects wouldn't matter.
+                    </p>
+                    <p>
+                        Yann LeCun has long argued that this is baked into the autoregressive setup: if each
+                        generated token carries some independent probability of error, the probability that a
+                        long chain stays on the rails decays exponentially &mdash; at a 1% per-token error rate,
+                        a 100-step chain is correct only about 37% of the time (0.99<sup>100</sup> &approx;
+                        0.366). The clean mathematical version of this argument is disputed &mdash; errors in
+                        real models are not independent, and models can and do self-correct mid-chain (see
+                        <a href="https://arxiv.org/abs/2505.24187">Arbuzov et al., 2025</a>, for a careful treatment) &mdash; but as an empirical summary of the
+                        benchmark literature, "reliability degrades with the length and novelty of the required
+                        reasoning chain" is well supported.
+                    </p>
+                    <p>
+                        So the diagnosis half of the premise holds up, with one refinement: the failure isn't
+                        purely about horizon length. It's about horizon length <em>combined with</em> novelty
+                        &mdash; chains that can't be stitched together from familiar patterns. That refinement
+                        matters later, because it raises the bar for what a replacement architecture must
+                        demonstrate.
+                    </p>
+
+                    <h2>What a world model is</h2>
+                    <p>
+                        A <strong>world model</strong> is an internal, learned model of how an environment
+                        evolves: given the current state and (crucially) an action, predict the next state.
+                        Once you have such a model, you can do something qualitatively different from reacting:
+                        you can try actions in imagination, see where they lead, and pick the sequence that
+                        leads somewhere good &mdash; before touching the real world.
+                    </p>
+                    <p>
+                        The idea is much older than the current wave. The psychologist Kenneth Craik proposed in
+                        1943 that organisms carry a "small-scale model" of external reality in their heads,
+                        used to try out alternatives before acting &mdash; and modern neuroscience has found
+                        substantial evidence for internal forward models in, for example, motor control, where
+                        the brain predicts the sensory consequences of its own commands (<a href="https://pubmed.ncbi.nlm.nih.gov/7569931/">Wolpert et al., 1995</a>).
+                        In machine learning, Richard Sutton's Dyna architecture (1991) made the same move
+                        formal: learn a model of the environment from experience, then use the model to
+                        generate simulated experience for planning. This became the field of
+                        <strong>model-based reinforcement learning</strong>, distinguished from model-free RL
+                        precisely by whether the agent learns environment dynamics or only a policy.
+                    </p>
+                    <p>
+                        The modern deep-learning formulation arrived with Ha and Schmidhuber's 2018 paper,
+                        literally titled <a href="https://arxiv.org/abs/1803.10122"><em>World Models</em></a>. They trained a variational autoencoder to
+                        compress game frames into a small latent vector, a recurrent network to predict the
+                        next latent state, and then &mdash; the memorable part &mdash; trained a controller
+                        entirely <em>inside the learned model's own "dream"</em>, transferring the resulting
+                        policy back to the real game successfully. Nearly everything in today's world-model
+                        literature is a descendant of that loop. Three lineages matter most:
+                    </p>
+                    <ul>
+                        <li>
+                            <strong>Latent world models for control.</strong> DeepMind's MuZero
+                            (<a href="https://www.nature.com/articles/s41586-020-03051-4">Schrittwieser et al., 2020</a>) learned a model that predicts only
+                            what planning needs &mdash; reward, value, and policy &mdash; and reached
+                            superhuman play in Go, chess, shogi, and Atari without being told the rules.
+                            The Dreamer line learns behaviors inside a learned latent model;
+                            DreamerV3 (<a href="https://arxiv.org/abs/2301.04104">Hafner et al., 2025</a>) mastered over 150 tasks with one fixed
+                            configuration and was the first agent to collect diamonds in Minecraft from scratch,
+                            with no human data or curriculum &mdash; a genuinely long-horizon task.
+                        </li>
+                        <li>
+                            <strong>Generative video as world simulation.</strong> OpenAI's technical report
+                            for Sora was titled <a href="https://openai.com/index/video-generation-models-as-world-simulators/">"Video generation models as world simulators"</a>, and DeepMind's
+                            Genie line makes the simulation interactive: Genie 3 (<a href="https://deepmind.google/discover/blog/genie-3-a-new-frontier-for-world-models/">DeepMind, 2025</a>) generates explorable
+                            environments at 720p and 24 frames per second that stay consistent for minutes.
+                            Wayve's GAIA-1 (<a href="https://arxiv.org/abs/2309.17080">Hu et al., 2023</a>) does the same for driving scenes; the
+                            Cosmos platform (<a href="https://arxiv.org/abs/2501.03575">NVIDIA, 2025</a>) packages
+                            video world models as infrastructure for robotics and autonomous-vehicle training.
+                        </li>
+                        <li>
+                            <strong>Prediction in representation space.</strong> LeCun's 2022 position paper,
+                            <a href="https://openreview.net/forum?id=BZ5a1r-kVsf"><em>A Path Towards Autonomous Machine Intelligence</em></a>, argues that predicting
+                            raw pixels wastes capacity on irrelevant, unpredictable detail (every leaf on a
+                            tree), and that the model should instead predict in an abstract embedding space
+                            that keeps what is predictable and discards the rest. That is the JEPA family
+                            (Joint Embedding Predictive Architecture). V-JEPA 2 (<a href="https://arxiv.org/abs/2506.09985">Assran et al., 2025</a>) is the current
+                            flagship: pretrained on over a million hours of internet video, then given about
+                            62 hours of robot interaction data to become action-conditioned &mdash; after
+                            which it could plan pick-and-place manipulation on a real robot arm in labs it
+                            had never seen, zero-shot.
+                        </li>
+                    </ul>
+                    <p class="note">
+                        The term "world model" is doing a lot of work across these three lineages, and it pays
+                        to notice which sense an author means: a <em>dynamics model used for planning</em>
+                        (MuZero, Dreamer, JEPA), a <em>generative video simulator</em> (Sora, Genie, Cosmos),
+                        or &mdash; a fourth sense &mdash; the <em>implicit</em> model of the world a plain LLM
+                        might acquire as a byproduct of next-token prediction. Claims true of one sense are
+                        routinely, and wrongly, transferred to the others. World Labs' <a href="https://time.com/7339513/ai-fei-fei-li-virtual-worlds/">Marble</a> is different
+                        again: it generates persistent, navigable 3D scenes &mdash; spatial structure rather
+                        than temporal prediction.
+                    </p>
+
+                    <h2>Where the long-horizon argument comes from</h2>
+                    <p>
+                        Now to the second half of the premise: <em>why</em> would a world model predict further
+                        ahead than an LLM can reason? The honest answer is that the advantage, where it exists,
+                        does not come from world models being immune to error accumulation. They aren't &mdash;
+                        roll any learned dynamics model forward autoregressively and small prediction errors
+                        compound into drift, exactly as they do in token space. Genie 3's headline achievement
+                        was staying coherent for <em>minutes</em>; that this counts as a breakthrough tells you
+                        how hard the horizon problem remains inside the world-model paradigm too. The argument
+                        rests instead on three more specific mechanisms.
+                    </p>
+                    <p>
+                        <strong>Closed-loop planning instead of open-loop generation.</strong> An LLM writing a
+                        chain of thought commits to every step it generates: each token becomes context for the
+                        next, so an early mistake contaminates everything downstream. A planner using a world
+                        model works differently &mdash; imagine several candidate action sequences, score the
+                        predicted outcomes, execute only the first action, observe what actually happened, and
+                        replan from the true new state. Imagined futures are disposable; reality corrects the
+                        model at every step. This is model-predictive control, and it converts one long
+                        open-loop prediction problem into many short ones. Long-horizon <em>competence</em>
+                        then doesn't require long-horizon <em>prediction accuracy</em> &mdash; which is how
+                        DreamerV3 can pull off a task as deep as mining a Minecraft diamond while its world
+                        model imagines only short rollouts.
+                    </p>
+                    <p>
+                        <strong>Abstraction.</strong> Predicting the right things is easier than predicting
+                        everything. In pixel space or token space, most of the future is unpredictable detail;
+                        in a well-chosen abstract state space, dynamics can be nearly deterministic ("the cup
+                        will fall") even when appearances aren't ("exactly how it shatters"). This is the core
+                        JEPA claim: per-step errors shrink when the model predicts abstract state, so usable
+                        horizons stretch.
+                    </p>
+                    <p>
+                        <strong>Grounding in action.</strong> A model trained on observation <em>and action</em>
+                        can learn counterfactuals &mdash; what would happen if &mdash; which is the raw material
+                        of causal knowledge. Text describes the world's regularities secondhand; interaction
+                        data contains them directly.
+                    </p>
+                    <p>
+                        There is also a genuinely elegant theoretical result here. Richens and Everitt
+                        (<a href="https://arxiv.org/abs/2402.10877">2024</a>) proved that any agent that adapts successfully to a sufficiently large set of
+                        distributional shifts must have learned an approximate causal model of its environment
+                        &mdash; there is no model-free shortcut to robustness. A follow-up, <em>General agents
+                        need world models</em> (<a href="https://arxiv.org/abs/2506.01622">Richens, Everitt &amp; Abel, 2025</a>), showed the same for
+                        goal-directed behavior: any agent meeting a performance bound across sufficiently many
+                        long-horizon goals must have learned a predictive model of the environment, and the
+                        required accuracy of that model <em>increases with the task horizon</em>. You can even
+                        extract the world model from the agent's policy. Two implications follow. The
+                        optimistic one: the world-model research program is aimed at something provably
+                        necessary, not merely fashionable. The subtler one: "LLMs versus world models" is a
+                        false dichotomy &mdash; to the extent an LLM-based agent really does generalize across
+                        long-horizon tasks, it must contain an implicit world model already. The question is
+                        never <em>whether</em> to have one, but whether explicit training objectives produce a
+                        better one than next-token prediction does as a side effect.
+                    </p>
+
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>LLM, chain-of-thought</th>
+                                    <th>World model + planner</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>What is learned</td>
+                                    <td>Statistics of token sequences</td>
+                                    <td>Environment dynamics: state &times; action &rarr; next state</td>
+                                </tr>
+                                <tr>
+                                    <td>Prediction space</td>
+                                    <td>Discrete tokens (input space)</td>
+                                    <td>Latent state (Dreamer, JEPA) or pixels (video models)</td>
+                                </tr>
+                                <tr>
+                                    <td>Action-conditioned</td>
+                                    <td>Not natively</td>
+                                    <td>Yes &mdash; that's the point</td>
+                                </tr>
+                                <tr>
+                                    <td>Inference regime</td>
+                                    <td>Open loop: each step becomes context for the next</td>
+                                    <td>Closed loop: imagine, act, observe, replan</td>
+                                </tr>
+                                <tr>
+                                    <td>Long-horizon failure mode</td>
+                                    <td>Compounding errors in the committed chain</td>
+                                    <td>Rollout drift &mdash; mitigated by replanning from observed state</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h2>Do they actually learn physics? The evidence</h2>
+                    <p>
+                        This is where the story gets uncomfortable for the strong version of the pitch. The
+                        claim that watching enough video teaches a model "generative properties of the physical
+                        world" is an empirical claim, and it has now been tested several times with careful
+                        methodology. The results are consistent, and they are not flattering.
+                    </p>
+                    <p>
+                        <strong>Visual realism is not physical understanding.</strong> Physics-IQ (<a href="https://arxiv.org/abs/2501.09038">Motamed et al.,
+                        2025</a>; a Google DeepMind and INSAIT collaboration) filmed 396 real videos of
+                        physical scenarios &mdash; fluids, collisions, gravity, magnetism, optics &mdash; showed
+                        models the beginning, and scored their continuations against what actually happened,
+                        with the ceiling set by how much two real recordings of the same scene differ from each
+                        other. Every model tested, Sora included, scored a small fraction of that ceiling. The
+                        pointed finding: the models producing the most photorealistic video were not the ones
+                        with the best physics &mdash; visual realism and physical understanding were essentially
+                        uncorrelated.
+                    </p>
+                    <p>
+                        <strong>Scaling produces case-based mimicry, not laws.</strong> A ByteDance study
+                        (<a href="https://arxiv.org/abs/2411.02385">Kang et al., 2025</a>) built a fully controlled 2D mechanics testbed &mdash; balls
+                        moving, colliding, bouncing under exact classical mechanics &mdash; so that adherence
+                        to physical law could be measured, not eyeballed. Video diffusion models scaled from
+                        30 thousand to 3 million training examples generalized almost perfectly
+                        <em>within</em> the training distribution, improved measurably on new
+                        <em>combinations</em> of familiar elements, and failed outright on out-of-distribution
+                        scenarios &mdash; with more data and parameters not helping. The failure mode is
+                        diagnostic: the models behave as if retrieving the closest memorized training case
+                        (matching on color first, then size, then velocity, then shape) rather than applying an
+                        abstracted rule. That is Dziri's subgraph-matching result wearing a physics costume,
+                        which should give pause to anyone assuming the pathology is specific to language.
+                    </p>
+                    <p>
+                        <strong>Good prediction can hide an incoherent model.</strong> Two studies by Vafa and
+                        colleagues make this point with elegant directness. In the first (<a href="https://arxiv.org/abs/2406.03689">Vafa et al., 2024</a>), a
+                        transformer trained on millions of turn-by-turn taxi routes through Manhattan achieved
+                        near-perfect next-turn prediction &mdash; yet when the researchers reconstructed the
+                        street map implied by its predictions, it contained physically impossible geometry,
+                        streets that don't exist, and flyovers across Central Park; introduce a few detours and
+                        its navigation crumbled. In the second (<a href="https://arxiv.org/abs/2507.06952">Vafa et al., 2025</a>), a transformer trained on orbital
+                        trajectories predicted planetary motion accurately &mdash; but probing what it had
+                        internalized revealed no inductive bias toward Newtonian mechanics, and fitting a
+                        symbolic expression to its implied forces recovered a nonsensical force law. The model
+                        was Kepler without any prospect of becoming Newton: excellent at the sequence, wrong
+                        about the world.
+                    </p>
+                    <p>
+                        The fair counterpoint is Othello-GPT (<a href="https://arxiv.org/abs/2210.13382">Li et al., 2023</a>): a transformer trained only
+                        on move sequences was shown &mdash; via probes that can be manipulated to change the
+                        model's behavior &mdash; to maintain an internal representation of the board state. So
+                        sequence prediction demonstrably <em>can</em> induce structured internal state; the
+                        open question is whether it induces state that is coherent, causal, and robust enough
+                        to plan with, and the taxi and orbital results say: routinely, no. A useful synthesis
+                        of these critiques &mdash; and of what a world model would need to be to deserve the
+                        name &mdash; is the 2025 position paper <a href="https://arxiv.org/abs/2507.05169"><em>Critique of World Model</em></a>.
+                    </p>
+
+                    <h2>The verdict on the premise</h2>
+                    <p>Grading the original claim piece by piece:</p>
+                    <ul>
+                        <li>
+                            <strong>"LLMs fail at multi-step reasoning beyond a certain number of steps."</strong>
+                            Supported, with the refinement that novelty matters as much as length: chains
+                            assembled from familiar patterns can run long; chains requiring genuinely novel
+                            composition break early. The literature calls this compounding errors or accuracy
+                            collapse &mdash; <em>model collapse</em> is a different phenomenon (synthetic
+                            training data degrading the learned distribution).
+                        </li>
+                        <li>
+                            <strong>"World models learn generative properties of the physical world."</strong>
+                            This is the aspiration, and it is exactly the right description of the research
+                            goal. As a description of current systems it is not yet earned: controlled studies
+                            consistently find case-based generalization rather than learned physical law, and
+                            visually stunning output uncorrelated with physical understanding.
+                        </li>
+                        <li>
+                            <strong>"Therefore they can make logical predictions across longer horizons."</strong>
+                            Partly right, but the mechanism is different from what the phrasing suggests. World
+                            models do not escape error accumulation &mdash; their rollouts drift too. Where
+                            they genuinely extend horizons is in <em>control</em>: abstraction shrinks per-step
+                            error, and closed-loop replanning means long-horizon competence never depends on
+                            one long fragile prediction. That advantage is proven in games and increasingly in
+                            robotics (DreamerV3, MuZero, V-JEPA 2), is backed by theory saying general
+                            long-horizon agents can't exist without an accurate world model &mdash; and has
+                            not yet been demonstrated as a general-purpose reasoning substrate that displaces
+                            LLMs.
+                        </li>
+                    </ul>
+                    <p>
+                        My own reading: the deepest result in this literature is the Richens&ndash;Everitt
+                        theorem, and it cuts both ways. Because general agents provably need world models, the
+                        research program is well-aimed. And because the theorem doesn't care <em>how</em> the
+                        model was learned, LLMs and world models are less rivals than the discourse implies
+                        &mdash; a sufficiently general LLM agent would have to contain one, and today's
+                        explicit world models are, on the evidence, still learning appearances more than laws.
+                        The bet embodied by JEPA, Dreamer, and their descendants is that dynamics-first
+                        training objectives will get to real physical structure faster than next-token
+                        prediction gets there by accident. It is a serious, falsifiable bet. It has not been
+                        settled.
+                    </p>
+
+                    <h2>What to watch</h2>
+                    <p>
+                        If you want to track whether the bet is paying off, watch measurements rather than
+                        demos:
+                    </p>
+                    <ul>
+                        <li>
+                            <strong>Out-of-distribution physics benchmarks</strong> &mdash; Physics-IQ scores and
+                            successors, especially for models trained with latent-prediction objectives (the
+                            JEPA family) versus pixel-generation objectives. The JEPA claim predicts a gap
+                            should open; so far the head-to-head evidence is thin.
+                        </li>
+                        <li>
+                            <strong>Probing studies</strong> in the style of Vafa et al. &mdash; does any
+                            large-scale model, probed for its implied map or force law, start producing
+                            coherent ones?
+                        </li>
+                        <li>
+                            <strong>Robots in unfamiliar settings</strong> &mdash; zero-shot manipulation and
+                            navigation results (V-JEPA 2's Franka-arm demonstrations are the current
+                            watermark), where closed-loop planning against a learned model either works in the
+                            physical world or visibly doesn't.
+                        </li>
+                        <li>
+                            <strong>Horizon stability of interactive simulators</strong> &mdash; Genie 3 holds
+                            coherence for minutes; the trajectory of that number is a direct read on the drift
+                            problem.
+                        </li>
+                    </ul>
+                    <p>
+                        The 2026 investment wave &mdash; LeCun's venture, World Labs, DeepMind's and NVIDIA's
+                        programs &mdash; guarantees the experiments will be run at scale. The honest current
+                        summary is that world models are the most credible research direction for AI that
+                        deals with physical reality, resting on real theory and real control-domain wins, while
+                        the specific claim that they already <em>understand</em> physics fails most careful
+                        tests people have devised so far. Both halves of that sentence are worth holding onto
+                        at once.
+                    </p>
+
+                    <h2>Sources and further reading</h2>
+                    <h3>Limits of LLM reasoning</h3>
+                    <ul>
+                        <li>Dziri et al. (2023). <a href="https://arxiv.org/abs/2305.18654" target="_blank" rel="noopener">Faith and Fate: Limits of Transformers on Compositionality</a>. NeurIPS 2023.</li>
+                        <li>Shojaee et al. (2025). <a href="https://machinelearning.apple.com/research/illusion-of-thinking" target="_blank" rel="noopener">The Illusion of Thinking</a>. Apple ML Research (<a href="https://arxiv.org/abs/2506.06941" target="_blank" rel="noopener">arXiv:2506.06941</a>); see also the rebuttal, <a href="https://arxiv.org/abs/2506.09250" target="_blank" rel="noopener">The Illusion of the Illusion of Thinking</a>.</li>
+                        <li>Valmeekam, Stechly &amp; Kambhampati (2024). <a href="https://arxiv.org/abs/2409.13373" target="_blank" rel="noopener">LLMs Still Can't Plan; Can LRMs? A Preliminary Evaluation of OpenAI's o1 on PlanBench</a>.</li>
+                        <li>Arbuzov et al. (2025). <a href="https://arxiv.org/abs/2505.24187" target="_blank" rel="noopener">Beyond Exponential Decay: Rethinking Error Accumulation in Large Language Models</a>.</li>
+                        <li>Shumailov et al. (2024). <a href="https://www.nature.com/articles/s41586-024-07566-y" target="_blank" rel="noopener">AI models collapse when trained on recursively generated data</a>. Nature 631 &mdash; the actual "model collapse" paper.</li>
+                    </ul>
+                    <h3>World models: foundations and systems</h3>
+                    <ul>
+                        <li>Ha &amp; Schmidhuber (2018). <a href="https://arxiv.org/abs/1803.10122" target="_blank" rel="noopener">World Models</a> (interactive version at <a href="https://worldmodels.github.io/" target="_blank" rel="noopener">worldmodels.github.io</a>).</li>
+                        <li>Sutton (1991). Dyna, an Integrated Architecture for Learning, Planning, and Reacting. ACM SIGART Bulletin.</li>
+                        <li>Schrittwieser et al. (2020). <a href="https://www.nature.com/articles/s41586-020-03051-4" target="_blank" rel="noopener">Mastering Atari, Go, chess and shogi by planning with a learned model</a> (MuZero). Nature 588.</li>
+                        <li>Hafner et al. (2025). <a href="https://arxiv.org/abs/2301.04104" target="_blank" rel="noopener">Mastering diverse control tasks through world models</a> (DreamerV3). Nature, 2025.</li>
+                        <li>LeCun (2022). <a href="https://openreview.net/forum?id=BZ5a1r-kVsf" target="_blank" rel="noopener">A Path Towards Autonomous Machine Intelligence</a>. OpenReview.</li>
+                        <li>Assran et al. (2025). <a href="https://arxiv.org/abs/2506.09985" target="_blank" rel="noopener">V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning</a>. Meta AI.</li>
+                        <li>Bruce et al. (2024). <a href="https://arxiv.org/abs/2402.15391" target="_blank" rel="noopener">Genie: Generative Interactive Environments</a>; Google DeepMind (2025). <a href="https://deepmind.google/discover/blog/genie-3-a-new-frontier-for-world-models/" target="_blank" rel="noopener">Genie 3: a new frontier for world models</a>.</li>
+                        <li>OpenAI (2024). <a href="https://openai.com/index/video-generation-models-as-world-simulators/" target="_blank" rel="noopener">Video generation models as world simulators</a> (Sora technical report).</li>
+                        <li>NVIDIA (2025). <a href="https://arxiv.org/abs/2501.03575" target="_blank" rel="noopener">Cosmos World Foundation Model Platform for Physical AI</a>; Hu et al. (2023). <a href="https://arxiv.org/abs/2309.17080" target="_blank" rel="noopener">GAIA-1: A Generative World Model for Autonomous Driving</a> (Wayve).</li>
+                        <li>On World Labs and spatial intelligence: <a href="https://time.com/7339513/ai-fei-fei-li-virtual-worlds/" target="_blank" rel="noopener">TIME's profile of Fei-Fei Li's Marble</a>.</li>
+                    </ul>
+                    <h3>Theory</h3>
+                    <ul>
+                        <li>Richens &amp; Everitt (2024). <a href="https://arxiv.org/abs/2402.10877" target="_blank" rel="noopener">Robust agents learn causal world models</a>. ICLR 2024.</li>
+                        <li>Richens, Everitt &amp; Abel (2025). <a href="https://arxiv.org/abs/2506.01622" target="_blank" rel="noopener">General agents need world models</a>. ICML 2025.</li>
+                    </ul>
+                    <h3>Do generative models learn physics?</h3>
+                    <ul>
+                        <li>Motamed et al. (2025). <a href="https://arxiv.org/abs/2501.09038" target="_blank" rel="noopener">Do generative video models learn physical principles from watching videos?</a> ICCV 2025 (<a href="https://physics-iq.github.io/" target="_blank" rel="noopener">Physics-IQ benchmark</a>).</li>
+                        <li>Kang et al. (2025). <a href="https://arxiv.org/abs/2411.02385" target="_blank" rel="noopener">How Far is Video Generation from World Model: A Physical Law Perspective</a>. ICML 2025.</li>
+                        <li>Vafa et al. (2024). <a href="https://arxiv.org/abs/2406.03689" target="_blank" rel="noopener">Evaluating the World Model Implicit in a Generative Model</a>. NeurIPS 2024.</li>
+                        <li>Vafa et al. (2025). <a href="https://arxiv.org/abs/2507.06952" target="_blank" rel="noopener">What Has a Foundation Model Found? Using Inductive Bias to Probe for World Models</a>. ICML 2025.</li>
+                        <li>Li et al. (2023). <a href="https://arxiv.org/abs/2210.13382" target="_blank" rel="noopener">Emergent World Representations: Exploring a Sequence Model Trained on a Synthetic Task</a> (Othello-GPT). ICLR 2023.</li>
+                        <li>Xing, Deng &amp; Hou (2025). <a href="https://arxiv.org/abs/2507.05169" target="_blank" rel="noopener">Critique of World Model</a>.</li>
+                    </ul>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Trying to work out which AI capabilities are real enough to build on
+                            &mdash; and which are still research bets?</strong> Separating the two is a core
+                            part of what I do, grounded in a decade of research and industry work.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
