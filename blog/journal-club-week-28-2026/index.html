@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="This week&#x27;s journal club: reframing the objective in LLM RL, real-time voice-controlled video generation, and a 4D world model for robot manipulation.">
+    <meta name="keywords" content="LLM reinforcement learning, training-inference mismatch, GRPO, real-time video generation, interactive video, 4D world model, robotic manipulation, embodied AI, diffusion models">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-28-2026/">
+
+    <meta property="og:title" content="Journal Club Week 28, 2026">
+    <meta property="og:description" content="This week&#x27;s journal club: reframing the objective in LLM RL, real-time voice-controlled video generation, and a 4D world model for robot manipulation.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-28-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 28, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 28, 2026",
+      "description": "This week's journal club: reframing the objective in LLM RL, real-time voice-controlled video generation, and a 4D world model for robot manipulation.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-07-12",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-28-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 28</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>July 12, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~8 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>Three papers this week, on three unrelated problems. The first is a reinforcement-learning paper that argues the field has been optimizing the wrong objective when it fine-tunes LLMs for reasoning. The second is a real-time interactive video generation system you steer with your voice while it plays. The third is a 4D world model that predicts how a scene moves in 3D and uses that prediction to control a two-armed robot.</p><p>They span post-training, generative video, and embodied control, so I'll take them one at a time.</p>
+
+                    <h2>The Mirage of Optimizing Training Policies: Monotonic Inference Policies as the Real Objective for LLM Reinforcement Learning</h2>
+
+                    <p><em>Jing Liang et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2606.29526">arXiv:2606.29526</a></p>
+
+                    <p>Reinforcement learning has become the standard way to push reasoning into instruction-tuned models, but the training runs are notoriously touchy &mdash; they stall or collapse for reasons that are hard to pin down. One culprit these authors focus on is what they call training-inference mismatch. Modern RL pipelines split the work between two engines: an inference engine like vLLM or SGLang samples the rollouts, while a training engine like FSDP or Megatron computes the gradients. Even when both hold identical weights, differences in numerical precision, decoding, and serving code make them assign slightly different probabilities to the very same token sequence. That gap turns every update into a mild off-policy update, and it never goes away.</p><p>The paper's main argument is that everyone has been optimizing the wrong thing. Prior fixes &mdash; reweighting by the training-to-sampler ratio (TIS), filtering unstable tokens (MIS), decaying the learning rate, or switching to higher-precision rollouts &mdash; all try to stabilize the <em>training</em> policy. But the policy you actually deploy is the <em>inference</em> policy, and improving one does not guarantee the other improves too. They propose optimizing inference-policy improvement directly, a principle they call Monotonic Inference Policy Improvement, and a two-step method, MIPU. Step 1 builds a candidate update anchored on the sampler rather than the old training policy, using a truncated importance-sampling correction so a large pre-existing mismatch doesn't dominate the gradient. Step 2 synchronizes that candidate to the inference engine, runs a small validation rollout, and estimates a post-update inference gap; if that gap is clearly negative, it rolls both engines back to the previous checkpoint rather than accepting a gain that only exists on the training side.</p><p>They test under FP8-quantized rollout, which deliberately inflates the mismatch, on Qwen3-4B and Qwen3-1.7B across five math benchmarks. MIPU reaches an average pass@1 of 66.71 on the 4B model (against 64.42 for plain GRPO and 65.66 for learning-rate decay) and 53.97 on the 1.7B model, and unlike the baselines it holds a stable trajectory instead of peaking and collapsing. The ablation is the interesting part: Step 1 alone lifts the 4B average to 65.36 but still drifts, Step 2 alone prevents collapse but has no good candidates to accept (62.81), and only the combination does both. A control that rolls back updates at random &mdash; even more often than Step 2 does &mdash; still collapses, which points to the acceptance <em>signal</em>, not just the act of rejecting updates, as what stabilizes training.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>The reframing is the part I'll remember. Once you accept that the sampling engine and the training engine are two different policies, it follows that a training-side improvement is only a proxy for what you actually care about, and under aggressive quantization that proxy can point the wrong way. Treating the deployed inference policy as the real optimization target &mdash; and validating an update on that side before committing to it &mdash; is a clean idea that composes with the existing mismatch-correction tricks rather than replacing them.</p>
+
+                    <h2>Vidu S1: A Real-Time Interactive Video Generation Model</h2>
+
+                    <p><em>Jintao Zhang et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2607.03118">arXiv:2607.03118</a></p>
+
+                    <p>Vidu S1 is a system for generating video you can steer while it plays. Instead of writing a prompt and waiting for a clip, you drive a digital character in real time with voice instructions, changing what happens at any moment. The authors report 540p output running as fast as 42 FPS on ordinary consumer GPUs, and playback of unbounded length without the blurring, drift, or distortion that usually creep in as generated video accumulates. It is built on two components the authors call TurboDiffusion and TurboServe, which together handle the generation and serving side of the real-time budget.</p><p>You can supply your own image &mdash; a real person, an anime character, a pet &mdash; and pick a voice, and the character is animated to match. The authors report that Vidu S1 comes out ahead across their evaluation metrics while staying inside the latency budget that real-time interaction demands, and they provide a live demo to try it directly.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Most video generation is still a batch affair: submit, wait, review. A model that stays interactive &mdash; responding to voice mid-stream and holding quality over arbitrarily long runs on hardware people actually own &mdash; moves generated video toward something closer to a controllable avatar than a rendered clip. Whether the quality holds up outside the demo is the open question, but the real-time-on-consumer-GPU target is the part worth watching.</p>
+
+                    <h2>RynnWorld-4D: 4D Embodied World Models for Robotic Manipulation</h2>
+
+                    <p><em>Haoyu Zhao et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2607.06559">arXiv:2607.06559</a></p>
+
+                    <p>Robots that manipulate objects need to predict not just what a scene looks like next, but how its 3D structure will move when they touch it. World models built on 2D video capture appearance but throw away geometry, so they struggle with 6-DoF pose and depth-aware contact, and they tend to produce artifacts like objects that subtly change scale or morph over time. RynnWorld-4D's premise is that you can recover most of the geometry cheaply by generating three synchronized channels &mdash; RGB, depth, and optical flow (they call it RGB-DF) &mdash; instead of RGB alone. Depth lifts each pixel into 3D, and depth plus optical flow back-project into a per-point 3D scene flow, so geometry and motion become explicit while the representation stays image-shaped and can still ride on pretrained video-diffusion priors.</p><p>The model extends Wan 2.2 (a 30-layer, 5B diffusion transformer) into three branches, one per modality, tied together by Joint Cross-Modal Attention modules inserted every three layers (ten in total) with frame-wise 3D RoPE so the branches stay aligned pixel-for-pixel within each frame. From a single RGB-D image and a language instruction it co-generates the future RGB, depth, and flow in one denoising loop. Training uses Rynn4DDataset 1.0, a curated mix of over 254 million frames from egocentric human video and robot-manipulation datasets, auto-labeled with Qwen3-VL captions, Depth Anything 3 depth, and DPFlow optical flow, and proceeds in three phases: adapt each branch independently, train the joint-attention modules with the backbone frozen, then fine-tune everything.</p><p>For control, RynnWorld-4D-Policy treats the frozen world model as a predictive 4D encoder: it reads out internal features in a single forward pass &mdash; skipping the multi-step denoising you'd need to actually render the video &mdash; compresses them with a Flow Former, and feeds a small flow-matching head that outputs 10-step action chunks. On an RTX 5090 with FP8 the world-model pass is the bottleneck at 990 ms, but action chunking yields an effective 9 Hz closed-loop rate. On generation quality it roughly doubles the depth-accuracy score of prior 4D models (0.610 versus 0.327 for 4DNeX and 0.279 for TesserAct) and is the only one to report explicit flow (0.170 AEPE). On six real bimanual tasks it beats Diffusion Policy and the pi-series foundation policies, most clearly on precision- and coordination-heavy ones: 65.71% on lid placement and bowl stacking, and 28.57% on a hand-over that the foundation policies essentially fail. Ablations show every piece earns its place &mdash; dropping the large-scale pretraining alone sends flow error from 0.170 to 0.729.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>What I like here is the pragmatism of the representation. Full 3D or 4D-Gaussian world models are geometrically honest but expensive and hard to scale; plain video is scalable but geometry-blind. Predicting depth and flow alongside RGB is a middle path that keeps the video-diffusion backbone and its data efficiency while making the 3D motion explicit enough to drive an inverse-dynamics policy. The single-forward-pass feature readout is the practical trick that makes it usable for closed-loop control at all, since running the full denoiser for every action step would be far too slow.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>If there's a light thread this week, it's that a lot of the progress comes from being precise about what you're actually optimizing or generating &mdash; the inference policy rather than the training policy, a 4D scene rather than a flat video &mdash; more than from raw scale. The video and robotics papers also share a fixation on real-time budgets on hardware you can buy, which is a good sign for how much of this ends up usable outside a datacenter.</p><p>None of it is a finished story: the RL result is still on moderate model sizes, the video work lives behind a demo, and 9 Hz control is fine for tabletop tasks but not for anything fast. Still, all three left me with an idea I hadn't had before, which is about the most I ask of a week's reading.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
