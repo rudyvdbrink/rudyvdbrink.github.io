@@ -1,0 +1,85 @@
+/* ============================================================
+   Publications — listing page
+   Reuses the global token system (midnight-indigo canvas,
+   terracotta primary / teal secondary, Berkeley Mono display).
+   ============================================================ */
+
+:root {
+    /* Citation body sits between --ivory and --muted for
+       comfortable reading on the dark canvas */
+    --prose: #C9CFDF;
+}
+
+/* ---------- Page shell (shared with the blog) ---------- */
+
+.pubs-main {
+    padding-top: var(--banner-h);
+    min-height: 70vh;
+}
+
+/* ---------- Publication list ---------- */
+
+.pub-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.1rem;
+    max-width: 880px;
+    margin: 3rem 0 0;
+}
+
+.pub-item {
+    padding: 1.5rem 1.7rem;
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    transition: border-color 0.2s ease;
+}
+.pub-item:hover { border-color: var(--line-strong); }
+
+.pub-cite {
+    margin: 0;
+    color: var(--prose);
+    font-size: 1rem;
+    line-height: 1.62;
+}
+.pub-authors { color: var(--muted); }
+/* Title doubles as the full-text link; keep its resting colour in every
+   state and let the underline-on-hover signal that it's clickable. */
+.pub-title { color: var(--ivory); font-weight: 600; }
+a.pub-title:hover { color: var(--ivory); }
+.pub-journal { font-style: italic; color: var(--teal-bright); }
+
+/* ---------- Link row ---------- */
+
+.pub-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.05rem 0 0;
+}
+.pub-link {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.34rem 0.7rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+.pub-link:hover {
+    text-decoration: none;
+    color: var(--terra-soft);
+    border-color: var(--terra);
+    background: rgba(230, 119, 72, 0.08);
+}
+/* The accepted-manuscript PDFs are the page's own artefacts — mark them primary */
+.pub-link--pdf { color: var(--ivory); border-color: rgba(230, 119, 72, 0.4); }
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 720px) {
+    .pub-item { padding: 1.3rem 1.3rem; }
+    .pub-cite { font-size: 0.96rem; }
+}

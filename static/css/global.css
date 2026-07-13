@@ -274,6 +274,75 @@ nav { display: flex; align-items: center; gap: 0.25rem; }
 }
 .github-link:hover .github-logo { opacity: 1; }
 
+/* ---------- Mobile nav: hamburger + popover ----------
+   Built by JS from the primary nav, so the markup lives in one place.
+   Hidden on desktop; revealed only once JS marks the banner .nav-ready,
+   which keeps the inline nav as a no-JS fallback. */
+
+.nav-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.nav-toggle span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    margin: 0 auto;
+    background: var(--ivory);
+    border-radius: 2px;
+    transition: transform 0.25s ease, opacity 0.2s ease, background-color 0.2s ease;
+}
+.nav-toggle:hover span { background: var(--terra-soft); }
+/* Collapse the three bars into a clean X while open */
+.nav-toggle.is-open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle.is-open span:nth-child(2) { opacity: 0; }
+.nav-toggle.is-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.nav-popover {
+    display: none;
+    position: fixed;
+    top: calc(var(--banner-h) + 8px);
+    right: var(--pad-x);
+    min-width: 132px;
+    padding: 0.4rem;
+    background: var(--bg-2);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    z-index: 1200;
+}
+.nav-popover.is-open { display: block; animation: nav-pop 0.18s ease; }
+@keyframes nav-pop {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.nav-popover nav { display: flex; flex-direction: column; gap: 0.15rem; }
+.nav-popover-link {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.7rem 0.9rem;
+    border-radius: 8px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+.nav-popover-link:hover {
+    color: var(--ivory);
+    background: rgba(243, 239, 228, 0.06);
+    text-decoration: none;
+}
+.nav-popover-link.active { color: var(--terra); }
+
 /* ---------- Footer ---------- */
 
 #footer {
@@ -391,6 +460,15 @@ nav { display: flex; align-items: center; gap: 0.25rem; }
         -webkit-backdrop-filter: none;
         background: rgba(10, 15, 30, 0.96);
     }
+
+    /* Once JS has built the popover, swap the inline nav for the hamburger
+       and give the full wordmark room to breathe. Wordmark pinned left,
+       controls clustered right. */
+    #banner.nav-ready { gap: 0.6rem; }
+    #banner.nav-ready .wordmark { margin-right: auto; }
+    #banner.nav-ready .wordmark-rest { display: inline; }
+    #banner.nav-ready nav[aria-label="Primary"] { display: none; }
+    #banner.nav-ready .nav-toggle { display: inline-flex; }
 }
 
 @media (max-width: 420px) {
