@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Three ML papers from week 29 of 2026: behavior localization in agent harnesses, million-token RL post-training, and a fully open 4B video model.">
+    <meta name="keywords" content="agent harness, behavior localization, coding agents, long-context RL, GRPO post-training, video MLLM, VideoChat3, streaming video understanding, temporal grounding, machine learning papers">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-29-2026/">
+
+    <meta property="og:title" content="Journal Club Week 29, 2026">
+    <meta property="og:description" content="Three ML papers from week 29 of 2026: behavior localization in agent harnesses, million-token RL post-training, and a fully open 4B video model.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-29-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 29, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 29, 2026",
+      "description": "Three ML papers from week 29 of 2026: behavior localization in agent harnesses, million-token RL post-training, and a fully open 4B video model.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-07-19",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-29-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 29</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>July 19, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~10 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>This week's three picks land in fairly different corners of the field. The first is about the unglamorous engineering problem of finding where a behavior lives in a large agent codebase before you can change it. The second is a systems paper on making reinforcement learning post-training work at million-token context lengths without adding GPUs. The third is a 4B video-language model released with its weights, code, and full training data.</p>
+                    <p>No common thread beyond that they were all worth an afternoon. I read them in that order and I'll write them up the same way.</p>
+
+                    <h2>Harness Handbook: Making Evolving Agent Harnesses Readable,Navigable, and Editable</h2>
+
+                    <p><em>Ruhan Wang et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2607.13285">arXiv:2607.13285</a></p>
+
+                    <p>The premise here is one that anyone who has maintained an agent system will recognize. The model is only part of the system; the <em>harness</em> around it &mdash; the code that builds prompts, tracks state, calls tools, and drives the control loop &mdash; is where most behavior actually lives. When an API changes or a requirement shifts, you have to edit that harness, and the first problem is not writing the edit. It is finding every place that implements the behavior you were asked to change. The authors call this <strong>behavior localization</strong> and argue it is the real bottleneck: modification requests are phrased in terms of what the system should do, while repositories are organized by files and modules, and nothing bridges the two. Code search and repo indexing help you look at code, but you still have to reconstruct the mapping yourself.</p><p>Their answer is the Harness Handbook, a document built automatically from a repository and organized by behavior rather than by directory. It has three levels &mdash; a system overview, per-stage component overviews, and source-linked unit entries &mdash; plus a separate view tracking state that crosses stage boundaries. Construction runs in three phases: a deterministic static-analysis pass that extracts functions, call edges, and source locations with no model calls at all; an LLM-assisted pass that assigns those units to execution stages; and a synthesis pass that writes the document tree and revalidates every source locator against the repository. Entries that no longer resolve are frozen rather than guessed at, which I think is the right call &mdash; the repository stays authoritative and the handbook degrades visibly instead of silently. Two granularities are supported: function-level entries when a trustworthy stage skeleton exists, and file-level entries when the repo is too large for that. On top of this sits Behavior-Guided Progressive Disclosure, which walks an agent from the overview down to candidate stages, follows shared-state links to pick up structurally distant but coupled stages, expands along the call graph, and then verifies each candidate against live source before it becomes evidence for a plan.</p><p>The evaluation uses two real harnesses at opposite ends of the size range: Terminus-2, a 6-file Python terminal agent with 103 internal functions, and Codex, a Rust monorepo with 2,267 files and over 34,000 functions. Each contributes 30 modification requests split into three types &mdash; changes to existing behavior, cross-file capability additions, and deliberately search-hostile requests where the relevant code sits in mirrored or cold paths. A read-only planner produces edit plans with and without handbook access, judged by three separate models. Handbook-assisted planning wins 38.3% versus 28.3% on Codex and 45.6% versus 26.7% on Terminus-2, and it does so while using <em>fewer</em> planner tokens (down 12.7% and 8.6%), so the gain is not bought with a bigger context budget. Against reference plans from stronger models, all 24 recall/precision/F1 comparisons improve, with F1 gains of 5.0 to 18.8 points, and the share of requests with zero overlap against the reference drops by up to 25.9 points. Worth noting that plan quality is scored by LLM judges and the reference plans also come from LLMs, so this measures agreement with strong models rather than correctness against human ground truth.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Most of the effort in coding agents has gone into generating good edits, and comparatively little into figuring out where those edits belong. This paper makes a decent case that the second problem dominates once a repository gets large and behavior gets spread across cold paths and shared state &mdash; and that a behavior-indexed artifact kept in sync with the source is enough to let a mid-tier planner match the localization of much stronger models. The construction pipeline is generic enough that it need not be limited to agent harnesses; the same representation would plausibly help with regression-impact analysis or onboarding on any codebase where execution stages are a natural organizing principle.</p>
+
+                    <h2>LongStraw: Long-Context RL Beyond 2M Tokens under a Fixed GPU Budget</h2>
+
+                    <p><em>Changhai Zhou et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2607.14952">arXiv:2607.14952</a></p>
+
+                    <p>There is an awkward mismatch in how we build long-context models. Inference stacks are pushing toward million-token windows, while RL post-training usually happens at 256K tokens or less, and we quietly hope the behavior generalizes to the longer contexts we actually deploy at. That hope is shakiest exactly where long contexts matter most: agents, whose trajectories accumulate tool outputs, retrieved documents, observations, and their own earlier decisions until the context is mostly history. LongStraw is an attempt to close that gap without buying more hardware.</p><p>The approach is an execution stack built around the memory profile of GRPO rather than a new algorithm. The shared prompt &mdash; the part every sampled response conditions on &mdash; is run forward without building an autograd graph, keeping only the per-model state that later tokens actually need. The response branches, which are short relative to the prompt, are then replayed one at a time. The effect is that the live training graph shrinks dramatically; the price is extra replay compute. Because what has to be retained depends on the attention mechanism, the authors implement it separately for two architectures: Qwen3.6-27B, which mixes recurrent and full-attention layers, and GLM-5.2, a mixture-of-experts model with compressed attention.</p><p>The numbers are about capacity. On eight H20 GPUs the authors report completing grouped scoring and response backward passes for Qwen at 2.1M positions with group sizes of both 2 and 8 &mdash; and going from 2 to 8 costs only 0.21 GB of additional peak allocated memory, which is the point of the design. A separate stress run reaches 4.46M positions. On 32 H20s they push a 2.1M-token prompt through the full execution path across all 78 layers of GLM-5.2. The authors are careful about what this does and does not show: it demonstrates that these workloads can be executed on a fixed budget, not that training is end-to-end correct, since the prompt activations are kept outside the gradient graph and several pieces of the multi-GPU forward and gradient-assembly path are not yet finished.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>If long-horizon agents are where the field is heading, then training them at deployment-scale context lengths stops being a nice-to-have. The interesting claim here is that the barrier is memory layout rather than raw compute: by refusing to hold the shared prompt in the autograd graph and replaying response branches serially, group size becomes nearly free, which is precisely the knob GRPO wants to turn. I would read this as an infrastructure milestone rather than a training result &mdash; the honest scoping in the paper says as much &mdash; but it maps out what it takes to make million-token RL a normal-hardware activity.</p>
+
+                    <h2>VideoChat3: Fully Open Video MLLM for Efficient and Generalist Video Understanding</h2>
+
+                    <p><em>Xinhao Li et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2607.14935">arXiv:2607.14935</a></p>
+
+                    <p>Video models tend to be specialized: something tuned for short-clip motion understanding rarely handles hour-long footage well, and neither typically handles streaming, where frames arrive continuously and the model has to decide <em>when</em> to speak. On top of that, many of the strongest open video models ship weights but withhold the training data or recipe, which makes it hard to tell what actually drove the numbers. VideoChat3 targets all three problems at once with a 4B model and a genuinely complete release &mdash; weights, training code, curriculum, datasets, and the data construction pipeline.</p><p>The architectural argument is that video redundancy should be squeezed out inside the visual tokenizer, before tokens ever reach the LLM, rather than by sparsely sampling frames and throwing detail away at the input. Their I3D-ViT takes a pretrained image encoder (MoonViT) and inflates its 2D spatial attention into chunk-wise 3D spatiotemporal attention: frames are grouped into short chunks with learned temporal position embeddings, attention runs jointly over space and time at native resolution, and then features are pooled along time within each chunk. Combined with spatial pixel shuffling this yields roughly 16&times; compression. For streaming, the model emits a state token each window &mdash; Silence, Standby, or Response &mdash; and that token doubles as a control signal for the <em>next</em> window's pixel budget, so routine footage is monitored cheaply and detail is spent only when something looks worth examining. The data side contributes three sets: Academic2M, where option-only or short-phrase academic labels are rewritten by Qwen3-VL-235B-A22B into evidence-grounded answers and then filtered by a judge for consistency with the original label; LV116K, built by cutting long videos into scene-detected segments, annotating and filtering each, and composing the validated segments into grounding, timeline, and multi-segment QA tasks; and OL617K, 617K streaming samples where verified evidence intervals determine when the model should switch states. Training runs in four stages, ending with a long/streaming stage at a packed sequence length of 98,304 and a state-transition mask that keeps every state switch plus an equal number of sampled &quot;stay&quot; decisions &mdash; without that balancing, the model either drowns in repeated Silence tokens or learns to predict the next state from the previous one without looking at the video.</p><p>At 4B parameters, VideoChat3 posts the best fully open results on MotionBench (61.7) and TempCompass (75.6), with 70.1 on Video-MME and 56.7 on LVBench. Against the open-weight Qwen3-VL-4B it improves on 18 of 19 directly comparable metrics, with the biggest gains in temporal grounding: +9.7/+6.4/+8.3 across the TimeLens splits, +15.0 and +20.6 on the two VUE-TR versions, and +12.1 on MomentSeeker. It also beats GPT-5 and Gemini 2.5 Flash on all three TimeLens splits, though Gemini 2.5 Pro still leads there. Grounding is clearly where this model is strongest; on broad reasoning benchmarks it is competitive with its size class rather than dominant.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Two things stand out. First, doing temporal compression inside the encoder instead of at the sampler means the model sees more of the video for the same LLM context, and the grounding numbers suggest that actually pays off rather than just saving tokens. Second, the streaming design closes a loop that is usually left open: the model's own uncertainty state decides how much visual detail to buy next, which is a more sensible allocation policy than a fixed frame rate. And because the datasets and the pipeline that built them are released alongside the weights, it is possible to test which of these choices matter &mdash; something that is usually impossible with partially open video models.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>The through-line I keep noticing, purely by accident, is how much of this week's work is about not doing the expensive thing. The Handbook avoids re-deriving where behavior lives on every request, LongStraw avoids holding the shared prompt in the gradient graph, and VideoChat3 avoids spending visual tokens on footage where nothing is happening. Different problems, same instinct.</p><p>I'd also note the honesty in the LongStraw paper about what its experiments do and do not establish. Systems papers are often tempted to imply more than they measured, and being explicit that this is execution capacity rather than verified training makes the contribution easier to trust.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
