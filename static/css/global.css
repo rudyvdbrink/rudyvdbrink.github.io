@@ -232,10 +232,8 @@ section {
     color: var(--muted);
 }
 .wordmark-node {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--terra);
-    box-shadow: 0 0 0 4px rgba(230, 119, 72, 0.16);
+    width: 17px; height: 22px;
+    background: url(../images/logo_node.png) center / contain no-repeat;
     flex: none;
     align-self: center;
 }
