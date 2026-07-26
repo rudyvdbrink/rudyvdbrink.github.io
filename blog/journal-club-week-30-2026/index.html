@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="This week: a real-time interactive world model on one RTX 5090, RynnBrain 1.1&#x27;s embodied scaling analysis, and TimeLens2&#x27;s Wasserstein reward for video.">
+    <meta name="keywords" content="world models, interactive video generation, autoregressive video diffusion, embodied foundation models, vision-language-action, 3D grounding, video temporal grounding, GRPO reward design, Wasserstein distance, single-GPU inference">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-30-2026/">
+
+    <meta property="og:title" content="Journal Club Week 30, 2026">
+    <meta property="og:description" content="This week: a real-time interactive world model on one RTX 5090, RynnBrain 1.1&#x27;s embodied scaling analysis, and TimeLens2&#x27;s Wasserstein reward for video.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-30-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 30, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 30, 2026",
+      "description": "This week: a real-time interactive world model on one RTX 5090, RynnBrain 1.1's embodied scaling analysis, and TimeLens2's Wasserstein reward for video.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-07-26",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-30-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 30</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>July 26, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~11 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>Three papers this week. The first is an interactive world model that runs on a single consumer GPU, the second is a family of embodied foundation models with a matching robot policy, and the third is about locating <em>when</em> something happens inside a long video. They come from different corners of the field and I am not going to pretend they add up to a trend.</p><p>What I liked about all three, though, is that each one spends most of its effort on something other than the model architecture &mdash; data curation, deployment engineering, reward design. That is usually where the interesting decisions live.</p>
+
+                    <h2>ABot-World-0: Infinite Interactive World Rollout on a Single Desktop GPU</h2>
+
+                    <p><em>Fan Jiang et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2607.19191">arXiv:2607.19191</a></p>
+
+                    <p>The ambition here is a generative environment you can actually stay inside: you press a key, the world changes, that new state feeds the next prediction, and it stays coherent for as long as you keep going. The authors argue this is a systems problem rather than a generation-quality problem, and they name four coupled bottlenecks &mdash; getting data with reliable action labels, representing user intent, keeping generated history from drifting once it becomes the model's own input, and running the whole generate-and-decode path fast enough on hardware people own. Their training corpus mixes AAA game recordings (exact controls from the game's runtime API, but stylistically narrow), simulation output from Unreal and a Gaussian-splatting backend reconstructed from proprietary street scans, and internet video (visually diverse, but with only pose-estimated pseudo-labels). An agent called WorldExplorer drives the collection and reallocates effort toward scene&ndash;action combinations where the model is currently weak, and everything passes through 14 deterministic checks across six quality dimensions plus a VLM screening pass for things like UI overlays and death sequences.</p><p>The control interface is refreshingly blunt: an 8-dimensional multi-hot vector per frame, W/A/S/D for movement and I/J/K/L for camera rotation, packed four frames at a time to line up with the VAE's temporal patch size and injected additively at the patchify stage. No latent action space, no calibrated camera trajectories &mdash; which sidesteps the problem that accumulated global poses eventually wander outside the training distribution over a long rollout. For third-person play, canonical reference images of the character are encoded by the same VAE and prepended as memory tokens with negative temporal RoPE indices, and attention is asymmetric so video tokens can read the identity memory but not the reverse. Training starts from a bidirectional teacher fine-tuned on a Wan2.2 backbone, then converts it to a causal student in three stages: teacher forcing under a causal mask, ODE distillation to compress the denoising budget, and finally LongForcing, which runs the student out on its own long rollouts and applies distribution-matching supervision from an extended-horizon teacher. That last stage exists because local distillation fixes single-step quality but says nothing about the states the model drifts into after a few hundred steps of feeding on its own output.</p><p>The deployment table is the part I would show someone who thinks quantization alone is the answer. The base configuration runs out of memory on an RTX 5090, and so does the version with only a faster attention kernel. Swapping in a pruned lightweight VAE decoder is what makes the pipeline fit at all &mdash; 9.1 FPS at 20.5 GiB. FP8 on the DiT linear layers then drops per-chunk DiT time from 1191 ms to 845 ms and pushes throughput to 12.4 FPS, a re-anchored RoPE kernel gets it to 13.3, and more aggressive MXFP6 and MXFP4 formats reach 14.1 and 15.8 FPS. The headline envelope is 720P streaming at up to 16 FPS with 1.2 s from keypress to first decoded frame, inside roughly 19 GiB. Notably, that latency figure covers the whole path including VAE decoding, not just sampling speed.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Interactive world models have mostly been demonstrated as cloud services, which makes them hard to study and impossible to modify. Getting one to run locally, at 720P, within a desktop VRAM budget, changes who can experiment with them &mdash; and the ablation table is a useful corrective to the habit of attributing real-time performance to a single trick. Memory feasibility here came from the VAE decoder, not the attention kernel or the quantization, and peak VRAM turned out to depend on the full runtime configuration rather than any one operator's footprint. I also appreciate that they define latency as action-to-first-decoded-frame; that is the number a user feels, and it is not the number most papers report.</p>
+
+                    <h2>RynnBrain 1.1: Towards More Capable and Generalizable Embodied Foundation Model</h2>
+
+                    <p><em>Kehan Li et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2607.17977">arXiv:2607.17977</a></p>
+
+                    <p>RynnBrain 1.1 is a family of embodied vision-language models at 2B, 9B, and 122B-A10B, all built on Qwen3.5 and all trained with the same recipe so that scale can be studied cleanly. The two additions over version 1.0 are both aimed at making the model's outputs directly usable by a robot. The first is contact-point prediction: instead of the four corners of an oriented grasp rectangle, the model emits a center point and an in-plane gripper angle. The reasoning is that a rectangle has no canonical extent &mdash; its width and aspect ratio depend on the gripper and the annotation convention &mdash; so IoU against one reference rectangle can punish grasps that would have worked fine. They built 2.6M training samples by rendering simulation-native grasp annotations from camera poses chosen so the object and the grasp orientation are both actually visible. The second addition is native 3D grounding for the 2B and 9B models: given an image, a referring expression, and camera intrinsics, predict a 9-parameter oriented box in camera coordinates in metres and radians, discretized into integer tokens like everything else. The data mixes noisy lifted annotations from WildDet3D with a synthetic set carrying exact ground-truth object-to-camera transforms, which acts as a regularizer for depth and orientation.</p><p>The scaling analysis is the part I keep thinking about. On general embodied cognition, RynnBrain and the raw Qwen3.5 baselines both improve with size and the gap narrows &mdash; ordinary MLLM behaviour. On reasoning-intensive tasks (multi-view spatial reasoning, video-based temporal inference), they diverge: RynnBrain gains about 39% from 2B to 122B while Qwen3.5 gets <em>worse</em> with scale, and the gap widens from 18.2 to 50.8 points. The authors' reading is that stronger language priors in a bigger model can override weak visual-spatial evidence, producing answers that are more confident and less correct. On localization, the largest Qwen3.5 still scores below the smallest RynnBrain. Concretely, the 122B-A10B model reaches 75.0 on VSI-Bench, 52.0 on MMSI, and 79.1 on RefSpatial-Bench; the 9B jumps from 56.6 to 86.9 on MindCube over version 1.0. Improvements at 2B are patchier &mdash; RoboSpatial and EmbSpatial both regress relative to the previous release. For 3D grounding, the 9B hits 41.12 AP@15 on SUN RGB-D and 23.44 AP3D on WildDet3D-Bench, edging past a specialist detector trained with in-domain data.</p><p>For the policy side, RynnBrain-VLA treats the VLM backbone itself as a single-stream diffusion transformer and predicts 32-step action chunks by flow matching. Heterogeneous robots share an 81-dimensional action vector partitioned into body-part groups &mdash; arm joints, end-effector, gripper, dexterous hand, torso, head &mdash; and each embodiment activates only its physically available dimensions through a mask, with loss computed on active dimensions only. That lets a Unitree G1, an Astribot S1, and a Tianji-Wuji dexterous-hand system train jointly without forcing their incompatible low-level spaces into alignment. Control runs as two loops (30 Hz coordination, 200 Hz interpolation) with real-time chunking: a new inference fires every 5 steps and the unconsumed tail of the previous chunk guides denoising of the next. Inference is on a single RTX 4090. Across 20 trials per task, policies initialized from RynnBrain beat both a Qwen-initialized policy trained identically and generalist baselines, and joint multi-task multi-embodiment training beats per-task fine-tuning on both process score and success rate. Contact-point prediction is evaluated only qualitatively, which the authors are upfront about &mdash; there is no metric that reliably reflects whether a predicted contact would actually work.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>The useful claim is not that a bigger embodied model scores higher &mdash; it is that whether scaling helps at all depends on what the model was pretrained on. Spatial and temporal reasoning did not emerge from scaling a general VLM here; it degraded. If that holds up, it argues against waiting for the next general-purpose frontier model to solve spatial grounding by itself, and for treating explicit coordinate and 3D supervision as a prerequisite rather than a fine-tuning detail. The masked unified action space is the other transferable idea: it is a simple mechanism for pooling data across robots that share nothing at the joint level, and the joint-training gains suggest the shared components genuinely benefit from the extra supervision.</p>
+
+                    <h2>TimeLens2: Generalist Video Temporal Grounding with Multimodal LLMs</h2>
+
+                    <p><em>Yuhan Zhu et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2607.17423">arXiv:2607.17423</a></p>
+
+                    <p>Video MLLMs will happily tell you what happened in a video and rarely tell you where to look. TimeLens2 frames that gap as the video equivalent of a citation: an answer should come with the intervals that support it, which may be a single span or several disjoint ones scattered across an hour. The paper identifies two mismatches with how these models are usually trained. Supervision is the first &mdash; long-video labels tend to come from one global annotation pass, and in a long timeline full of similar-looking distractors a single pass will confuse occurrences, drop repeats, and put boundaries in the wrong place. Optimization is the second &mdash; temporal IoU is the standard reinforcement-learning reward, but it returns zero for every non-overlapping prediction, so a guess that lands two seconds early is scored identically to one that lands twenty minutes away.</p><p>The data pipeline replaces that one global decision with a cascade of narrower ones. Videos are split by scene detection into 20&ndash;60 second clips and captioned hierarchically; a language model proposes declarative queries from those captions along with the segments that support them; two grounding models with different inductive biases then independently relocalize each proposal from the video itself, at one-second resolution, with an empty output allowed as a rejection. Instances survive only if the two agree on merged support and if a text&ndash;video embedding similarity clears 0.5, after which a larger model refines just the boundaries within a local window. The ablation is striking: raw labels from one annotator give 42.0 average mIoU from 735.4K QA turns, consensus filtering cuts that to 174.2K and raises it to 43.4, semantic verification cuts it again to 93.2K and reaches 44.1, and boundary refinement on those same 93.2K labels adds another 1.7 to 45.8. Roughly one-eighth the labels, four points better.</p><p>The reward contribution is a temporal Wasserstein term. Each interval set is lifted to a uniform distribution over its merged support, and the exact one-dimensional <code>W1</code> distance between prediction and target is converted into a normalized similarity, then combined with tIoU and a parse penalty. Because it compares merged mass, it needs no one-to-one matching between predicted and target spans &mdash; and it gives the same score to two predictions with identical support but different partitioning, which matched NGIoU does not (the paper shows a case scoring 1.0 versus 0.32 for that reason). Uniform support beat endpoint atoms, center Gaussians, and boundary Gaussians, taking average mIoU from 47.0 to 47.7 against a tIoU-only baseline, and beat matched NGIoU at 47.1. The diagnostics show why: of 4,332 zero-overlap predictions, 21.9% of near misses recovered positive overlap versus 5.7% of far ones, and adding the term cut uniform-reward GRPO groups from 13.8% to 3.6%, rescuing 75.8% of groups where every rollout scored zero. Final numbers are 44.5, 47.7, and 48.0 average mIoU at 2B, 4B, and 8B &mdash; gains of 14.2, 13.0, and 18.1 over the respective Qwen3-VL backbones &mdash; with the 4B model ahead of a 397B open-source model by 7.5 points on average.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Two things here are worth borrowing even if you never touch video grounding. The reward diagnostic is one: a dense reward only earns its keep in GRPO if it breaks ties <em>within</em> a rollout group, and the paper measures exactly that rather than just reporting a benchmark bump. The curation result is the other &mdash; going from 735K to 93K labels while gaining four points of mIoU is a clean demonstration that annotation quality and annotation volume are not interchangeable. On the practical side, a 4B model that outperforms a 397B one on evidence localization means this capability can plausibly sit in front of a video archive without a serving budget to match.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>Reading these back to back, the thing that stands out is how much of the reported gain in each case came from work that is not modelling. ABot-World-0's real-time envelope depended on a pruned decoder and quantization choices as much as on distillation. TimeLens2 got four mIoU points by throwing away seven-eighths of its labels. RynnBrain's most interesting result is a statement about what pretraining data does to scaling behaviour, not about architecture.</p><p>I would also note two papers being honest about their own evaluation gaps &mdash; RynnBrain declining to invent a contact-point metric it does not trust, and ABot-World-0 defining latency end-to-end rather than picking the flattering measurement. That is a small thing, but it makes the rest of the numbers easier to believe.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
