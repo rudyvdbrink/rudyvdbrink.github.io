@@ -89,24 +89,24 @@
                     <p>
                         Getting a GPU working with PyTorch is a rite of passage, and it's harder than it should be
                         for one reason: the word "CUDA" refers to three different things, and most guides don't say
-                        which one they mean. Untangle that, and the installation becomes a five-minute job. This
-                        guide does the untangling first, then the installing.
+                        which one they mean. Once you can tell them apart, the installation becomes a five-minute
+                        job. This guide sorts out the terminology first, then does the installation.
                     </p>
 
                     <h2>The three things called "CUDA"</h2>
                     <ul>
                         <li>
-                            <strong>The NVIDIA driver</strong> &mdash; the low-level software that lets your
+                            <strong>The NVIDIA driver</strong>: the low-level software that lets your
                             operating system talk to the GPU at all. Installed system-wide, versioned like
                             <code>580.xx</code>.
                         </li>
                         <li>
-                            <strong>The CUDA runtime libraries</strong> &mdash; the libraries a program like PyTorch
+                            <strong>The CUDA runtime libraries</strong>: the libraries a program like PyTorch
                             uses to launch work on the GPU (<code>cudart</code>, cuBLAS, cuDNN, and friends).
                             Versioned like <code>12.6</code>.
                         </li>
                         <li>
-                            <strong>The CUDA Toolkit</strong> &mdash; the full development kit, including the
+                            <strong>The CUDA Toolkit</strong>: the full development kit, including the
                             <code>nvcc</code> compiler, headers, and profilers. Also versioned like
                             <code>12.6</code>, but a much bigger install.
                         </li>
@@ -120,8 +120,8 @@
                     </p>
                     <p>
                         Most broken setups come from people fighting with toolkit installers they never needed,
-                        or from mismatched expectations about what <code>nvidia-smi</code> reports &mdash; which
-                        brings us to step one.
+                        or from mismatched expectations about what <code>nvidia-smi</code> reports. That brings
+                        us to step one.
                     </p>
 
                     <h2>Step 1: check your driver with nvidia-smi</h2>
@@ -135,7 +135,7 @@
                         Here is the single most misunderstood line in deep learning setup: that
                         <strong>"CUDA Version" is not the CUDA version you have installed.</strong> It is the
                         <em>maximum</em> CUDA runtime version your current driver supports. In the example above,
-                        the driver can run applications built against CUDA 13.0 <em>or anything older</em> &mdash;
+                        the driver can run applications built against CUDA 13.0 <em>or anything older</em>:
                         drivers are backward compatible with earlier CUDA runtimes.
                     </p>
                     <p>So the rule for choosing a PyTorch build is simply:</p>
@@ -149,17 +149,17 @@
                     </p>
                     <ul>
                         <li>
-                            <strong>Windows</strong> &mdash; install the current GeForce/Studio driver from
+                            <strong>Windows</strong>: install the current GeForce/Studio driver from
                             <a href="https://www.nvidia.com/drivers/">nvidia.com/drivers</a> (or via GeForce
                             Experience / NVIDIA App). Reboot.
                         </li>
                         <li>
-                            <strong>Linux</strong> &mdash; use your distribution's packaged driver
+                            <strong>Linux</strong>: use your distribution's packaged driver
                             (e.g. on Ubuntu: <code>sudo ubuntu-drivers install</code>, or
                             <code>sudo apt install nvidia-driver-580</code> for a specific series). Reboot.
                         </li>
                         <li>
-                            <strong>WSL2</strong> &mdash; install the <em>Windows</em> driver only. Do not install
+                            <strong>WSL2</strong>: install the <em>Windows</em> driver only. Do not install
                             a Linux display driver inside WSL; the Windows driver exposes the GPU to WSL
                             automatically, and <code>nvidia-smi</code> will work inside your Linux shell.
                         </li>
@@ -182,8 +182,8 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu</code></pre>
                     <p>
                         The <code>cu126</code>-style suffix is the CUDA runtime version the wheel was built against.
-                        The exact set on offer changes with each PyTorch release &mdash; older CUDA builds are
-                        retired and new ones added &mdash; which is why the selector page, not a blog post, should
+                        The exact set on offer changes with each PyTorch release (older CUDA builds are
+                        retired and new ones added), which is why the selector page, not a blog post, should
                         always be your source for the literal command. The logic for choosing, however, doesn't
                         change: <strong>highest CUDA variant that is &le; your driver's supported version.</strong>
                     </p>
@@ -214,13 +214,13 @@ print(torch.cuda.get_device_name(0))  # e.g. NVIDIA GeForce RTX 4070</code></pre
                     <p>
                         Everything above covers <em>running</em> PyTorch. You need the actual CUDA Toolkit
                         (with <code>nvcc</code>) only when something must be <em>compiled</em> against CUDA on your
-                        machine &mdash; typically custom CUDA extensions or packages built from source, such as
+                        machine: typically custom CUDA extensions or packages built from source, such as
                         <code>flash-attn</code> or exotic kernels from research code. In that case:
                     </p>
                     <ul>
                         <li>
                             Install a toolkit whose major.minor version matches the CUDA version of your PyTorch
-                            build (check <code>torch.version.cuda</code>) &mdash; compiling an extension against a
+                            build (check <code>torch.version.cuda</code>). Compiling an extension against a
                             different CUDA version than PyTorch's is a classic source of import errors.
                         </li>
                         <li>
@@ -230,7 +230,7 @@ print(torch.cuda.get_device_name(0))  # e.g. NVIDIA GeForce RTX 4070</code></pre
                             <code>cuda-toolkit</code> package to keep it project-local.
                         </li>
                         <li>
-                            Verify with <code>nvcc --version</code> &mdash; this, unlike <code>nvidia-smi</code>,
+                            Verify with <code>nvcc --version</code>. This, unlike <code>nvidia-smi</code>,
                             <em>does</em> report an installed toolkit.
                         </li>
                     </ul>
@@ -256,7 +256,7 @@ print(torch.cuda.get_device_name(0))  # e.g. NVIDIA GeForce RTX 4070</code></pre
                             </tr>
                             <tr>
                                 <td><code>CUDA out of memory</code></td>
-                                <td>Not an install problem &mdash; the model or batch doesn't fit in VRAM. Reduce batch size, use mixed precision, or use a smaller model.</td>
+                                <td>Not an install problem: the model or batch doesn't fit in VRAM. Reduce batch size, use mixed precision, or use a smaller model.</td>
                             </tr>
                             <tr>
                                 <td>Building <code>flash-attn</code> or similar fails</td>
@@ -278,7 +278,7 @@ print(torch.cuda.get_device_name(0))  # e.g. NVIDIA GeForce RTX 4070</code></pre
                     <div class="post-cta">
                         <p>
                             <strong>Environment sorted, but the model training itself is the hard part?</strong>
-                            I train and tune models on everything from consumer GPUs to cloud clusters &mdash;
+                            I train and tune models on everything from consumer GPUs to cloud clusters, and I'm
                             happy to help you get the most out of your hardware.
                         </p>
                         <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>

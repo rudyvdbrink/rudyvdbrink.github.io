@@ -11,7 +11,7 @@
     <link rel="canonical" href="https://www.brinkdatascience.com/blog/how-to-use-docker/">
 
     <meta property="og:title" content="How to Use Docker: A Practical Introduction for Data Scientists">
-    <meta property="og:description" content="Images, containers, Dockerfiles, volumes, and GPU access — the working vocabulary and commands to ship an ML project in a container.">
+    <meta property="og:description" content="Images, containers, Dockerfiles, volumes, and GPU access: the working vocabulary and commands to ship an ML project in a container.">
     <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
     <meta property="og:url" content="https://www.brinkdatascience.com/blog/how-to-use-docker/">
     <meta property="og:type" content="article">
@@ -41,7 +41,7 @@
       "@context": "https://schema.org",
       "@type": "BlogPosting",
       "headline": "How to Use Docker: A Practical Introduction for Data Scientists",
-      "description": "Images, containers, Dockerfiles, volumes, and GPU access — the working vocabulary and commands to ship an ML project in a container.",
+      "description": "Images, containers, Dockerfiles, volumes, and GPU access: the working vocabulary and commands to ship an ML project in a container.",
       "author": { "@type": "Person", "name": "Rudy van den Brink" },
       "publisher": { "@type": "Organization", "name": "Brink Data Science", "url": "https://www.brinkdatascience.com" },
       "datePublished": "2026-06-09",
@@ -88,8 +88,8 @@
                 <div class="prose">
                     <p>
                         "It works on my machine" is where machine learning projects go to die. The model runs
-                        beautifully in your environment &mdash; with your Python version, your library versions,
-                        your system packages &mdash; and falls over the moment anyone else, or any server, tries to
+                        beautifully in your environment (your Python version, your library versions,
+                        your system packages) and falls over the moment anyone else, or any server, tries to
                         run it. Docker solves this by packaging your code <em>together with</em> its entire
                         environment into a unit that runs identically everywhere. This guide covers the mental
                         model and the handful of commands that account for 95% of day-to-day use.
@@ -101,18 +101,18 @@
                         <li>
                             <strong>An image</strong> is a frozen snapshot of a filesystem plus metadata: an OS
                             base layer, your installed packages, your code, and the command to run. Images are
-                            immutable and shareable &mdash; think of one as a <em>class</em>, or a recipe.
+                            immutable and shareable: think of one as a <em>class</em>, or a recipe.
                         </li>
                         <li>
-                            <strong>A container</strong> is a running instance of an image &mdash; the
+                            <strong>A container</strong> is a running instance of an image, the
                             <em>object</em> made from the class. You can start many containers from one image;
                             each gets its own isolated filesystem, processes, and network. Stop it, delete it,
                             start a fresh one: the image is untouched.
                         </li>
                     </ul>
                     <p>
-                        Unlike a virtual machine, a container doesn't emulate hardware or boot its own OS kernel
-                        &mdash; it shares the host's kernel and isolates at the process level. That's why containers
+                        Unlike a virtual machine, a container doesn't emulate hardware or boot its own OS kernel;
+                        it shares the host's kernel and isolates at the process level. That's why containers
                         start in milliseconds and add near-zero runtime overhead, which is exactly what you want
                         when serving a model.
                     </p>
@@ -138,14 +138,14 @@ docker rmi &lt;image&gt;                # remove an image
 docker system prune               # clean up stopped containers & dangling layers</code></pre>
                     <p>
                         Two <code>docker run</code> flags do most of the heavy lifting: <code>-it</code> gives you
-                        an interactive terminal, and <code>--rm</code> auto-deletes the container when it exits
-                        &mdash; ideal for experiments so you don't accumulate dead containers.
+                        an interactive terminal, and <code>--rm</code> auto-deletes the container when it exits.
+                        That's ideal for experiments, so you don't accumulate dead containers.
                     </p>
 
                     <h2>Writing a Dockerfile</h2>
                     <p>
                         A <strong>Dockerfile</strong> is the recipe that builds an image. Here is a realistic one
-                        for a Python ML service &mdash; say, a FastAPI app serving model predictions:
+                        for a Python ML service, say a FastAPI app serving model predictions:
                     </p>
                     <pre data-lang="dockerfile"><code># Start from an official slim Python base image
 FROM python:3.12-slim
@@ -171,7 +171,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]</code></pre>
 docker run --rm -p 8000:8000 my-model-api</code></pre>
                     <p>
                         <code>-p 8000:8000</code> maps port 8000 on your machine to port 8000 in the container
-                        (<code>host:container</code>) &mdash; the service is now at
+                        (<code>host:container</code>). The service is now at
                         <code>http://localhost:8000</code>, exactly as it will be on any other machine that runs
                         this image.
                     </p>
@@ -179,19 +179,19 @@ docker run --rm -p 8000:8000 my-model-api</code></pre>
                         The ordering in that Dockerfile is deliberate. Docker builds images in <strong>layers</strong>
                         and caches each one; a layer is rebuilt only if it (or a layer above it) changed. Copying
                         <code>requirements.txt</code> and installing dependencies <em>before</em> copying your code
-                        means editing a Python file doesn't trigger a ten-minute reinstall of PyTorch &mdash; the
+                        means editing a Python file doesn't trigger a ten-minute reinstall of PyTorch; the
                         dependency layer replays from cache. This one habit saves more build time than any other
                         Docker trick.
                     </p>
                     <p>
                         Also add a <code>.dockerignore</code> file (same syntax as <code>.gitignore</code>) listing
                         <code>.git</code>, <code>__pycache__</code>, datasets, and model checkpoints you don't want
-                        baked into the image &mdash; it keeps builds fast and images small.
+                        baked into the image. It keeps builds fast and images small.
                     </p>
 
                     <h2>Volumes: data that outlives the container</h2>
                     <p>
-                        A container's filesystem is ephemeral &mdash; delete the container and everything written
+                        A container's filesystem is ephemeral: delete the container and everything written
                         inside it is gone. That's a feature for reproducibility and a disaster for datasets and
                         model outputs. The fix is to <strong>mount</strong> storage from the host:
                     </p>
@@ -238,7 +238,7 @@ volumes:
                     <pre data-lang="bash"><code>docker compose up --build    # build and start everything
 docker compose down          # stop and remove it all</code></pre>
                     <p>
-                        Note the networking: the API reaches the database at the hostname <code>db</code> &mdash;
+                        Note the networking: the API reaches the database at the hostname <code>db</code>.
                         Compose gives every service a DNS name matching its key in the file. One command now brings
                         up the entire stack on any machine, which is transformative for onboarding collaborators.
                     </p>
@@ -246,7 +246,7 @@ docker compose down          # stop and remove it all</code></pre>
                     <h2>Using GPUs in containers</h2>
                     <p>
                         Containers can use NVIDIA GPUs at full speed, and this is how most ML training and inference
-                        is deployed in practice. On a Linux host (or WSL2) with the NVIDIA driver installed, install
+                        is deployed. On a Linux host (or WSL2) with the NVIDIA driver installed, install
                         the <strong>NVIDIA Container Toolkit</strong> once, then pass <code>--gpus all</code>:
                     </p>
                     <pre data-lang="bash"><code># Verify GPU access from inside a container
@@ -259,17 +259,17 @@ docker run --rm --gpus all -v ./data:/app/data my-training-image</code></pre>
                         <a href="/blog/install-cuda-pytorch/">the CUDA post</a>): the container brings its own CUDA
                         runtime, and the host only needs the driver. Official images like
                         <code>pytorch/pytorch</code> come with PyTorch and CUDA preinstalled, so a pinned image
-                        gives you a fully reproducible training environment &mdash; same CUDA, same libraries,
+                        gives you a fully reproducible training environment: same CUDA, same libraries,
                         every run, on any machine with an NVIDIA card.
                     </p>
 
                     <h2>Habits worth adopting early</h2>
                     <ul>
-                        <li><strong>Pin your versions</strong> &mdash; base images (<code>python:3.12-slim</code>, not <code>python:latest</code>) and requirements. Unpinned builds drift and break silently.</li>
-                        <li><strong>Prefer slim base images</strong> &mdash; smaller images build, push, and start faster; install only what the app needs.</li>
-                        <li><strong>Pass secrets via the environment</strong> (<code>-e API_KEY=...</code> or an <code>env_file</code>), never bake them into the image &mdash; anyone with the image can read every layer.</li>
-                        <li><strong>One process per container</strong> &mdash; API and database in separate containers, composed together, not one mega-container.</li>
-                        <li><strong>Clean up periodically</strong> &mdash; <code>docker system df</code> shows what's eating disk; <code>docker system prune</code> reclaims it.</li>
+                        <li><strong>Pin your versions</strong>: base images (<code>python:3.12-slim</code>, not <code>python:latest</code>) and requirements. Unpinned builds drift and break silently.</li>
+                        <li><strong>Prefer slim base images</strong>: smaller images build, push, and start faster; install only what the app needs.</li>
+                        <li><strong>Pass secrets via the environment</strong> (<code>-e API_KEY=...</code> or an <code>env_file</code>), never bake them into the image. Anyone with the image can read every layer.</li>
+                        <li><strong>One process per container</strong>: API and database in separate containers, composed together, not one mega-container.</li>
+                        <li><strong>Clean up periodically</strong>: <code>docker system df</code> shows what's eating disk; <code>docker system prune</code> reclaims it.</li>
                     </ul>
 
                     <div class="post-cta">
