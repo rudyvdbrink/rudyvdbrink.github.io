@@ -18,21 +18,54 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.prose pre').forEach(pre => {
             const code = pre.querySelector('code');
             if (!code) return;
+
+            // The <pre> is the horizontal scroll container, so a button inside
+            // it drifts with the code. Wrap it in a static box and hang the
+            // button off that instead, pinning it to the visible corner.
+            const wrap = document.createElement('div');
+            wrap.className = 'code-block';
+            // The language tag scrolls away for the same reason, so it moves
+            // to the wrapper too; the <pre> keeps the attribute as a no-JS
+            // fallback and the CSS hides whichever copy is redundant.
+            if (pre.dataset.lang) wrap.dataset.lang = pre.dataset.lang;
+            pre.parentNode.insertBefore(wrap, pre);
+            wrap.appendChild(pre);
+
             const button = document.createElement('button');
             button.className = 'copy-btn';
             button.type = 'button';
-            button.textContent = 'copy';
+            button.innerHTML = COPY_ICON;
             button.setAttribute('aria-label', 'Copy code to clipboard');
             button.addEventListener('click', () => {
                 navigator.clipboard.writeText(code.textContent).then(() => {
-                    button.textContent = 'copied';
-                    setTimeout(() => { button.textContent = 'copy'; }, 1500);
+                    button.innerHTML = CHECK_ICON;
+                    button.classList.add('is-copied');
+                    button.setAttribute('aria-label', 'Copied to clipboard');
+                    setTimeout(() => {
+                        button.innerHTML = COPY_ICON;
+                        button.classList.remove('is-copied');
+                        button.setAttribute('aria-label', 'Copy code to clipboard');
+                    }, 1500);
                 });
             });
-            pre.appendChild(button);
+            wrap.appendChild(button);
         });
     }
 });
+
+// Two superimposed rectangles, and the checkmark shown after a copy.
+const COPY_ICON =
+    '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+    '<rect x="9" y="9" width="12" height="12" rx="2"/>' +
+    '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>' +
+    '</svg>';
+
+const CHECK_ICON =
+    '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+    '<path d="M20 6L9 17l-5-5"/>' +
+    '</svg>';
 
 // ============================================================
 // Mobile navigation

@@ -11,7 +11,7 @@
     <link rel="canonical" href="https://www.brinkdatascience.com/blog/huggingface-hub-python/">
 
     <meta property="og:title" content="How to Sign In to the Hugging Face Hub from Python">
-    <meta property="og:description" content="Authenticate with an access token, push models to the Hub, and pull them back down — from scripts, notebooks, and CI.">
+    <meta property="og:description" content="Authenticate with an access token, then push models to the Hub and pull them back down from scripts, notebooks, and CI.">
     <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
     <meta property="og:url" content="https://www.brinkdatascience.com/blog/huggingface-hub-python/">
     <meta property="og:type" content="article">
@@ -41,7 +41,7 @@
       "@context": "https://schema.org",
       "@type": "BlogPosting",
       "headline": "How to Sign In to the Hugging Face Hub from Python",
-      "description": "Authenticate with an access token, push models to the Hub, and pull them back down — from scripts, notebooks, and CI.",
+      "description": "Authenticate with an access token, then push models to the Hub and pull them back down from scripts, notebooks, and CI.",
       "author": { "@type": "Person", "name": "Rudy van den Brink" },
       "publisher": { "@type": "Organization", "name": "Brink Data Science", "url": "https://www.brinkdatascience.com" },
       "datePublished": "2026-04-14",
@@ -87,7 +87,7 @@
 
                 <div class="prose">
                     <p>
-                        The Hugging Face Hub is where the machine learning world stores its models &mdash; and
+                        The Hugging Face Hub is where the machine learning world stores its models, and
                         sooner or later every practitioner needs to do more than anonymously download from it:
                         pull a gated or private model, or push a fine-tuned model of their own. Both require
                         authentication. This guide covers the whole flow: creating a token, logging in from
@@ -101,9 +101,9 @@
                         create one. You'll choose a token type:
                     </p>
                     <ul>
-                        <li><strong>Read</strong> &mdash; download models and datasets, including private and gated ones you have access to. Enough for most consumption use.</li>
-                        <li><strong>Write</strong> &mdash; everything read can do, plus creating repos and uploading files. Needed to push models.</li>
-                        <li><strong>Fine-grained</strong> &mdash; scoped permissions per repo or organization. The right choice for shared machines and CI, because a leaked token can only touch what you scoped it to.</li>
+                        <li><strong>Read</strong>: download models and datasets, including private and gated ones you have access to. Enough for most consumption use.</li>
+                        <li><strong>Write</strong>: everything read can do, plus creating repos and uploading files. Needed to push models.</li>
+                        <li><strong>Fine-grained</strong>: scoped permissions per repo or organization. The right choice for shared machines and CI, because a leaked token can only touch what you scoped it to.</li>
                     </ul>
                     <p>
                         The token is shown once, starts with <code>hf_</code>, and should be treated like a
@@ -115,7 +115,7 @@
                     <pre data-lang="bash"><code>pip install huggingface_hub</code></pre>
                     <p>
                         If you use <code>transformers</code>, <code>datasets</code>, or <code>diffusers</code>,
-                        you already have it &mdash; they all depend on <code>huggingface_hub</code> and share its
+                        you already have it. They all depend on <code>huggingface_hub</code> and share its
                         authentication automatically. Log in once and the whole ecosystem is signed in.
                     </p>
 
@@ -128,7 +128,7 @@
                         (On older installs the equivalent command is <code>huggingface-cli login</code>.) Paste
                         your token at the prompt. It's stored in your Hugging Face home directory (by default
                         <code>~/.cache/huggingface/token</code>), and every subsequent Python session on that
-                        machine is authenticated &mdash; nothing to add to your code at all. Verify with:
+                        machine is authenticated, with nothing to add to your code at all. Verify with:
                     </p>
                     <pre data-lang="bash"><code>hf auth whoami</code></pre>
 
@@ -154,7 +154,7 @@ notebook_login()  # renders a login widget in the notebook</code></pre>
                     <h3>From an environment variable (CI, servers, containers)</h3>
                     <pre data-lang="bash"><code>export HF_TOKEN="hf_..."</code></pre>
                     <p>
-                        The library reads <code>HF_TOKEN</code> automatically &mdash; no login call needed. This is
+                        The library reads <code>HF_TOKEN</code> automatically, so no login call is needed. This is
                         the right pattern for GitHub Actions (set it as a repository secret), Docker containers
                         (pass it with <code>-e HF_TOKEN</code>), and any headless environment. An explicitly passed
                         <code>token=</code> argument takes precedence over the environment variable, which in turn
@@ -182,8 +182,8 @@ tokenizer.push_to_hub("your-username/my-model")
 # Private repo instead:
 model.push_to_hub("your-username/my-model", private=True)</code></pre>
                     <p>
-                        For arbitrary files &mdash; custom architectures, checkpoints, anything that isn't a
-                        standard transformers model &mdash; use the lower-level API:
+                        For arbitrary files (custom architectures, checkpoints, anything that isn't a
+                        standard transformers model), use the lower-level API:
                     </p>
                     <pre data-lang="python"><code>from huggingface_hub import HfApi
 
@@ -196,7 +196,7 @@ api.upload_folder(
                     <p>
                         Every repo on the Hub is a Git repository under the hood, so uploads are versioned: each
                         push creates a commit, and you can pin, diff, and roll back. Add a model card
-                        (<code>README.md</code>) with training details and intended use &mdash; it's the first
+                        (<code>README.md</code>) with training details and intended use. It's the first
                         thing users of your model (including future you) will look for.
                     </p>
 
@@ -204,7 +204,7 @@ api.upload_folder(
                     <p>Downloading is the mirror image. For transformers models:</p>
                     <pre data-lang="python"><code>from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-# Works for public, private, and gated repos — auth is picked up automatically
+# Works for public, private, and gated repos; auth is picked up automatically
 model = AutoModelForSequenceClassification.from_pretrained("your-username/my-model")
 tokenizer = AutoTokenizer.from_pretrained("your-username/my-model")
 
@@ -226,21 +226,21 @@ local_dir = snapshot_download(repo_id="your-username/my-model")</code></pre>
                     <h2>Common problems</h2>
                     <ul>
                         <li>
-                            <strong>401 Unauthorized on a public model</strong> &mdash; usually a gated repo
-                            (Llama, Gemma, and friends): you must accept the license on the model's page with your
+                            <strong>401 Unauthorized on a public model</strong>: usually a gated repo
+                            (Llama, Gemma, and friends). You must accept the license on the model's page with your
                             account first, and then be authenticated when downloading.
                         </li>
                         <li>
-                            <strong>403 Forbidden when pushing</strong> &mdash; your token is read-only, or a
+                            <strong>403 Forbidden when pushing</strong>: your token is read-only, or a
                             fine-grained token doesn't include that repo. Check the token's scope.
                         </li>
                         <li>
-                            <strong>Works locally, fails in CI</strong> &mdash; the login stored by
+                            <strong>Works locally, fails in CI</strong>: the login stored by
                             <code>hf auth login</code> lives on your machine, not in the runner. Set
                             <code>HF_TOKEN</code> as a secret in the CI environment.
                         </li>
                         <li>
-                            <strong>Token committed to Git</strong> &mdash; revoke it immediately in your token
+                            <strong>Token committed to Git</strong>: revoke it immediately in your token
                             settings and create a new one. Hugging Face also scans public repos for leaked tokens
                             and will invalidate ones it finds, but don't rely on that.
                         </li>

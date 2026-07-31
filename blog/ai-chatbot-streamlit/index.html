@@ -89,8 +89,8 @@
                     <p>
                         Streamlit is the fastest way I know to put a working interface in front of a machine
                         learning model, and its built-in chat components make an LLM chatbot almost embarrassingly
-                        short to write. In this guide we'll build a complete, streaming chat app &mdash; message
-                        history, typing-as-it-generates output, proper secrets handling &mdash; in under fifty
+                        short to write. In this guide we'll build a complete, streaming chat app (message
+                        history, typing-as-it-generates output, proper secrets handling) in under fifty
                         lines of Python.
                     </p>
 
@@ -99,7 +99,7 @@
                     <pre data-lang="bash"><code>pip install streamlit anthropic</code></pre>
                     <p>
                         We'll use the Anthropic API as the model behind the chat (any provider with a Python SDK
-                        works the same way &mdash; and see the end of the post for running a fully local model
+                        works the same way; see the end of the post for running a fully local model
                         instead). Create an API key in the
                         <a href="https://platform.claude.com/">Claude developer console</a> and expose it to the app.
                         For local development, an environment variable is fine:
@@ -119,15 +119,15 @@ $env:ANTHROPIC_API_KEY = "sk-ant-..."</code></pre>
                     <p>Streamlit's chat support rests on three pieces:</p>
                     <ul>
                         <li>
-                            <code>st.chat_input()</code> &mdash; a chat text box pinned to the bottom of the page.
+                            <code>st.chat_input()</code>: a chat text box pinned to the bottom of the page.
                             Returns the submitted string, or <code>None</code> if nothing was submitted this run.
                         </li>
                         <li>
-                            <code>st.chat_message(role)</code> &mdash; a message bubble container with an avatar,
+                            <code>st.chat_message(role)</code>: a message bubble container with an avatar,
                             used as a context manager: <code>with st.chat_message("user"): ...</code>
                         </li>
                         <li>
-                            <code>st.session_state</code> &mdash; a dictionary that survives across reruns.
+                            <code>st.session_state</code>: a dictionary that survives across reruns.
                             This one is essential: <strong>Streamlit re-executes your entire script from top to
                             bottom on every interaction</strong>, so any state you don't stash in
                             <code>session_state</code> is lost the moment the user does anything.
@@ -198,7 +198,7 @@ if prompt := st.chat_input("Ask me anything"):
                         </li>
                         <li>
                             <strong>Step 2</strong> redraws every stored message on each rerun. This is idiomatic
-                            Streamlit &mdash; you re-render the world from state rather than mutating a UI.
+                            Streamlit: you re-render the world from state rather than mutating a UI.
                         </li>
                         <li>
                             <strong>Step 3</strong> uses the walrus operator to both read and test the chat input.
@@ -208,8 +208,8 @@ if prompt := st.chat_input("Ask me anything"):
                         <li>
                             <strong>Step 4</strong> is the nice part. The SDK's <code>stream()</code> helper yields
                             text chunks via <code>stream.text_stream</code>, and Streamlit's
-                            <code>st.write_stream()</code> consumes any generator, rendering chunks as they arrive
-                            &mdash; and returns the concatenated full text when done, which we store back into
+                            <code>st.write_stream()</code> consumes any generator, rendering chunks as they arrive,
+                            and returns the concatenated full text when done, which we store back into
                             history. The whole conversation is sent on every turn because LLM APIs are stateless;
                             the model only "remembers" what you resend.
                         </li>
@@ -251,9 +251,9 @@ with st.chat_message("assistant"):
     )
     reply = st.write_stream(chunk["message"]["content"] for chunk in stream)</code></pre>
                     <p>
-                        No API key, no per-token cost, and your conversations stay local &mdash; the trade-off is
+                        No API key, no per-token cost, and your conversations stay local. The trade-off is
                         that you need the hardware to run the model at a usable speed. (Local-first LLM interfaces
-                        are something of a theme of mine &mdash; see <a href="/#llmlynx">LLMLynx</a>.)
+                        are something of a theme of mine; see <a href="/#llmlynx">LLMLynx</a>.)
                     </p>
 
                     <h2>Deploying</h2>
@@ -262,11 +262,11 @@ with st.chat_message("assistant"):
                         GitHub, connect it at <a href="https://share.streamlit.io/">share.streamlit.io</a>, and add
                         your API key in the app's <em>Secrets</em> settings (the same TOML format as the local
                         file). For anything internal or production-grade, run the app in a container behind your
-                        usual reverse proxy &mdash; <code>streamlit run app.py --server.port 8501</code> works the
+                        usual reverse proxy. <code>streamlit run app.py --server.port 8501</code> works the
                         same anywhere, and pairs naturally with <a href="/blog/how-to-use-docker/">Docker</a>.
                     </p>
                     <p class="note">
-                        Two production notes. First, never commit API keys &mdash; keep
+                        Two production notes. First, never commit API keys, and keep
                         <code>secrets.toml</code> out of version control. Second, a public chatbot with your API key
                         behind it is an open wallet: add authentication or rate limiting before sharing a link
                         beyond people you trust.
@@ -275,7 +275,7 @@ with st.chat_message("assistant"):
                     <div class="post-cta">
                         <p>
                             <strong>Want a chatbot that knows your documents, your data, or your product?</strong>
-                            That's retrieval-augmented generation &mdash; and it's the kind of system I design and
+                            That's retrieval-augmented generation, and it's the kind of system I design and
                             build end to end.
                         </p>
                         <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>

@@ -89,28 +89,28 @@
                     <p>
                         Cloud LLM APIs are convenient, but they come with three strings attached: your data leaves
                         your machine, you pay per token, and the service can change or disappear under you. For a
-                        lot of work &mdash; anything involving sensitive data, high-volume batch processing, or
-                        just tinkering &mdash; running the model locally is the better trade. Ollama has become the
+                        lot of work (anything involving sensitive data, high-volume batch processing, or
+                        just tinkering), running the model locally is the better trade. Ollama has become the
                         de facto standard for doing that with minimal friction, and local-first LLM tooling is
                         something I care about enough to have built <a href="/#llmlynx">a whole application</a>
                         around. This guide takes you from installation to serving models to your own code.
                     </p>
 
-                    <h2>What Ollama actually is</h2>
+                    <h2>What is Ollama?</h2>
                     <p>
                         Ollama is a local model server built on top of <code>llama.cpp</code>, the C/C++ inference
                         engine that made running LLMs on consumer hardware practical. It wraps three things into
                         one tool:
                     </p>
                     <ul>
-                        <li>a <strong>model manager</strong> &mdash; pull, list, and remove models from a curated library, like Docker for LLMs;</li>
-                        <li>an <strong>inference runtime</strong> &mdash; runs models on your GPU (NVIDIA and AMD on Windows/Linux, Apple Silicon on macOS), spilling over to CPU when the model doesn't fully fit;</li>
-                        <li>a <strong>local API server</strong> &mdash; an HTTP API on <code>localhost:11434</code> that any application on your machine can call.</li>
+                        <li>a <strong>model manager</strong>: pull, list, and remove models from a curated library, like Docker for LLMs;</li>
+                        <li>an <strong>inference runtime</strong>: runs models on your GPU (NVIDIA and AMD on Windows/Linux, Apple Silicon on macOS), spilling over to CPU when the model doesn't fully fit;</li>
+                        <li>a <strong>local API server</strong>: an HTTP API on <code>localhost:11434</code> that any application on your machine can call.</li>
                     </ul>
                     <p>
-                        The models it serves are open-weights models &mdash; Meta's Llama family, Alibaba's Qwen,
-                        Mistral, Google's Gemma, DeepSeek's distills, and many more &mdash; in the quantized GGUF
-                        format (more on quantization below).
+                        The models it serves are open-weights models in the quantized GGUF format (more on
+                        quantization below): Meta's Llama family, Alibaba's Qwen, Mistral, Google's Gemma,
+                        DeepSeek's distills, and many more.
                     </p>
 
                     <h2>Installation and first run</h2>
@@ -162,19 +162,19 @@ ollama rm qwen2.5:14b       # delete from disk</code></pre>
                     </table>
                     </div>
                     <p>
-                        If a model doesn't fully fit in GPU memory, Ollama splits it between GPU and CPU &mdash;
-                        it works, but tokens-per-second drops sharply, so it's usually better to pick a smaller
+                        If a model doesn't fully fit in GPU memory, Ollama splits it between GPU and CPU. It
+                        works, but tokens-per-second drops sharply, so it's usually better to pick a smaller
                         model or a smaller quantization than to spill. On pure CPU, small models (3&ndash;8B) are
-                        genuinely usable; large ones are not.
+                        usable; large ones are not.
                     </p>
                     <p>
                         A sane starting lineup as of mid-2026: <code>llama3.1:8b</code> or <code>qwen2.5:7b</code>
                         as general-purpose workhorses, <code>qwen2.5-coder</code> for code,
                         <code>gemma3:4b</code> when resources are tight, and a <code>deepseek-r1</code> distill
                         if you want visible chain-of-thought reasoning locally. Expectations matter: an 8B local
-                        model is not a frontier model. It is, however, remarkably capable for summarization,
-                        extraction, classification, drafting, and RAG over your own documents &mdash; the
-                        bread-and-butter tasks that make up most real workloads.
+                        model is not a frontier model. It is, however, remarkably capable for the
+                        bread-and-butter tasks that make up most real workloads: summarization, extraction,
+                        classification, drafting, and RAG over your own documents.
                     </p>
 
                     <h2>Talking to Ollama from code</h2>
@@ -207,7 +207,7 @@ print(response["message"]["content"])</code></pre>
 for chunk in stream:
     print(chunk["message"]["content"], end="", flush=True)</code></pre>
                     <p>
-                        Structured output is supported too &mdash; pass a JSON schema as the <code>format</code>
+                        Structured output is supported too: pass a JSON schema as the <code>format</code>
                         argument and the model's response is constrained to valid JSON matching it. That turns a
                         local model into a dependable extraction engine:
                     </p>
@@ -226,7 +226,7 @@ response = ollama.chat(
 invoice = Invoice.model_validate_json(response["message"]["content"])</code></pre>
                     <p>
                         And for <a href="/blog/agentic-systems-langgraph/">RAG systems</a>, Ollama serves embedding
-                        models as well &mdash; so the entire pipeline, embeddings included, can run offline:
+                        models as well, so the entire pipeline, embeddings included, can run offline:
                     </p>
                     <pre data-lang="python"><code>ollama.pull("nomic-embed-text")
 result = ollama.embed(model="nomic-embed-text", input=["chunk one", "chunk two"])
@@ -235,8 +235,8 @@ vectors = result["embeddings"]   # ready for your vector store</code></pre>
                     <h3>The OpenAI-compatible endpoint</h3>
                     <p>
                         Ollama also exposes an OpenAI-compatible API at <code>http://localhost:11434/v1</code>.
-                        Practically, this means most tools and libraries built for cloud APIs can point at your
-                        local server by changing two settings &mdash; base URL and model name &mdash; with any
+                        This means most tools and libraries built for cloud APIs can point at your
+                        local server by changing two settings (base URL and model name), with any
                         non-empty string as the API key. It's the quickest way to make an existing codebase
                         local-first without rewriting it.
                     </p>
@@ -259,7 +259,7 @@ point out concrete defects, and never rewrite code unasked."""</code></pre>
 ollama run reviewer</code></pre>
                     <p>
                         Two parameters deserve special mention. <code>temperature</code> you know. But
-                        <code>num_ctx</code> &mdash; the context window &mdash; is the one that bites people:
+                        <code>num_ctx</code>, the context window, is the one that bites people:
                         Ollama defaults to a modest context length regardless of what the model supports, and
                         <strong>input beyond it is silently truncated</strong>. If your RAG answers mysteriously
                         ignore the documents you stuffed into the prompt, this is almost always why. Raise
@@ -270,30 +270,30 @@ ollama run reviewer</code></pre>
                     <h2>Operational notes</h2>
                     <ul>
                         <li>
-                            <strong>Model loading and keep-alive</strong> &mdash; the first request after a quiet
+                            <strong>Model loading and keep-alive</strong>: the first request after a quiet
                             period pays a load-from-disk cost; by default models unload again a few minutes after
                             last use. For a service, set <code>keep_alive</code> (per request, or
                             <code>OLLAMA_KEEP_ALIVE=-1</code> to pin the model in memory).
                         </li>
                         <li>
-                            <strong>Serving beyond localhost</strong> &mdash; by default Ollama listens only on
-                            127.0.0.1. Set <code>OLLAMA_HOST=0.0.0.0</code> to expose it on your network &mdash;
-                            and put a reverse proxy with authentication in front if you do, because the API itself
+                            <strong>Serving beyond localhost</strong>: by default Ollama listens only on
+                            127.0.0.1. Set <code>OLLAMA_HOST=0.0.0.0</code> to expose it on your network, and
+                            put a reverse proxy with authentication in front if you do, because the API itself
                             has none.
                         </li>
                         <li>
-                            <strong>Where models live</strong> &mdash; <code>~/.ollama/models</code> by default;
+                            <strong>Where models live</strong>: <code>~/.ollama/models</code> by default;
                             move it with <code>OLLAMA_MODELS</code> if your system drive is small. Models are
                             multi-GB; prune with <code>ollama rm</code>.
                         </li>
                         <li>
-                            <strong>Containers</strong> &mdash; the official <code>ollama/ollama</code> image plus
+                            <strong>Containers</strong>: the official <code>ollama/ollama</code> image plus
                             <code>--gpus all</code> gives you a reproducible, deployable inference server; mount a
                             volume at <code>/root/.ollama</code> so models persist. (Details on GPU containers in
                             <a href="/blog/how-to-use-docker/">the Docker post</a>.)
                         </li>
                         <li>
-                            <strong>When you outgrow it</strong> &mdash; Ollama is optimized for simplicity and
+                            <strong>When you outgrow it</strong>: Ollama is optimized for simplicity and
                             single-machine use. If you need to serve many concurrent users at maximum throughput,
                             that's the point to look at batching-oriented servers like vLLM; the application code
                             barely changes thanks to the OpenAI-compatible interface.
@@ -303,19 +303,19 @@ ollama run reviewer</code></pre>
                     <h2>When local inference is the right call</h2>
                     <p>
                         The decision usually comes down to four factors. <strong>Privacy:</strong> medical,
-                        legal, and proprietary data may simply not be allowed to leave your infrastructure &mdash;
+                        legal, and proprietary data may simply not be allowed to leave your infrastructure, and
                         local inference makes the question moot. <strong>Cost shape:</strong> APIs bill per token,
                         hardware is a fixed cost; at sustained high volume the crossover comes fast.
                         <strong>Control:</strong> a pinned local model never changes behavior under you, which is
                         worth a lot in regulated or evaluation-heavy settings. <strong>Capability:</strong> the
-                        one factor that favors the cloud &mdash; frontier models remain meaningfully stronger, so
+                        one factor that favors the cloud is that frontier models remain meaningfully stronger, so
                         hard reasoning tasks may justify the API. Many of the best systems I've built are hybrids:
                         local models for the private, high-volume work; a cloud model for the rare hard cases.
                     </p>
 
                     <div class="post-cta">
                         <p>
-                            <strong>Weighing local against cloud LLMs for your use case &mdash; or want a private,
+                            <strong>Weighing local against cloud LLMs for your use case, or want a private,
                             self-hosted AI system built?</strong> Local-first machine learning is a specialty of
                             mine, from laptops to edge devices.
                         </p>

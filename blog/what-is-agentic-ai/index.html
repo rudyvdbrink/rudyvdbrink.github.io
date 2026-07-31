@@ -89,15 +89,15 @@
                     <p>
                         "Agentic AI" is the term of the moment, and like most terms of the moment it gets applied
                         to everything from a chatbot with a search button to fully autonomous software engineers.
-                        Underneath the marketing there is a precise and genuinely useful idea. This article explains
-                        what it is, how it works mechanically, and &mdash; just as important &mdash; when it's the
+                        Underneath the marketing there is a precise and useful idea. This article explains
+                        what it is, how it works mechanically, and, just as important, when it's the
                         wrong tool.
                     </p>
 
                     <h2>The core idea: a model in a loop</h2>
                     <p>
                         A plain large language model call is a one-shot function: text in, text out. The model can
-                        reason impressively, but it can't <em>do</em> anything &mdash; it can't look something up,
+                        reason impressively, but it can't <em>do</em> anything: it can't look something up,
                         run code, query your database, or send an email. It also can't check its own work against
                         reality.
                     </p>
@@ -113,7 +113,7 @@
                         <li>Repeat until done.</li>
                     </ol>
                     <p>
-                        That's it. "Agentic" doesn't refer to a special kind of model &mdash; the same model powers
+                        That's it. "Agentic" doesn't refer to a special kind of model. The same model powers
                         chat and agents alike. It refers to the architecture: <em>the model directs its own control
                         flow</em>. Rather than a programmer specifying "first search, then summarize, then draft,"
                         the model observes intermediate results and decides what to do next, including recovering
@@ -147,34 +147,34 @@
                     </table>
                     </div>
                     <p>
-                        The distinction matters because autonomy is a cost, not just a capability. Workflows are
+                        The distinction matters because autonomy is a cost as well as a capability. Workflows are
                         predictable, cheap, and easy to test; agents trade all three of those for flexibility.
-                        The right question is never "how do I add agents?" but "does this task have a knowable,
-                        fixed sequence of steps?" If yes, build a workflow. Agents earn their keep on open-ended
-                        tasks where the path genuinely depends on what's discovered along the way.
+                        Before asking "how do I add agents?", ask whether the task has a knowable, fixed
+                        sequence of steps. If it does, build a workflow. Agents earn their keep on open-ended
+                        tasks where the path depends on what's discovered along the way.
                     </p>
 
                     <h2>The anatomy of an agent</h2>
                     <p>Production agent systems, whatever the framework, are assembled from the same few parts:</p>
                     <ul>
                         <li>
-                            <strong>The model</strong> &mdash; the reasoning engine. Capability here bounds
+                            <strong>The model</strong>: the reasoning engine. Capability here bounds
                             everything else; a model that plans poorly can't be prompted into planning well.
                         </li>
                         <li>
-                            <strong>Tools</strong> &mdash; typed function interfaces the model may call: web search,
+                            <strong>Tools</strong>: typed function interfaces the model may call, such as web search,
                             code execution, file editing, database queries, internal APIs. Each tool is declared
                             with a name, a description, and a schema for its parameters. Tool descriptions are
-                            effectively prompts &mdash; they determine when the model reaches for the tool.
+                            effectively prompts. They determine when the model reaches for the tool.
                         </li>
                         <li>
-                            <strong>Memory / context management</strong> &mdash; the conversation history is the
+                            <strong>Memory / context management</strong>: the conversation history is the
                             agent's working memory, and it's finite. Long-running agents need strategies for
                             summarizing or pruning old context, and often a persistent store (files, a database)
                             for knowledge that must survive across sessions.
                         </li>
                         <li>
-                            <strong>The harness</strong> &mdash; the surrounding code: it executes tool calls,
+                            <strong>The harness</strong>: the surrounding code that executes tool calls,
                             enforces permissions and timeouts, limits the number of iterations, logs what happened,
                             and decides which actions need human approval.
                         </li>
@@ -183,13 +183,13 @@
                         The influential ReAct pattern (Yao et al., 2022) formalized the interleaving of
                         <em>reasoning</em> ("the test fails because the fixture is missing") and <em>acting</em>
                         (run the test, read the file). Modern APIs have absorbed the idea natively: current models
-                        are trained for tool use and emit structured tool calls directly, no prompt tricks required.
+                        are trained for tool use and emit structured tool calls directly, with no prompt tricks required.
                     </p>
 
                     <h2>A minimal agent in Python</h2>
                     <p>
                         Here is the agent loop with no framework at all, using the Anthropic API. We give the model
-                        one tool &mdash; a weather lookup &mdash; and let it decide when to call it. The same
+                        one tool, a weather lookup, and let it decide when to call it. The same
                         skeleton scales to real tool sets.
                     </p>
                     <pre data-lang="python"><code>import anthropic
@@ -261,12 +261,12 @@ print(final_text)</code></pre>
                         Once one agent works, the natural next step is several: an orchestrator that decomposes a
                         task and delegates subtasks to specialized sub-agents (a researcher, a coder, a reviewer),
                         each with its own context window and tool set. This is how my own
-                        <a href="/#neurolex">NeuroLex</a> system works &mdash; cooperating agents handle query
+                        <a href="/#neurolex">NeuroLex</a> system works: cooperating agents handle query
                         understanding, retrieval over a scientific corpus, and answer composition.
                     </p>
                     <p>
-                        Multi-agent architectures shine when subtasks are genuinely independent (they can run in
-                        parallel) or when isolating context improves focus &mdash; a reviewer agent that hasn't
+                        Multi-agent architectures shine when subtasks are independent (they can run in
+                        parallel) or when isolating context improves focus. A reviewer agent that hasn't
                         seen the author's reasoning makes a more honest critic. They add real overhead in cost,
                         latency, and debugging complexity, so the same rule applies as before: start with one
                         agent, split only when you hit a concrete limit.
@@ -274,7 +274,7 @@ print(final_text)</code></pre>
                     <p>
                         Standardization is also arriving. The <strong>Model Context Protocol (MCP)</strong>, an open
                         standard introduced by Anthropic in 2024 and since adopted broadly across the industry,
-                        gives tools a common interface &mdash; so a database connector or a browser tool can be
+                        gives tools a common interface, so a database connector or a browser tool can be
                         written once and plugged into any MCP-capable agent, rather than reimplemented per framework.
                     </p>
 
@@ -283,7 +283,7 @@ print(final_text)</code></pre>
                     <ul>
                         <li>
                             <strong>Is the task actually open-ended?</strong> If you can write the steps down,
-                            write them down &mdash; a fixed workflow will be cheaper, faster, and far easier to test.
+                            write them down. A fixed workflow will be cheaper, faster, and far easier to test.
                         </li>
                         <li>
                             <strong>Can errors be caught and undone?</strong> Agents fail in creative ways. They're
@@ -299,13 +299,13 @@ print(final_text)</code></pre>
                     <p>
                         The systems that work in production tend to be boring in the best way: a scoped task, a
                         small set of well-described tools, tight guardrails, and a human in the loop wherever the
-                        cost of error is high. Autonomy is added gradually, as trust is earned &mdash; not granted
-                        up front.
+                        cost of error is high. Autonomy is added gradually, as trust is earned, rather than
+                        granted up front.
                     </p>
 
                     <div class="post-cta">
                         <p>
-                            <strong>Considering an agentic system &mdash; or unsure whether a simpler workflow would
+                            <strong>Considering an agentic system, or unsure whether a simpler workflow would
                             do?</strong> I build production agent and RAG systems, and part of the job is telling
                             you when you don't need one.
                         </p>
