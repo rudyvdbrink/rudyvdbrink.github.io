@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Journal club week 31, 2026: Kimi K3&#x27;s open 2.8T MoE release, AskChem&#x27;s claim-level chemistry search, and Qwen-UI-Agent on real phones.">
+    <meta name="keywords" content="Kimi K3, mixture of experts, open weight models, AskChem, chemistry literature search, claim extraction, GUI agents, Qwen-UI-Agent, reinforcement learning, machine learning papers">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-31-2026/">
+
+    <meta property="og:title" content="Journal Club Week 31, 2026">
+    <meta property="og:description" content="Journal club week 31, 2026: Kimi K3&#x27;s open 2.8T MoE release, AskChem&#x27;s claim-level chemistry search, and Qwen-UI-Agent on real phones.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-31-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 31, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 31, 2026",
+      "description": "Journal club week 31, 2026: Kimi K3's open 2.8T MoE release, AskChem's claim-level chemistry search, and Qwen-UI-Agent on real phones.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-08-02",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-31-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 31</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>August 2, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~8 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>Three papers this week: a 2.8 trillion parameter open-weight model release, a chemistry literature system that indexes individual claims rather than whole papers, and a technical report on GUI agents trained and evaluated partly on a rack of physical phones.</p><p>The Kimi and Qwen reports both benchmark themselves against the same closed frontier models, so reading them back to back gives a decent picture of where the open releases currently sit.</p>
+
+                    <h2>Kimi K3: Open Frontier Intelligence</h2>
+
+                    <p><em>Kimi Team et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2607.24653">arXiv:2607.24653</a></p>
+
+                    <p>Kimi K3 is a sparse mixture-of-experts model with 2.8T total parameters and 104B active per token, native vision input, and a context window of one million tokens. The routing scheme, which the authors call Stable LatentMoE, selects 16 experts per token out of 896 routed experts, so the serving cost tracks the activated slice rather than the full parameter count. Two architectural pieces carry the rest of the design: Kimi Delta Attention and what the authors term Attention Residuals, both aimed at how information moves across long sequences and across model depth. Combined with revised training and data recipes, the team reports roughly a 2.5x gain in overall scaling efficiency relative to Kimi K2.</p><p>Post-training leans on reinforcement learning spanning general, agentic, and coding tasks, with several reasoning-effort settings trained into the same model. The authors describe this as producing compositional generalization and reliable execution over long task horizons. A large share of the report covers systems work rather than modeling: co-designing the KDA kernels with the training system, keeping expert-parallel training balanced while managing memory, running agentic RL at million-token context with rollout and sandbox state that persists across turns, and the deployment side of serving a model this size.</p><p>On their evaluation suite the authors report frontier-level numbers across long-horizon coding, agentic tasks, knowledge, reasoning, and vision. They are direct about the ranking: K3 still sits behind Claude Fable 5 and GPT-5.6 Sol, while coming out ahead of every other open and proprietary system they tested. The full weights are released.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>An open release at this capability level changes what is possible to run and study outside a handful of labs. The sparsity ratio matters as much as the headline size, since 104B active parameters puts inference within reach of hardware that could never hold 2.8T dense, and the million-token context plus native vision covers most of what people currently reach for a cloud API to do. For anyone doing research on frontier-scale behavior, having the actual weights instead of an API endpoint is the difference between measuring a system and probing one.</p>
+
+                    <h2>AskChem: Claim-Centered Infrastructure for Chemistry Literature Synthesis</h2>
+
+                    <p><em>Bing Yan et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2607.28618">arXiv:2607.28618</a></p>
+
+                    <p>Literature search returns ranked documents, but chemists frequently need a table assembled from many papers: which catalysts have been reported for a reaction, under what conditions, at what efficiency. Building that table by hand means opening papers, hunting for numbers, and checking each one. AskChem restructures the index so the retrievable object is a single scientific assertion instead of a document. Each paper is split into small typed statements, and every statement stores the DOI it came from along with the exact sentence supporting it, or a pointer to where that evidence appears in the text. Three structures sit over the shared store: a faceted taxonomy induced from the corpus and then stabilized through synonym normalization and clustering of near-duplicate subcategories, an evidence graph with typed edges such as supports, extends, contradicts, and derives_from, and an exploratory taxonomy that files papers under the principles and mechanisms governing them.</p><p>The deployed index holds 2.4M statements drawn from 147K papers published between 1925 and 2026, with 307K populated taxonomy nodes and 171,342 typed edges. It runs on SQLite with FTS5 and a vector index behind a FastAPI service, and search fuses lexical, paper-level, taxonomy, and dense retrieval with reciprocal rank fusion. Access is through a web interface, a REST API, an SDK, and an MCP server, so agents and humans pull the same objects. A domain expert audited a stratified sample of 148 edges and found the correct relation type on 143 of the 146 decidable cases, an edge-type precision of 97.9%.</p><p>The evaluation uses AskChem-Bench, 30 cross-paper chemistry questions covering condition aggregation, temporal tracking, and contradiction finding, answered by a GPT-5.5 reader under five conditions. Unassisted, 88.3% of the DOIs the reader cites resolve on CrossRef; grounded in AskChem, all of them do, at 18.1 verified citations per answer against 9.6 for the reader alone. AskChem also leads on mean paper relevance (2.15 of 3) and on coverage of recent high-impact work (18.5%). The authors do not oversell it: Edison Scientific's agentic system produces far more citation-linked quantitative detail (29.2 against 5.9) and a slightly better on-topic rate, and they note that the taxonomy's contribution to retrieval has not been isolated and that extracted statements can misread their source even when the provenance link is intact.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Citation fabrication is the failure mode that makes LLM literature assistants unusable for real work, and this attacks it at the index rather than at the model: if the retrieval unit carries its own DOI and source sentence, there is nothing for the reader to invent. The MCP endpoint means an agent gets the same verifiable objects a person does, which is the piece most RAG-over-papers setups skip. The code is MIT licensed and the index snapshot is released under CC-BY, so the pattern transfers to other fields with a corpus and a schema.</p>
+
+                    <h2>Qwen-UI-Agent Technical Report: Toward Next-Generation Real-World Centric Foundation GUI Agents</h2>
+
+                    <p><em>Hanzhang Zhou et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2607.28227">arXiv:2607.28227</a></p>
+
+                    <p>GUI agents get tuned on simulators, and a model that clears a simulated benchmark often falls apart on a real phone with pop-ups, permission prompts, CAPTCHAs, and flaky networks. The Qwen-UI-Agent report organizes its work around six shifts, the central one being simulation to real hardware. The team built a runtime over more than 100 physical devices and 150 applications, with a health-aware scheduler that leases a device, app, account, and display per task, blacklists unhealthy targets, and reroutes work when something breaks. Virtual displays let one phone host several concurrent sessions, which raises rollout throughput without buying more phones. A VLM judge reviews each trajectory and separates task success from model failure from environment failure, so broken devices go to a maintenance queue instead of poisoning the training data.</p><p>The action space interleaves GUI operations with bash commands and API calls, plus an ask_user action for confirmations before payments or anything sensitive. A single model turn can emit an ordered batch of actions, and on computer-use tasks over 40% of outputs are batched, which shortens trajectories considerably. Training runs in three stages. SFT trains one expert per domain, merges the checkpoints, and uses a sliding window over trajectory steps so overlapping visual context is not reprocessed for every supervised action. Action RL targets six recurring local errors, including grounding onto a visually similar distractor, declaring success before the state-changing click, and repetitive loops that make no progress. Online RL then optimizes whole trajectories with a GRPO variant over verifier outcomes, running roughly 10,000 concurrent sandboxes on trajectories past 100 turns, with a curriculum that keeps tasks at intermediate success rates in the active pool and parks the currently unsolvable ones in a monitoring pool until they start producing successes.</p><p>On mobile, the model reaches 92.2% on MobileWorld-Real, a real-device benchmark of more than 400 tasks across over 100 apps, ahead of Gemini 3.1 Pro, Opus 4.8, GPT-5.6 Sol, and Seed 2.1 Pro by 6.0, 7.5, 6.8, and 3.5 points. It scores 82.1% on MobileWorld and 97.5% on AndroidDaily. Computer use is weaker in relative terms: 79.5% on OSWorld-Verified for second place overall, and on OSWorld-v2 a 13.9% binary success rate with a 40.0% partial-progress score, third best, though it gets there in substantially fewer steps than the models it beats. Browser use lands at 73.6% on WebArena, GUI grounding at 81.5% on ScreenSpot-Pro, and DeepSearch at 64.1% on BrowseComp. A harness layer on top reads mobile notifications and starts work before the user asks, and carries task state across phone and desktop.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Most of what separates this from earlier GUI agent work is infrastructure rather than architecture: a device fleet with a scheduler, a judge that tells a model mistake apart from a dead network, and verifiers synthesized alongside the tasks they check. That is the part that has been missing, because you cannot train against real-world messiness without a way to keep the mess from being scored as failure. The GUI plus CLI action space is the other piece I would carry over to my own work, since dropping to a shell for file and data operations avoids turning a two-second command into thirty clicks, and the explicit user-confirmation action is the right shape for anything touching payments or real accounts.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>What struck me across all three is how much of the contribution is engineering. Kimi K3 spends its report on kernel and system co-design, balanced expert parallelism, and rollout state. AskChem is a SQLite database with a careful schema and validation gates. Qwen-UI-Agent is a phone scheduler with a blacklist. The modeling ideas are there, but the papers only work because someone built the plumbing underneath them.</p><p>The AskChem evaluation also deserves credit for reporting the column where it loses. Showing that a closed competitor extracts four times more quantitative detail, in the same table as your own wins, is not the norm for systems papers, and it makes the rest of the numbers easier to trust.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
