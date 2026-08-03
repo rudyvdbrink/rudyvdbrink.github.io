@@ -90,7 +90,7 @@
     color: var(--ivory);
     margin: 0 0 1rem;
 }
-.post-title em { font-style: italic; color: var(--terra-soft); }
+.post-title em { font-style: normal; color: var(--terra-soft); }
 
 .post-meta {
     font-family: var(--font-mono);
