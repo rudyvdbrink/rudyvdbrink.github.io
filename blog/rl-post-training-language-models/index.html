@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="From human preference models to verifiable rewards: how LLM reinforcement learning works, and why rollouts and environments decide whether it works.">
+    <meta name="keywords" content="reinforcement learning, RLHF, RLVR, GRPO, PPO, LLM post-training, reward hacking, rollout infrastructure, verifiable rewards, reward model">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/rl-post-training-language-models/">
+
+    <meta property="og:title" content="RL Post-Training for Language Models: From Human Preferences to Verifier Farms">
+    <meta property="og:description" content="From human preference models to verifiable rewards: how LLM reinforcement learning works, and why rollouts and environments decide whether it works.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/rl-post-training-language-models/">
+    <meta property="og:type" content="article">
+
+    <title>RL Post-Training for Language Models: From Human Preferences to Verifier Farms — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "RL Post-Training for Language Models: From Human Preferences to Verifier Farms",
+      "description": "From human preference models to verifiable rewards: how LLM reinforcement learning works, and why rollouts and environments decide whether it works.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-08-03",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/rl-post-training-language-models/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Training</p>
+                    <h1 class="post-title">RL post-training for language models: from human preferences to verifier <em>farms</em>.</h1>
+                    <p class="post-meta">
+                        <span>August 3, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~12 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>Reinforcement learning for language models gets presented as a modeling story. A new advantage estimator, a new regularizer, a new way of shaping the reward. When I read the actual technical reports, the modeling change is usually twenty lines of loss function, and the remaining forty pages are about generating rollouts fast enough to keep the GPUs busy, keeping thousands of sandboxes alive, working out whether a failed episode was the model's fault or a dead network, and reconciling two copies of the same weights that disagree about what they predict.</p><p>This post is the background I wish someone had written down for me in one place: where the objective came from, what changed when the reward stopped being a learned model and became a program, and which parts of the pipeline actually decide whether a run produces a usable model. I assume you know what a transformer is and what supervised fine-tuning does, and nothing past that.</p>
+
+                    <h2>How the objective got here</h2>
+
+                    <p>The core idea predates language models by decades. A policy takes actions, a scalar reward comes back, and you nudge the parameters so that high-reward actions become more likely. Plain policy gradients are high variance and easy to break, since one large update can move the policy somewhere it cannot recover from. <a href="https://arxiv.org/abs/1707.06347">Proximal Policy Optimization</a> (Schulman et al., 2017) handled that with a clipped surrogate objective that stops rewarding an update once it moves past a fixed ratio of change from the sampling policy. It is cheap, it is stable enough, and it became the default.</p><p>The other half of the story is where the reward comes from. Hand-written reward functions work for games, where <a href="https://www.nature.com/articles/nature24270">AlphaGo Zero</a> (Silver et al., 2017) could self-play against an exact rulebook. They do not work for "write a helpful answer". <a href="https://arxiv.org/abs/1706.03741">Christiano et al. (2017)</a> showed you can learn the reward instead: ask humans which of two trajectories is better, fit a reward model to those comparisons, then optimize the policy against the model. <a href="https://arxiv.org/abs/1909.08593">Ziegler et al. (2019)</a> ported this to text, <a href="https://arxiv.org/abs/2009.01325">Stiennon et al. (2020)</a> applied it to summarization and found the resulting summaries were preferred over the human reference summaries, and <a href="https://arxiv.org/abs/2203.02155">InstructGPT</a> (Ouyang et al., 2022) turned it into the three-stage recipe everyone copied: supervised fine-tuning, a reward model on pairwise preferences, then PPO against that reward model with a KL penalty pulling back toward the SFT policy. Labellers preferred the 1.3B InstructGPT outputs over those of 175B GPT-3.</p><p>There is a branch off this path that skips the loop entirely. <a href="https://arxiv.org/abs/2305.18290">Direct Preference Optimization</a> (Rafailov et al., 2023) shows that the reward model and the policy can be the same object, which collapses the procedure into a classification loss on preference pairs with no sampling at all. DPO is far easier to run and works well for style and helpfulness tuning. It does not help when the thing you care about involves the model interacting with something, because a fixed dataset of preference pairs contains no interaction.</p>
+
+                    <h2>Reward models break when you optimize them</h2>
+
+                    <p>A learned reward model is a fit to a finite sample of human judgments, and the policy is an effective search procedure looking for inputs that score highly. Those two facts do not coexist peacefully. <a href="https://arxiv.org/abs/2210.10760">Gao et al. (2022)</a> measured it directly by treating a large reward model as synthetic ground truth and a smaller one as the trainable proxy. As optimization proceeds, the proxy score climbs steadily while the gold score rises, peaks, and then falls, with the turning point predictable as a function of the KL distance travelled from the starting policy. The proxy stops being a measurement and becomes a target.</p><p><a href="https://arxiv.org/abs/2209.13085">Skalse et al. (2022)</a> give the formal version: a proxy reward is hackable relative to a true reward when two policies exist that the proxy ranks one way and the truth ranks the other, and the conditions under which a pair of rewards is unhackable turn out to be close to trivial. Do not expect to write a proxy that survives arbitrary optimization pressure. The KL penalty in the InstructGPT recipe is doing exactly this job. It is a budget on how far you are allowed to exploit the reward model, set by whoever is reading the samples.</p>
+
+                    <h2>When the reward became a program</h2>
+
+                    <p>Mathematics and code have a property that helpfulness does not: you can check the answer. <a href="https://arxiv.org/abs/2110.14168">Cobbe et al. (2021)</a> released GSM8K and trained verifiers to rank sampled solutions, which beat fine-tuning at equivalent cost. <a href="https://arxiv.org/abs/2305.20050">Lightman et al. (2023)</a> asked whether to supervise the final answer or every intermediate step, collected 800K step-level labels, and found process supervision clearly better on MATH. Those verifiers were still learned models. The step that changed the field was dropping the model and using the checker itself.</p><p>The <a href="https://arxiv.org/abs/2411.15124">T&uuml;lu 3</a> report (Lambert et al., 2024) names the approach reinforcement learning with verifiable rewards: reward is 1 when a string-matched answer or an executed test passes and 0 otherwise, with no reward model anywhere in the loop. <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1</a> (DeepSeek-AI, 2025) took the extreme version, running RL with rule-based accuracy and format rewards directly on a base model with no supervised warm start. They reported long chains of thought, self-checking, and backtracking appearing on their own, alongside output unreadable enough that the released model added a cold-start SFT stage to fix it. <a href="https://arxiv.org/abs/2501.12599">Kimi k1.5</a> (Kimi Team, 2025) reported a comparable result with long-context rollouts as the central scaling axis.</p><p>A program is harder to exploit than a reward model, because there is no gradient pointing at its weak spots and no smooth surface to climb. It is not immune. If the check is a test suite, holes in the test suite are the reward, and models find them.</p>
+
+                    <h2>GRPO, and what removing the critic costs</h2>
+
+                    <p>PPO needs a value function to compute advantages, which for an LLM means a second network of comparable size, its own optimizer state, and its own training loop, all to fit a critic against a reward that arrives once at the end of a long sequence. <a href="https://arxiv.org/abs/2402.03300">DeepSeekMath</a> (Shao et al., 2024) introduced Group Relative Policy Optimization, which deletes it. Sample a group of G completions for the same prompt, use the group's own reward statistics as the baseline, and give every token in a completion the same advantage.</p><pre data-lang="python">rewards = [verify(prompt, r) for r in completions]   # G completions, one prompt
+                    adv = (rewards - rewards.mean()) / (rewards.std() + 1e-6)
+                    # every token of completion i is trained with advantage adv[i]</pre><p>The memory saving is real and the change fits on a slide, so GRPO spread quickly. What it buys is paid for elsewhere. You now need G rollouts per prompt instead of one, so generation cost multiplies by the group size, and generation was already the slow part. The signal comes entirely from spread within the group, so a prompt where all G completions succeed and a prompt where all G fail both produce an advantage of zero and contribute nothing. Batch composition stops being a detail. Keeping prompts near intermediate success rates is the difference between a batch that teaches and a batch that costs a few thousand GPU-seconds to produce no gradient, which is why serious pipelines carry an explicit curriculum that promotes and retires prompts based on measured pass rates.</p><p>The normalization has consequences that are easy to miss. <a href="https://arxiv.org/abs/2503.20783">Liu et al. (2025)</a> point out that dividing by the group standard deviation and by response length introduces biases into the optimization, one of which pushes incorrect responses to get longer. That is a plausible explanation for at least part of the response-length growth people report as emergent reasoning.</p>
+
+                    <h2>Two engines holding the same weights</h2>
+
+                    <p>Generation and gradient computation want opposite things from a GPU. Generation wants a paged KV cache, continuous batching, fused decode kernels, and often reduced precision. Training wants sharded parameters, activation checkpointing, and optimizer state. So every real RL framework runs two stacks: an inference engine such as vLLM or SGLang produces rollouts, a training engine such as FSDP or Megatron computes updates, and weights are synchronized between them. <a href="https://arxiv.org/abs/2409.19256">HybridFlow</a> (Sheng et al., 2024) describes the architecture most current frameworks follow, a single controller expressing the RL dataflow on top of multi-controller distributed compute.</p><p>Splitting the work creates a subtle problem. The two engines assign different probabilities to the same token sequence even when they hold identical weights, because kernel implementations, batching nondeterminism, and quantized rollouts all perturb the logits slightly. Your gradient is therefore computed under a policy that is not the one that generated the data, on every step, permanently. The usual corrections are an importance sampling ratio between sampler and trainer with clipping or truncation on the tail, plus higher-precision rollouts when the divergence grows. Anyone who lets the sampler run asynchronously ahead of the trainer to keep hardware busy is widening that same gap deliberately and needs the same machinery to hold it together.</p><p>The reason people accept the complexity is wall clock. A math rollout is a few thousand tokens. An agent rollout is minutes of tool calls, file edits, and waiting on a network, and if the trainer sits idle through that, most of your cluster does nothing most of the time.</p>
+
+                    <h2>The environment is the hard part</h2>
+
+                    <p>Classic RL research had <a href="https://arxiv.org/abs/1606.01540">Gym</a> (Brockman et al., 2016), a shared interface where reset and step meant the same thing everywhere and a benchmark was a package you installed. There is no equivalent for LLM agents, so everyone builds environments and most do not release them. The two that did become shared infrastructure show what the job involves. <a href="https://arxiv.org/abs/2310.06770">SWE-bench</a> (Jimenez et al., 2023) pairs real GitHub issues with repository state and a hidden test suite, which makes it a reward function as much as a benchmark. <a href="https://arxiv.org/abs/2307.13854">WebArena</a> (Zhou et al., 2023) runs self-hosted clones of a shopping site, a forum, a code host, and a wiki with programmatic validators, precisely because you cannot train an agent against the live internet and get reproducible episodes.</p><p>Once you run these at training scale, operational failures dominate. Environments hang. Containers leak state between episodes, so a task passes because of something the previous rollout left behind. A page fails to load and the policy gets punished for a network timeout, which is the worst of the three, because it writes noise into the gradient with the same sign as a real mistake. The countermeasures are unglamorous, and they separate a pipeline that trains from one that thrashes: a classifier that labels each failed episode as task failure, model failure, or environment failure; health checks that pull sick workers out of the pool; snapshot and reset paths fast enough that resetting is not the bottleneck; and audits of the verifiers themselves, since a test suite with false positives is a reward function aimed somewhere you did not intend.</p>
+
+                    <h2>What the training is actually doing</h2>
+
+                    <p>It helps to be precise about the size of the effect. <a href="https://arxiv.org/abs/2504.13837">Yue et al. (2025)</a> compared base models against their RLVR-trained versions across math, code, and vision tasks at varying sampling budgets. The RL-trained models win comfortably at pass@1, and the gap closes as k grows until, at large k, the base model matches or overtakes them. Their reading is that RLVR raises the probability of solutions the base model could already reach and narrows the output distribution, rather than adding new reasoning behaviour, while distillation from a stronger model does extend the reachable set. The result has been argued over and the measurement is delicate, but it matches what the loop does mechanically, since every solution that gets reinforced was sampled from the current policy in the first place.</p><p>Three things I would carry into a project. The base model dominates the outcome, so spend effort there before tuning the RL. Report pass@k across a range of k rather than pass@1 alone, or you will not see the distribution narrowing. And log the diagnostics that reveal a failing run before the reward curve does: KL from the reference policy, policy entropy, mean response length, the fraction of groups with zero reward variance, and the agreement between sampler and trainer log-probabilities on the same sequences. When an RL run goes wrong, the reward is usually the last number to admit it.</p>
+
+                    <h2>Sources and further reading</h2>
+                    <h3>Policy optimization and learning from preferences</h3>
+                    <ul>
+                        <li>Schulman et al. (2017). <a href="https://arxiv.org/abs/1707.06347" target="_blank" rel="noopener">Proximal Policy Optimization Algorithms</a>. The clipped surrogate objective that most RLHF pipelines still use.</li>
+                        <li>Christiano et al. (2017). <a href="https://arxiv.org/abs/1706.03741" target="_blank" rel="noopener">Deep Reinforcement Learning from Human Preferences</a>. NeurIPS 2017.</li>
+                        <li>Ziegler et al. (2019). <a href="https://arxiv.org/abs/1909.08593" target="_blank" rel="noopener">Fine-Tuning Language Models from Human Preferences</a>.</li>
+                        <li>Stiennon et al. (2020). <a href="https://arxiv.org/abs/2009.01325" target="_blank" rel="noopener">Learning to Summarize from Human Feedback</a>. NeurIPS 2020.</li>
+                        <li>Ouyang et al. (2022). <a href="https://arxiv.org/abs/2203.02155" target="_blank" rel="noopener">Training Language Models to Follow Instructions with Human Feedback</a>. NeurIPS 2022. The InstructGPT paper, and the origin of the three-stage recipe.</li>
+                        <li>Rafailov et al. (2023). <a href="https://arxiv.org/abs/2305.18290" target="_blank" rel="noopener">Direct Preference Optimization: Your Language Model is Secretly a Reward Model</a>. NeurIPS 2023.</li>
+                        <li>Silver et al. (2017). <a href="https://www.nature.com/articles/nature24270" target="_blank" rel="noopener">Mastering the Game of Go without Human Knowledge</a>. Nature 550.</li>
+                    </ul>
+                    <h3>Verifiers and verifiable rewards</h3>
+                    <ul>
+                        <li>Cobbe et al. (2021). <a href="https://arxiv.org/abs/2110.14168" target="_blank" rel="noopener">Training Verifiers to Solve Math Word Problems</a>. Introduces GSM8K along with solution-ranking verifiers.</li>
+                        <li>Lightman et al. (2023). <a href="https://arxiv.org/abs/2305.20050" target="_blank" rel="noopener">Let&#x27;s Verify Step by Step</a>. ICLR 2024. Process supervision against outcome supervision, with the PRM800K label set.</li>
+                        <li>Lambert et al. (2024). <a href="https://arxiv.org/abs/2411.15124" target="_blank" rel="noopener">Tulu 3: Pushing Frontiers in Open Language Model Post-Training</a>. Names and specifies reinforcement learning with verifiable rewards.</li>
+                        <li>Shao et al. (2024). <a href="https://arxiv.org/abs/2402.03300" target="_blank" rel="noopener">DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models</a>. The paper that introduced GRPO.</li>
+                        <li>DeepSeek-AI (2025). <a href="https://arxiv.org/abs/2501.12948" target="_blank" rel="noopener">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</a>.</li>
+                        <li>Kimi Team (2025). <a href="https://arxiv.org/abs/2501.12599" target="_blank" rel="noopener">Kimi k1.5: Scaling Reinforcement Learning with LLMs</a>.</li>
+                    </ul>
+                    <h3>How reward and optimization go wrong</h3>
+                    <ul>
+                        <li>Gao et al. (2022). <a href="https://arxiv.org/abs/2210.10760" target="_blank" rel="noopener">Scaling Laws for Reward Model Overoptimization</a>. ICML 2023. Measures the point at which proxy reward and gold reward part company.</li>
+                        <li>Skalse et al. (2022). <a href="https://arxiv.org/abs/2209.13085" target="_blank" rel="noopener">Defining and Characterizing Reward Hacking</a>. NeurIPS 2022.</li>
+                        <li>Liu et al. (2025). <a href="https://arxiv.org/abs/2503.20783" target="_blank" rel="noopener">Understanding R1-Zero-Like Training: A Critical Perspective</a>. Identifies biases in GRPO&#x27;s normalization terms.</li>
+                        <li>Yue et al. (2025). <a href="https://arxiv.org/abs/2504.13837" target="_blank" rel="noopener">Does Reinforcement Learning Really Incentivize Reasoning Capacity in LLMs Beyond the Base Model?</a>. The pass@k analysis behind the sharpening argument.</li>
+                    </ul>
+                    <h3>Systems and environments</h3>
+                    <ul>
+                        <li>Brockman et al. (2016). <a href="https://arxiv.org/abs/1606.01540" target="_blank" rel="noopener">OpenAI Gym</a>. The shared environment interface that LLM agent research still lacks an equivalent of.</li>
+                        <li>Sheng et al. (2024). <a href="https://arxiv.org/abs/2409.19256" target="_blank" rel="noopener">HybridFlow: A Flexible and Efficient RLHF Framework</a>. The hybrid controller design underlying several current RL training stacks.</li>
+                        <li>Jimenez et al. (2023). <a href="https://arxiv.org/abs/2310.06770" target="_blank" rel="noopener">SWE-bench: Can Language Models Resolve Real-World GitHub Issues?</a>. ICLR 2024.</li>
+                        <li>Zhou et al. (2023). <a href="https://arxiv.org/abs/2307.13854" target="_blank" rel="noopener">WebArena: A Realistic Web Environment for Building Autonomous Agents</a>. ICLR 2024.</li>
+                    </ul>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
