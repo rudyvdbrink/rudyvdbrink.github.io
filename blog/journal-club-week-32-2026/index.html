@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Three ML papers from week 32 of 2026: recursive synthesis of verified terminal tasks, an audited agent harness, and unified speech and audio generation.">
+    <meta name="keywords" content="machine learning journal club, terminal agents, synthetic training data, long-horizon agents, agent harness, Terminal-Bench, OSWorld, text-to-speech, flow matching, mixture of experts">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-32-2026/">
+
+    <meta property="og:title" content="Journal Club Week 32, 2026">
+    <meta property="og:description" content="Three ML papers from week 32 of 2026: recursive synthesis of verified terminal tasks, an audited agent harness, and unified speech and audio generation.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-32-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 32, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 32, 2026",
+      "description": "Three ML papers from week 32 of 2026: recursive synthesis of verified terminal tasks, an audited agent harness, and unified speech and audio generation.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-08-09",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-32-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 32</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>August 9, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~10 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>Two of this week's papers attack long-horizon agents from opposite ends. One builds training data by growing verified terminal tasks recursively until they are hard; the other leaves the model alone and rewrites the harness around it so that progress lives outside the execution context and gets checked by something that did not do the work. Both report on Terminal-Bench, which makes them easy to read against each other.</p><p>The third is a speech and audio generation system that covers voice cloning from a reference clip and voice design from a written description in a single model, with the acoustic scene generated in the same waveform as the speech.</p>
+
+                    <h2>Recursive Synthesis for Long-Horizon Terminal Tasks</h2>
+
+                    <p><em>Zhongzhi Li et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2608.05466">arXiv:2608.05466</a></p>
+
+                    <p>Training data for terminal agents is expensive because each task bundles a workspace, a public instruction, a reference solution, and a private verifier, and all four have to agree. Hand-authored tasks of this kind run into the hundreds or thousands of dollars each, and asking a model to write one from scratch tends to break the agreement between the parts: the verifier checks something the instruction never mentioned, or the reference solution does not pass its own tests. RST avoids writing tasks from scratch. It starts from 639 verified seeds taken from TerminalWorld and grows them. Each round picks one of 40 rewrite operators, extends the reference <code>solve.sh</code> with additional executable work, updates the environment, verifier, and instruction to match, then rebuilds everything in a fresh sandbox and runs the reference solution against the private verifier. A candidate is accepted only if the reference solution passes and every requirement the verifier checks is stated in the instruction or discoverable from the workspace. Accepted tasks become seeds for the next round.</p><p>Fifteen rounds produced 37,484 accepted tasks at roughly five cents each. The growth shows up in executable work rather than prose: between the first and fifteenth rounds, median reference solution length goes from 67 to 374 lines, executed commands from 40 to 244, distinct CLI tools from 17 to 71, and verifier assertions from 17 to 57, while the instruction grows only from 85 to 122 words. Difficulty tracks that. DeepSeek-V4-Pro pass@4 on matched subsets falls from 90% in round one to 2.5% in round fifteen, mean partial credit from 0.970 to 0.170, and the share of failed attempts that still clear 75% of verifier checks from 86.4% to 1.2%. Throughput held up: accepted tasks per 1,000 seed attempts stayed between 498 and 572 across rounds, and candidate pass rate between 74.5% and 81.5%. Within-round nearest-neighbor similarity does climb, from a median of 0.223 to 0.464, so the pool tightens, but the median stays below half.</p><p>For training utility, rejection-sampled Qwen3.5 rollouts on these tasks used for plain supervised fine-tuning move Qwen3.5-27B from 41.2 to 47.9 on Terminal-Bench 2, 22.7 to 28.3 on Terminal-Bench Hard, and 18.1 to 22.4 mean partial credit on Long-Horizon Terminal Bench, with comparable gains for the 122B-A10B model. Agentic PPO over the full synthesized pool takes the 27B model to 49.44 on Terminal-Bench 2, 32.00 on Terminal-Bench Hard, and 22.07 on Long-Horizon Terminal Bench, still behind DeepSeek-V4-Pro at 51.68, 36.00, and 30.00. The conclusion quotes 46.07 for the RL model on Terminal-Bench 2 where the results table says 49.44, so one of the two numbers is stale. A contamination check against all three benchmarks finds no shared 13-token window and maximum 5-gram Jaccard similarity under 0.009.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Five cents per accepted task against hundreds of dollars for a hand-authored one, for data that ships with an executable proof that it is solvable, is a large enough gap to change what a training set can look like. The recipe carries past terminal work to any setting where success can be checked by running something: grow the solution first, realign the check and the instruction to it, discard anything that does not reproduce in a clean sandbox. It also gives a cheap way to keep producing hard evaluation sets once a benchmark saturates, since the same loop yields tasks the strongest available solver completes 2.5% of the time.</p>
+
+                    <h2>LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks</h2>
+
+                    <p><em>Ziyu Ma et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2608.01964">arXiv:2608.01964</a></p>
+
+                    <p>Existing agent harnesses keep execution, task state, and the judgment of whether a subtask is done inside one growing context. Two things follow. State gets buried under interaction history, and the agent that did the work decides whether the work is finished, so a wrong self-assessment becomes a premise for everything after it. LongHorizon-Harness separates these into a Manage-Execute-Audit loop. A manager holds the task state as structured records (requirements, artifacts, and facts, each marked completed, pending, blocked, or untrusted) and has no interface to the environment at all. An executor receives one bounded subtask contract with acceptance criteria, runs it in a fresh context, and is the only role permitted to change anything. A read-only auditor then inspects the environment directly, without seeing the executor's trajectory or its reasoning, and reports what changed. Only audited findings update the state, and the executor's raw history is discarded at the end of each round. An adapter layer lets Claude Code, Codex CLI, OpenClaw, or Hermes fill any of the three roles without touching their native loops.</p><p>With matched backbones, WeaveBench pass rate for Qwen 3.7-Plus on Claude Code goes from 51.8% to 80.7%, and mean score from 0.702 to 0.835, improving in all eight task domains. Terminal-Bench 2.1 goes from 69.7% to 77.2% in the same configuration, and reaches 83.1% with Codex and GPT-5.6 Luna as the executor backend. On the full OSWorld 2.0 set, binary completion goes from 2.8% to 8.3% and partial score from 21.5% to 35.2%; on a 34-task subset with Claude Opus 4.7, binary completion goes from 20.6% to 35.3% and partial from 55.8% to 66.9%. The manager is cheap, taking 2.0&ndash;8.1% of tokens depending on the benchmark, while the auditor takes 19.4&ndash;38.1%, which is where the added cost sits.</p><p>Total token cost does not move in one direction. On Terminal-Bench 2.1 the harness used 24% fewer tokens than the baseline while scoring higher, and on the WeaveBench games subset it cut Claude Opus 4.7 from 16.5M to 11.1M tokens per task while raising Qwen 3.7-Plus from 10.7M to 34.3M: a stronger executor satisfies contracts in fewer audit-and-replan rounds. The gains also concentrate where trajectories are long and interdependent. Several short analytical categories on Terminal-Bench show small gains or a regression, which the authors read the way I would, since an independent auditor can catch a wrong result and start recovery but cannot supply an ability the model does not have. On that same games subset, Qwen 3.7-Plus under this harness averages 0.733 against 0.680 for Opus 4.7 under plain Claude Code.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>This is a change you can make without retraining anything, and it is specific enough to copy: keep the task state outside the execution context, update it only from a read-only inspection of the environment, and treat the executor's completion claim as an unverified summary. The case studies show what that buys, including a baseline that kept retrying an unresponsive Wireshark dialog for more than 400 steps while the same model under the harness recorded the stall and sent the next executor after the evidence still missing. It also argues for reporting agent scores as a model and harness pair, since the harness moved a fixed model past a stronger model on the older setup.</p>
+
+                    <h2>SwanTale: Unified Multi-Speaker Speech and Audio Generation for Instruct and Zero-Shot Tasks</h2>
+
+                    <p><em>Yu Zhang et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2608.02023">arXiv:2608.02023</a></p>
+
+                    <p>Zero-shot TTS clones a voice from a reference clip. Instruct TTS designs one from a written description. Media production needs both, plus the acoustic scene the line sits in, and adding that scene afterwards from a separate audio pipeline tends to leave timing, reverberation, and loudness slightly off. SwanTale covers all of it in one model, and a large share of the work is on the data side. The pipeline separates vocals with UVR, diarizes with 3D-Speaker, transcribes with Seed-ASR 2.0, and aligns to keep pause evidence, after which a captioner produces three fields per clip: Environment (room, reverberation, persistent background sound), Speakers (only those who speak, described by stable traits such as timbre, age range, accent, habitual delivery), and Content (the transcript wrapped in speaker tags, with local emotion changes and transient effects written around it). A style-persona library keeps the annotator from collapsing into a few generic descriptions for animation, short drama, and advertising material. Filtering drops clips below PESQ 2.0, STOI 0.85, SI-SDR 0, or MOS 2.5, and human auditors rate expressiveness by best-worst comparison within groups of four instead of absolute MOS. The mixture holds around 70M captioned records, with 100k-utterance synthetic subsets added for elderly speakers, sub-second utterances, and pronunciation traps like polyphonic Chinese characters and brand names.</p><p>On the model side, SwanVAE encodes 48 kHz mono into 96-dimensional latents at 25 Hz, using a deliberately local anti-aliased convolutional encoder (about 0.95 s of receptive field) and a Transformer decoder that emits six 320-sample waveform patches per latent frame. Longer-range structure is left to the flow-matching DiT above it. Auxiliary objectives during autoencoder training push the posterior mean toward something a flow model can predict, including a small unconditional flow predictor and a causal future-patch predictor whose gradients into the encoder are kept weak on purpose. The generator conditions captions through a Qwen text encoder with cross-attention, tokenizes spoken content with CosyVoice 2.0 and interpolates it onto the latent timeline, and adds an Engram memory layer that hashes caption n-grams into lookup tables so recurring phrases such as a persona description or a named sound effect are recognized without a second language encoder.</p><p>Quality is conditioned rather than optimized. STOI, PESQ, SI-SDR, and MOS scores become a written quality caption plus a flag during training, dropped out for classifier-free guidance and pinned to the maximum at inference, so mid-quality recordings keep contributing speaker and scene coverage instead of being discarded, and no reward model runs in the loop. The feed-forward layers use a two-level MoE: a sample-level task router for instruct versus zero-shot priors, and a frame-level router with null experts that let quiet or stable frames skip the routed branch, with the expert budget predicted from the diffusion timestep. Training follows a curriculum from zero-shot speech to caption conditioning to the full mixture to an expressive high-quality fine-tune, then finishes with GRPO over a stochastic SDE version of the sampler, rewarding phoneme accuracy, pauses that match punctuation, boundary energy, waveform artifacts, and either speaker similarity for zero-shot or predicted age and gender agreement with the caption for instruct. Evaluation spans SwanBench-Speech, InstructTTSEval, SwanBench-Scene, and a new SwanBench-Caption set for mixed dialogue and audio, with the strongest expressiveness ratings reported on both tasks.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>The caption schema and the pipeline that fills it are the parts I expect to outlast this particular model. Splitting a clip into scene, speaker inventory, and time-ordered content with tagged speech and effects gives one supervision format that serves cloning and voice design at once, and it puts the environment and the local effects in the same waveform as the speech rather than layering them on later. Reward-conditioned quality control is worth borrowing on its own for anyone training generative audio on messy collected material: annotate the quality, condition on it, and request the top of the range at inference, instead of throwing out everything mediocre and losing the coverage it brought.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>The two agent papers land on the same discipline from different directions. RST refuses a task unless a reference solution reproduces in a clean sandbox and the verifier only tests what the instruction states. LongHorizon-Harness refuses to mark a requirement complete unless a process that did not do the work confirms it by looking at the environment. Both bet that an independent check of the environment beats a model's report of what it did, and both get a lot of mileage out of that bet.</p><p>SwanTale is a reminder of how much of a strong generative audio system is data engineering. The architecture is interesting, but the annotation schema and the filtering thresholds are doing most of the lifting on expressiveness.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
