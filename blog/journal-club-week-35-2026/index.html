@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Week 35 journal club: visual reasoning benchmarks for generative models, and an agentic system for sustained complex work.">
+    <meta name="keywords" content="visual reasoning, video generation, benchmark, verifiable rewards, agentic AI, multi-agent coordination, reinforcement learning, diffusion models, VLM evaluation">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-35-2026/">
+
+    <meta property="og:title" content="Journal Club Week 35, 2026">
+    <meta property="og:description" content="Week 35 journal club: visual reasoning benchmarks for generative models, and an agentic system for sustained complex work.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-35-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 35, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 35, 2026",
+      "description": "Week 35 journal club: visual reasoning benchmarks for generative models, and an agentic system for sustained complex work.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-08-30",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-35-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 35</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>August 30, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~8 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>Two of this week's papers tackle the same question from different angles: can generative models (video, image, interleaved) do visual reasoning, and how would we know? They both find that using a VLM to judge the outputs is surprisingly unreliable, and they both probe what happens inside the denoising process during generation. The third paper describes an agentic system designed to sustain complex, multi-step work across files, code, and search.</p>
+
+                    <h2>VBVR-Pro: A Scalable and Verifiable Suite for Native Visual Reasoning</h2>
+
+                    <p><em>Junxiang Xu et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2608.26105">arXiv:2608.26105</a></p>
+
+                    <p>The premise of "native visual reasoning" is that some problems are better solved by generating and manipulating images or video than by producing text. A maze, for instance, might be more naturally worked out by drawing candidate paths than by describing coordinates in words. The bottleneck has been infrastructure: there were few large-scale training tasks, no reliable automated scoring, and no controlled way to compare whether image, video, or interleaved generation works best for a given problem type.</p><p>VBVR-Pro fills this gap with 300 procedurally generated tasks spanning perception, spatial reasoning, transformation, abstraction, and knowledge. Each task is a parameterized program that samples random configurations and computes ground-truth solutions, producing 1.25 million training instances. Every instance is rendered into aligned video, keyframe-image, and interleaved text-image formats, so different generator architectures can be compared on identical problems. The strongest results concern evaluation reliability. VLM-as-a-judge scoring (using models like GPT-5.5 or Gemini-3.1-Pro to rate outputs) proves unreliable for visual reasoning. The paper documents cases where judges give high scores to wrong answers and low scores to correct ones, with reproducibility problems on top: re-running the same judge on the same videos changes scores for 55&ndash;93% of samples, depending on the model. VBVR-Pro's deterministic scorers instead use classical CV methods (color segmentation, contour detection, OCR) to extract task-relevant attributes and check them against ground truth. In a human-preference study, these scorers achieve higher agreement with human judgments than any VLM judge tested, at a fraction of the cost.</p><p>The modality comparison is informative. Video generation is strongest for tasks requiring continuous state tracking, while interleaved text-image generation performs comparably on many in-domain tasks at lower compute cost. Single-image generation lags behind both. An ablation on interleaved models reveals that replacing the reasoning text with meaningless placeholders barely hurts performance, while removing intermediate images causes large drops: the visual trajectory, not the text accompanying it, carries the reasoning signal. Models trained on VBVR-Pro transfer to seven external benchmarks with gains of up to 20 percentage points, and nearest-neighbor analysis shows the test examples are visually dissimilar to training data, suggesting the models learn abstract visual operations rather than memorizing surface patterns. The verifiable scorers also double as reward functions for reinforcement learning, producing steady improvements over strong baselines.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>This work gives the field a controlled environment for studying visual reasoning through generation, with scoring that does not rely on the same kind of model being evaluated. The finding that visual trajectories matter more than textual chains of thought for these tasks is relevant as the community works out how to combine language and vision in reasoning systems. The verifiable scorers also establish a practical foundation for applying reinforcement learning to visual reasoning at scale.</p>
+
+                    <h2>Apodex 1.1: Scaling Agentic Intelligence for Complex Work</h2>
+
+                    <p><em>Apodex Team et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2608.23283">arXiv:2608.23283</a></p>
+
+                    <p>Apodex 1.1 starts from the observation that producing a correct answer and completing a real task are different problems. A model might know how to analyze a dataset but still fail to locate the right file, recover from a broken dependency, or deliver a report that someone else can verify. The paper calls this gap "working capability" and develops it along two axes.</p><p>The first axis is environment scaling. The system trains on diverse executable environments organized into three families: file worlds (inspecting and transforming documents, spreadsheets, and images), search worlds (discovering and reconciling evidence from web sources), and code worlds (modifying repositories, running tests, debugging). Each environment defines state transitions, permitted actions, resource budgets, and completion checks, so training trajectories include the full interaction with real tools and recovery from real errors. The file-world registry alone covers 33 professional domains and 318 occupations. The second axis is agentic coordination. A lead agent decomposes tasks onto an explicit task board, spawns specialized sub-agents, integrates their results as they return, and replans when evidence changes the problem. The system supports asynchronous human intervention mid-task, so a user can redirect unfinished work without losing completed progress. Verification is deliberately asymmetric: instead of asking a second model to re-solve the whole problem, verifiers receive a specific claim together with its supporting evidence and try to attack it by searching for counterexamples, checking atomic details, or testing compliance with format requirements. The runtime layer, AgentOS, maintains persistent workspace state across tools and agents with namespaced filesystems and handles long context through tiered compaction.</p><p>On benchmarks spanning professional work, finance, scientific research, mathematics, and coding, the full system reaches the leading performance band. The 35B-parameter Mini variant retains strong results in a locally deployable form, despite many competing systems using substantially larger models. The paper formalizes the task contract around a workspace, an objective, a delivery contract, and a task-level verifier, so that success requires both a useful result and a defensible path from input to delivery.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>The framing around completed work rather than correct answers reflects where agent systems need to go. The asymmetric verification design is the most interesting architectural choice here: narrowly scoped checks against specific claims are a more honest use of model capabilities than full-solution re-verification, which tends to introduce its own errors. If you are building agentic pipelines, the distinction between "the model can state the answer" and "the model can do the work" is one to take seriously.</p>
+
+                    <h2>VGI-Bench: Probing Visual Intelligence in Video Generation Models</h2>
+
+                    <p><em>Xuan He et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2608.19583">arXiv:2608.19583</a></p>
+
+                    <p>Recent work has started treating video generation models as visual reasoners: give the model a puzzle as a starting frame and a text prompt, and see whether the generated video shows a valid solution unfolding. Evaluating this properly turns out to be harder than it sounds. Many existing benchmarks use abstract line-art inputs that do not match the natural-image distribution these models were trained on, do not require valid intermediate steps (only a plausible final state), or include tasks so far beyond current capabilities that the results are uninformative.</p><p>VGI-Bench addresses these gaps with 27 tasks and 810 instances using photorealistic-style inputs. Tasks span visual organization, physical manipulation, structured puzzles, and spatiotemporal dynamics. Each task is process-sensitive: the evaluation checks not just whether the final state looks right but whether the intermediate trajectory follows the rules. A maze solution that teleports through walls does not count, even if the car ends up at the goal. Evaluation uses two complementary metrics: a completeness score measuring global progress toward the goal, and a rubric score checking local process validity against a per-task checklist with adaptive frame sampling to catch brief violations. The final score multiplies the two, so a video that reaches the goal state by breaking the rules still scores poorly.</p><p>The best model, Seedance 2.0, scores 51.0 overall. Common problems include physical violations (a cup on a tilting surface that does not slide), rule-breaking (cars crossing walls in a track-following task), and objects appearing or disappearing mid-video. Open-source models are especially sensitive to input visual style: switching from realistic to line-art inputs changes both absolute scores and relative rankings. Models fine-tuned on the VBVR synthetic dataset show gains on structurally similar tasks but limited improvement on dissimilar ones, and physics and temporal reasoning sometimes degrade. The most interesting finding comes from analyzing denoising trajectories. Self-correction (revising a wrong intermediate state to a correct one) peaks at 2.6% in the earliest denoising transition and drops to zero in later steps. Wrong-to-different-wrong transitions are an order of magnitude more frequent. Once the model commits to a visual hypothesis early in denoising, later steps refine it rather than correct it, even when it already violates task rules.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>The denoising trajectory analysis matters for anyone building on video models for reasoning. If these models commit to their answer early and then just polish details, the generation process amounts to a single hypothesis followed by rendering, not iterative problem-solving. Understanding this structural constraint is important before relying on video generation as a reasoning substrate.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>Both visual reasoning papers find that VLM-based judges are unreliable for scoring generated outputs. VBVR-Pro's deterministic scorers offer a path forward for procedurally generated tasks where ground truth is computable, but scoring open-ended visual reasoning without a VLM in the loop remains unsolved.</p><p>The denoising analyses tell complementary stories. VGI-Bench shows that untrained video models lock in a hypothesis early and refine rather than correct it. VBVR-Pro's trained models exhibit more structured exploration during denoising, including multi-path search and superposition of candidate solutions. Whether task-specific training fundamentally changes the denoising dynamics, or merely shifts which hypothesis the model commits to early, seems like an important question to follow.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
