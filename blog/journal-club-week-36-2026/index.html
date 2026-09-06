@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Week 36 journal club: distilling repo knowledge into agent skills, per-student simulators for AI tutoring, and a driving VLM with 3D perception.">
+    <meta name="keywords" content="autonomous ML research agents, skill distillation, student simulation, AI tutoring, autonomous driving, vision-language models, 3D perception, motion planning, reinforcement learning">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-36-2026/">
+
+    <meta property="og:title" content="Journal Club Week 36, 2026">
+    <meta property="og:description" content="Week 36 journal club: distilling repo knowledge into agent skills, per-student simulators for AI tutoring, and a driving VLM with 3D perception.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-36-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 36, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 36, 2026",
+      "description": "Week 36 journal club: distilling repo knowledge into agent skills, per-student simulators for AI tutoring, and a driving VLM with 3D perception.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-09-06",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-36-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 36</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>September 6, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~7 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>This week's papers cover a system that distills practical know-how from ML repositories into reusable packages for AI research agents, a training framework that builds per-student simulators for evaluating and improving AI tutors, and a vision-language model for autonomous driving that adds 3D perception and trajectory planning while preserving general-purpose capabilities.</p>
+
+                    <h2>Repo-To-Skill: Distilling GitHub Repositories Into AI4AI Skills</h2>
+
+                    <p><em>Jianlyu Chen et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2609.02749">arXiv:2609.02749</a></p>
+
+                    <p>Current ML research agents combine a language model backbone with a harness for planning, execution, and verification, but domain-specific know-how, like which package API to call, how to configure a training pipeline, or what pitfalls invalidate an otherwise reasonable run, lives in repositories and papers written for human readers. The authors call this missing layer "operational knowledge" and present DisCo, an agent that distills it into structured, reusable skills. Each skill consists of a SKILL.md file (stating purpose, applicability, and procedure), reference documents for deeper detail, and executable scripts. Distillation comes in two forms: task-agnostic, where a repository's capabilities are condensed ahead of time, and task-oriented, where skills are produced on demand for a specific problem. Every candidate skill must pass verification before admission.</p>
+                    <p>Scaling the task-agnostic pipeline across 1,000 widely used ML repositories produces the AREX-Skill Library, containing over 5,000 verified skills organized into 20 areas and 178 capability families. A library-level router lets the agent narrow a request from area to family to repository-level skill graph, so it loads only what is relevant. The cost of distillation averaged about $40 per repository using GPT-5.5 and GPT-5.6-sol.</p>
+                    <p>With the GPT-5.5 backbone, Codex harness, and downstream execution budget all held fixed, equipping the agent with distilled skills raised its MLE-bench Any-Medal score from 31.1% to 72.9%, a 134% relative improvement. PaperBench replication scores increased by 34.4%, FrontierCS by 9.2%, and PassNet by 14.0%. The gains were largest on harder tasks: on the High-difficulty tier of MLE-bench, scores jumped from 13.3% to 62.2%. On FrontierCS, the skill-equipped agent scored higher than Claude Code with Opus 4.8 while using roughly a third as many tokens per task.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>With the same model and the same harness held fixed, adding curated operational knowledge produced larger improvements than the gap between many other published agent systems on these benchmarks. The skill-equipped Codex agent outperformed systems using custom harnesses, specialized orchestration, and in some cases different backbones. Packaging and reusing domain knowledge may be a more efficient lever for improving research agent performance than scaling compute or engineering more sophisticated control loops.</p>
+
+                    <h2>StudentSim: Training LLM-based Student Simulators</h2>
+
+                    <p><em>Ke Yang et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2609.01591">arXiv:2609.01591</a></p>
+
+                    <p>AI tutoring systems work better when they adapt to individual students, but collecting data on which teaching approach works for which learner is slow and expensive. Student simulators could provide this signal at scale, but current options cover only one side of the problem. Knowledge-tracing models and move-prediction systems like Maia2 can reproduce a student's behavior patterns but have no input pathway for a tutor's natural-language explanations. Large language models prompted to role-play a student follow guidance fluently but do not reliably reproduce the competence level and characteristic mistakes of the student they are imitating.</p>
+                    <p>StudentSim addresses this with a two-stage training pipeline. The first stage pools records across all students in a domain to learn shared patterns: common mistakes, response formats, and how students revise after receiving guidance. The second stage specializes the pooled model to a single student using that student's own records, producing a separate simulator per student. The authors also introduce StudentSimEval, a benchmark covering 60 students across chess, second-language English writing, and mathematics, measuring two properties: behavioral fidelity (F, how well the simulator matches a student's independent responses) and guidance responsiveness (R, how well it updates after tutoring). In chess, StudentSim achieved F=0.51 and R=0.91. GPT-5.4 reached 0.23 and 0.72. Maia2, a dedicated human-play predictor, scored 0.45 on fidelity but only 0.27 on responsiveness because it cannot process language input.</p>
+                    <p>As a proof of concept, the authors used a trained StudentSim as the reward model in a reinforcement learning loop for a chess tutor. Expert human players rated the resulting tutor as more accurate, better-guided, and more personalized than both a supervised-only baseline and a tutor whose reward came from using GPT-5.4 as the simulated student. The base model for the simulators is Qwen3-4B-Instruct with LoRA adapters, making them lightweight to train and serve.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Decomposing student simulation into two measurable axes, fidelity and responsiveness, turns what was previously informal evaluation of role-playing quality into a concrete optimization target. The benchmark and evaluation protocol give the field a way to compare simulator approaches on the same footing. If per-student simulators can reliably substitute for real learners in tutor training loops, iterating on AI tutoring systems becomes far cheaper and faster than recruiting human participants for every round of evaluation.</p>
+
+                    <h2>Qwen-Drive-1.0: An Initial Step towards a Vision-Language Foundation Model for Autonomous Driving</h2>
+
+                    <p><em>Xin Zhou et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2609.00111">arXiv:2609.00111</a></p>
+
+                    <p>Most driving VLA (vision-language-action) models start from a pretrained VLM and fine-tune it with driving-specific question answering. This works for scene description, but textual QA targets do not directly constrain 3D layout, depth, or occupancy. A model adapted only through QA can produce fluent descriptions while remaining imprecise in three-dimensional space. Heavy domain adaptation also risks catastrophic forgetting of the general visual and linguistic knowledge the VLM learned during pretraining, knowledge that matters for handling rare or out-of-distribution driving situations.</p>
+                    <p>Qwen-Drive-1.0 builds on Qwen3.5-4B and addresses both problems. An external bird's-eye-view (BEV) perception head reads features from the vision encoder and the VLM to construct an ego-frame representation, then performs 3D detection, semantic occupancy prediction, and BEV map segmentation. This head provides explicit, inspectable 3D outputs without modifying the VLM architecture. A separate Planning Expert uses flow matching to generate future ego trajectories, conditioned on cached VLM key-value representations. Training proceeds in four stages: perception head initialization, joint perception and VQA training (mixing driving data with general vision-language data to mitigate forgetting), planning expert training via flow matching, and reinforcement learning with task-level rewards for collision avoidance, drivable-area compliance, and progress.</p>
+                    <p>On nuScenes, the model reaches 43.95 mAP for 3D detection and 60.99 mIoU for map segmentation, competitive with dedicated perception models. For motion planning, it scores 90.7 on NAVSIM's Predictive Driver Model Score and 7.91 on the Waymo end-to-end Rater Feedback Score. On driving VQA benchmarks it outperforms a range of driving-specific and general-purpose VLMs, including several larger models, while largely preserving general vision-language performance. The data pipeline unifies annotations from nuScenes, OpenScene, NAVSIM, Waymo, and PAI-AV, reconciling differences in label taxonomies, coordinate systems, and voxel grids across sources.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>The design keeps the pretrained VLM architecture intact and adds perception and planning as external modules reading from shared representations. This preserves general-purpose capabilities, which matters both for reasoning about unusual driving situations and for the practical constraint that production vehicles are moving toward shared compute platforms where one model must serve the cockpit (dialogue, instruction following) and the driving system together. The staged training recipe and unified data pipeline across five public driving datasets also provide a useful template for combining heterogeneous driving supervision sources.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>The DisCo results are strong, but one question to track is shelf life. Skills are distilled from a snapshot of each repository, and ML libraries change fast. At roughly $40 per repository, the initial build is manageable, but keeping 5,000 skills current as APIs evolve is a harder problem. The paper also raises an interesting point about retrieval precision: on two PaperBench tasks, retrieved skills pulled the agent away from a strategy it would have found on its own, lowering the score.</p>\n<p>StudentSim's decomposition of student simulation into fidelity and responsiveness gives the field something it did not have before: a way to measure whether a simulator is both realistic and teachable. The chess tutor RL result is deliberately scoped as a proof of concept, and the harder question remains open, namely how to define the reward signal in domains where correctness is fuzzier than a Stockfish evaluation. On the driving side, the Qwen-Drive-1.0 data pipeline, reconciling label taxonomies, coordinate systems, and voxel grids across five datasets, is arguably as significant a contribution as the model architecture.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
