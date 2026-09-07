@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="What mixture of experts is, how sparse routing works, what makes load balancing hard, and why MoE is the default architecture for frontier language models.">
+    <meta name="keywords" content="mixture of experts, sparse MoE, expert routing, load balancing, expert parallelism, transformer architecture, language model scaling, gating network, Mixtral, DeepSeek">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/mixture-of-experts-sparse-routing/">
+
+    <meta property="og:title" content="Mixture of Experts: How Sparse Routing Scales Language Models">
+    <meta property="og:description" content="What mixture of experts is, how sparse routing works, what makes load balancing hard, and why MoE is the default architecture for frontier language models.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/mixture-of-experts-sparse-routing/">
+    <meta property="og:type" content="article">
+
+    <title>Mixture of Experts: How Sparse Routing Scales Language Models — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Mixture of Experts: How Sparse Routing Scales Language Models",
+      "description": "What mixture of experts is, how sparse routing works, what makes load balancing hard, and why MoE is the default architecture for frontier language models.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-09-07",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/mixture-of-experts-sparse-routing/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Concepts</p>
+                    <h1 class="post-title">Mixture of experts: how sparse routing scales language <em>models</em>.</h1>
+                    <p class="post-meta">
+                        <span>September 7, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~10 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>Most large language models whose architecture has been publicly disclosed in the past two years use some form of mixture of experts. Mixtral, DeepSeek-V3, Kimi K3, and their peers all use sparse expert routing to decouple model capacity from inference cost. The total parameter count can run into the trillions while the parameters active for any given token stay in the tens or low hundreds of billions.</p>
+
+                    <p>The concept predates deep learning in its current form. Jacobs, Jordan, Nowlan, and Hinton introduced it in 1991 as a way to partition a problem across specialized sub-networks. Making it work inside transformers at scale required solving a cluster of engineering problems around routing stability, load balancing, and cross-device communication. This post covers what mixture of experts is, how routing works, what makes training tricky, and where the architecture sits today.</p>
+
+                    <h2>The core idea</h2>
+
+                    <p>A mixture of experts (MoE) layer replaces a single feed-forward network with N parallel expert networks and a gating function, the router, that decides which experts process each input. In a dense transformer, every parameter participates in every forward pass. In a MoE transformer, the router selects a small subset of experts per token, so most expert parameters sit idle for any given input.</p>
+
+                    <p>This creates two independent knobs. Total parameters control model capacity: how much the model can learn and store. Active parameters control inference cost: how much compute is spent per token. A model with eight experts and top-2 routing activates two expert networks per token, so you can build four times the expert capacity at roughly similar per-token cost.</p>
+
+                    <p>Only the feed-forward layers are replicated into experts. Attention, embeddings, and normalization are shared and always active. Since feed-forward layers account for roughly two-thirds of parameters in a standard transformer, replacing them with routed experts multiplies the total model size without a proportional increase in forward-pass compute. Mixtral 8x7B (<a href="https://arxiv.org/abs/2401.04088">Jiang et al., 2024</a>), for example, has 46.7 billion total parameters but only about 12.9 billion active per token.</p>
+
+                    <h2>From soft mixtures to sparse gates</h2>
+
+                    <p>The original mixture of experts (Jacobs et al., 1991) used a gating network to weight the outputs of several small expert networks, with every expert contributing to every input. The final output was a weighted sum across all experts. This "soft" mixture works when you have a handful of experts, but it scales poorly: adding more experts linearly increases the compute per input.</p>
+
+                    <p>Sparse mixtures fix this by activating only a few experts per input. The landmark paper by Shazeer et al. (<a href="https://arxiv.org/abs/1701.06538">2017</a>) demonstrated this at language-model scale, inserting sparsely-gated MoE layers into an LSTM model and reaching 137 billion parameters while activating only a small fraction per step. The gating function used a learned linear projection plus noise, followed by top-k selection. This was the first demonstration that sparse expert models could match dense models at substantially lower training compute.</p>
+
+                    <p>The move to transformers followed with GShard (<a href="https://arxiv.org/abs/2006.16668">Lepikhin et al., 2021</a>), which scaled MoE to 600 billion parameters across thousands of TPU chips using expert parallelism, where each expert lives on a different device. Switch Transformers (<a href="https://arxiv.org/abs/2101.03961">Fedus et al., 2022</a>) simplified routing further, to top-1 (one expert per token), and showed this was sufficient when paired with a well-tuned load balancing loss. Top-1 routing halves the expert compute compared to top-2 and reduces the communication overhead of moving tokens between devices.</p>
+
+                    <h2>How routing works</h2>
+
+                    <p>The router is typically a single linear layer. It takes a token's hidden representation and projects it to a vector of scores, one per expert. The top-k experts by score are selected, their scores are renormalized via softmax over the selected set, and each selected expert processes the token independently. The final output is a weighted sum of the expert outputs, using the normalized scores as combination weights.</p>
+
+                    <p>Top-1 routing sends each token to exactly one expert. This minimizes expert computation but gives each token only a single expert's transformation. Top-2 routing, used in Mixtral and many recent open-weight models, sends each token to two experts and combines the results. The quality improvement over top-1 is consistent across published comparisons, at the cost of roughly doubling the expert compute per token. Both choices preserve differentiability through the routing decision, because the combination weights are continuous even though the expert selection is discrete.</p>
+
+                    <p>DeepSeekMoE (<a href="https://arxiv.org/abs/2401.06066">Dai et al., 2024</a>) introduced a variation with finer-grained experts: more experts, each smaller, paired with shared experts that process every token. The shared experts handle patterns common across all inputs, while the routed experts specialize. DeepSeek-V3 (<a href="https://arxiv.org/abs/2412.19437">DeepSeek-AI, 2024</a>) continued this design with 256 routed experts (8 selected per token) plus one shared expert that is always active. The shared pathway guarantees a baseline of processing for every token regardless of how routing decisions fall.</p>
+
+                    <h2>The load balancing problem</h2>
+
+                    <p>Left unconstrained, the router tends to collapse. A few experts attract most of the traffic; the rest starve. The mechanism is straightforward: a popular expert receives more gradient signal, which makes it better, which draws more tokens to it. Unused experts get no learning signal and stagnate. Without intervention, the model converges to using a small fraction of its total expert capacity.</p>
+
+                    <p>The standard remedy is an auxiliary loss that penalizes uneven expert utilization. Switch Transformers (<a href="https://arxiv.org/abs/2101.03961">Fedus et al., 2022</a>) formalized this as the dot product of two vectors: the fraction of tokens dispatched to each expert and the average router probability assigned to each expert. Summing this product across experts gives a differentiable balancing signal, scaled by a tunable coefficient. Setting the coefficient too low allows collapse; setting it too high forces uniform routing and prevents experts from specializing. ST-MoE (<a href="https://arxiv.org/abs/2202.08906">Zoph et al., 2022</a>) studied this tradeoff across model sizes and found that settings tuned at small scale did not reliably transfer to larger models.</p>
+
+                    <p>A complementary mechanism is expert capacity: each expert is assigned a fixed buffer per batch, and tokens routed to a full expert are either dropped or sent through a residual path. This caps the worst-case imbalance but introduces dropped tokens, inputs that receive no expert processing at all. The drop rate becomes a training metric worth tracking.</p>
+
+                    <p>More recent work has moved toward removing the auxiliary loss entirely. DeepSeek-V3 (<a href="https://arxiv.org/abs/2412.19437">DeepSeek-AI, 2024</a>) adds a bias term to each expert's routing score during selection but excludes it from the output combination weights. The bias is adjusted dynamically based on observed load, nudging underused experts' scores upward without distorting the final weighted output. This sidesteps the conflict between the main training objective and a separate balancing loss competing for gradient bandwidth.</p>
+
+                    <h2>The compute-parameter tradeoff</h2>
+
+                    <p>The central claim of MoE is more model quality per FLOP. The evidence is strong and consistent. GLaM (<a href="https://arxiv.org/abs/2112.10684">Du et al., 2022</a>), a 1.2 trillion parameter model with 64 experts per MoE layer, matched GPT-3's quality across several benchmarks while using roughly one-third the training compute. Mixtral 8x7B, with 46.7B total and about 12.9B active parameters, matched or exceeded Llama 2 70B on most benchmarks at the inference cost of a much smaller dense model.</p>
+
+                    <p>Clark et al. (<a href="https://arxiv.org/abs/2202.01169">2022</a>) derived scaling laws specifically for routed language models and found two regularities. First, increasing the number of experts (and therefore total parameters) improves loss at a diminishing rate: going from 1 to 64 experts yields a large gain, but going from 64 to 512 yields a smaller one. Second, there is a consistent quality gap they call a "routing tax": for the same total parameter count, a dense model edges out a sparse one, because imperfect routing means some tokens land on a suboptimal expert. The tradeoff remains favorable in aggregate because the compute savings from sparsity more than compensate for this penalty.</p>
+
+                    <p>These scaling properties explain why MoE dominates at the frontier. When compute budgets are large enough that the next step up in dense model size becomes prohibitively expensive to train and serve, MoE lets you keep adding capacity by adding experts at a manageable marginal cost.</p>
+
+                    <h2>Expert parallelism and serving</h2>
+
+                    <p>Training and serving a MoE model requires distributing experts across accelerators. In expert parallelism, each device holds a subset of experts. During the forward pass, tokens are dispatched to whichever device holds their selected expert via an all-to-all communication step, and results are gathered back after expert computation. The cost of this communication depends on how many tokens cross device boundaries and on interconnect bandwidth.</p>
+
+                    <p>At training time, expert parallelism is combined with data parallelism and often tensor or pipeline parallelism on top. Keeping all of these balanced while maintaining even expert load is as much a systems problem as a modeling one. The Kimi K3 technical report, for example, spends much of its length on kernel co-design, memory management, and expert-parallel balance rather than on model architecture. The plumbing around MoE is where much of the engineering effort goes.</p>
+
+                    <p>At inference time, MoE models have a distinctive cost profile. Per-token compute is determined by the active parameters, which is moderate. But the full set of expert weights must reside in memory (or be loaded fast enough from storage), and the memory footprint is set by the total parameter count. A model with 100B active and one trillion total parameters needs memory for the full trillion, even though each forward pass touches only a tenth of it. This makes MoE models memory-bound for many serving configurations, and it is the reason that quantization and weight offloading strategies matter more for MoE than for dense models of comparable inference speed.</p>
+
+                    <h2>What MoE does and does not buy you</h2>
+
+                    <p>MoE reliably delivers better quality per FLOP. Given a fixed compute budget for training or serving, a MoE model will encode more knowledge and produce better outputs than a dense model at the same per-token cost. On knowledge-intensive tasks and multilingual benchmarks, the advantage is especially clear, because more expert capacity means more room to store facts and linguistic patterns.</p>
+
+                    <p>What MoE does not change is the reasoning depth available at a given active parameter count. A 13B-active MoE model knows more than a 13B dense model, but the computation applied to each token is still roughly 13 billion parameters' worth. Tasks that demand deep sequential reasoning over a single input, rather than broad knowledge recall, see less benefit from the extra capacity that idle experts provide.</p>
+
+                    <p>MoE also introduces engineering complexity at every stage: training instability from load imbalance, the need for expert-parallel infrastructure, memory-bound serving, and hyperparameters (capacity factors, balancing loss coefficients, expert granularity) that do not exist in dense models. For small-scale work or single-GPU deployment, a dense model is often the more practical choice. The architecture pays for its complexity at scale, which is why it has become the standard at the frontier rather than across the board.</p>
+
+                    <h2>Sources and further reading</h2>
+                    <h3>Foundational work</h3>
+                    <ul>
+                        <li>Shazeer et al. (2017). <a href="https://arxiv.org/abs/1701.06538" target="_blank" rel="noopener">Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer</a>. ICLR 2017. First demonstration of sparse MoE at large scale in language modeling.</li>
+                    </ul>
+                    <h3>MoE in transformers</h3>
+                    <ul>
+                        <li>Lepikhin et al. (2021). <a href="https://arxiv.org/abs/2006.16668" target="_blank" rel="noopener">GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding</a>. ICLR 2021. Scaled MoE to 600 billion parameters across thousands of TPU chips.</li>
+                        <li>Fedus et al. (2022). <a href="https://arxiv.org/abs/2101.03961" target="_blank" rel="noopener">Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity</a>. JMLR 2022. Introduced top-1 routing and the standard auxiliary load-balancing loss formulation.</li>
+                        <li>Zoph et al. (2022). <a href="https://arxiv.org/abs/2202.08906" target="_blank" rel="noopener">ST-MoE: Designing Stable and Transferable Sparse Expert Models</a>. Systematic study of training stability and hyperparameter transfer across MoE model sizes.</li>
+                    </ul>
+                    <h3>Scaling and analysis</h3>
+                    <ul>
+                        <li>Du et al. (2022). <a href="https://arxiv.org/abs/2112.10684" target="_blank" rel="noopener">GLaM: Efficient Scaling of Language Models with Mixture-of-Experts</a>. ICML 2022. Matched GPT-3 quality at roughly one-third the training compute using a 1.2T parameter MoE.</li>
+                        <li>Clark et al. (2022). <a href="https://arxiv.org/abs/2202.01169" target="_blank" rel="noopener">Unified Scaling Laws for Routed Language Models</a>. Derived scaling laws for sparse expert models, including the diminishing returns of adding experts and the routing tax.</li>
+                    </ul>
+                    <h3>Recent MoE architectures</h3>
+                    <ul>
+                        <li>Jiang et al. (2024). <a href="https://arxiv.org/abs/2401.04088" target="_blank" rel="noopener">Mixtral of Experts</a>. Open-weight MoE release that popularized the architecture outside large labs.</li>
+                        <li>Dai et al. (2024). <a href="https://arxiv.org/abs/2401.06066" target="_blank" rel="noopener">DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models</a>. Introduced fine-grained experts and shared experts for improved specialization.</li>
+                        <li>DeepSeek-AI (2024). <a href="https://arxiv.org/abs/2412.19437" target="_blank" rel="noopener">DeepSeek-V3 Technical Report</a>. Auxiliary-loss-free load balancing via dynamic bias terms added to routing scores.</li>
+                    </ul>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
