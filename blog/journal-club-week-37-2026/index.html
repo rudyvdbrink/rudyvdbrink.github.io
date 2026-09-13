@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Journal club week 37: world-model RL for research agents, routing-harness post-training, and latent concept prediction for pretraining efficiency.">
+    <meta name="keywords" content="world model RL, AutoResearch agents, agentic post-training, routing harness, recursive self-improvement, latent space language models, next concept prediction, reinforcement learning, on-policy distillation, pretraining efficiency">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-37-2026/">
+
+    <meta property="og:title" content="Journal Club Week 37, 2026">
+    <meta property="og:description" content="Journal club week 37: world-model RL for research agents, routing-harness post-training, and latent concept prediction for pretraining efficiency.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-37-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 37, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 37, 2026",
+      "description": "Journal club week 37: world-model RL for research agents, routing-harness post-training, and latent concept prediction for pretraining efficiency.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-09-13",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-37-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 37</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>September 13, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~7 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>Two of this week's papers deal with post-training for agentic models. One replaces expensive environment execution with a learned world model during RL; the other mines a production routing harness for training data and curriculum signal. The third paper works at the pretraining level, adding a latent concept-prediction objective alongside standard next-token prediction.</p>
+
+                    <h2>Scaling Automatic Research Agents via World Models</h2>
+
+                    <p><em>Xiyuan Yang et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2608.12564">arXiv:2608.12564</a></p>
+
+                    <p>When you train a research agent with RL, every candidate solution the agent proposes has to run in an isolated sandbox: load the data, train a model, score the result. Generation scales efficiently through batching, but execution does not. Each sandbox occupies its own GPU time, so execution cost grows linearly with trajectory count. As you scale up RL, execution dominates the bill.</p>
+                    <p>Yang et al. propose World Model RL (WMRL), which substitutes a learned world model for real environment execution. The world model is a language model with the same backbone as the agent (so no knowledge distillation from a stronger model), prompted to predict execution outcomes. Since it runs as a forward pass, it batches like generation and removes the execution bottleneck. But the world model's predictions carry systematic bias and random noise, so the authors introduce two corrections. Online Debiasing fits a monotone recalibration map (via isotonic regression) between predicted and true scores, using a small stream of real execution results from about 10% of training groups. Inverse-Variance Denoising then fuses the world-model and anchor gradient estimates with inverse-variance weights, reducing overall gradient variance below what either stream achieves alone. Both corrections come with convergence proofs: the bias floor, which would otherwise cap achievable performance permanently, contracts over training and vanishes in the limit.</p>
+                    <p>The results back up the theory. WMRL cuts training compute by roughly 3x at the 4B scale (286 vs. 883 GPU-hours) and 3.4x at 9B (349 vs. 1,174), while matching or exceeding standard RL on held-out benchmarks. The post-trained 4B agent outperforms Kimi-48B-A3B (a 48B mixture-of-experts model) and the 9B agent outperforms Nemotron-120B-A12B on both MLE-Dojo test and DSBench. The approach transfers to robotic manipulation as well: on LIBERO-Long, it lifts overall VLA success rate by 2.9 points over standard RL. Ablations confirm that both corrections contribute, with debiasing accounting for the larger share of the gain, consistent with the convergence analysis showing bias enters the bound at full magnitude while noise is damped by the step size.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>The execution bottleneck is a real constraint for anyone training agentic models with RL. Every trajectory needs its own sandbox, and that cost scales linearly with trajectory count. WMRL offers a way around this: use a learned world model for most of the reward signal while keeping a small fraction of real execution for calibration and error correction. The 3-4x compute reduction makes RL post-training accessible at smaller budgets, and the fact that it works across both research agents and robotic manipulation suggests the recipe generalizes to other settings where execution is the expensive part of the training loop.</p>
+
+                    <h2>NeoHorse-1: Towards Recursive Self-Improvement via Agentic Post-Training with Routing Harness</h2>
+
+                    <p><em>NeoHorse Team et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2609.08183">arXiv:2609.08183</a></p>
+
+                    <p>NeoHorse-1 is a family of 4B and 9B models post-trained on interaction trajectories collected from a production routing harness. The harness routes user requests to models of varying capability and records, for each turn, the predicted capability demand, the service tier selected, and the interaction that followed. These records become training data.</p>
+                    <p>The data pipeline applies structural validation (checking causal event ordering, tool-call closure, response presence) and six-dimensional semantic evaluation covering goal attainment, instruction adherence, tool use, evidence consistency, error recovery, and termination quality. Routing-derived scores, which estimate the capability demand of each interaction, then organize training in two ways. For supervised fine-tuning, they define a three-stage curriculum that progressively introduces harder examples while keeping some easier ones in later stages. For on-policy distillation, the same staged progression schedules starting contexts where a teacher provides token-level supervision on the student's own generated responses. A capability-guided allocation step then shifts the next training mixture toward regions where evaluation reveals weaknesses, closing the feedback loop between what the model can do and what it trains on next.</p>
+                    <p>Across ten benchmarks covering agents, tool use, coding, and instruction following, post-training lifts the 4B model's macro-average from 58.94 to 64.87 and the 9B model's from 65.60 to 69.04. The post-trained 4B model narrows the gap to the untrained 9B base on aggregate. In a controlled comparison, routing-harness trajectories outperform public synthetic agent data (Toucan) by 6.26 points on average under the same training recipe, with the largest gains on HumanEval (+8.54) and &tau;-Bench (+11.31). Trajectory analysis shows concrete behavioral improvements: the trained models complete full execution loops rather than stopping after partial attempts, and the 9B model handles iterative debugging and strategy adaptation more effectively when its initial approach fails.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>The core idea is that a production routing system produces training signal as a byproduct of serving requests. Routing scores serve as curriculum ordering, and evaluation feedback on each round steers the next training mixture. If you operate a multi-model routing harness, this is a way to turn that infrastructure into a data flywheel for model improvement. The consistent gains at both model scales, especially on execution-heavy benchmarks, suggest the approach is effective for building agent capabilities into smaller models.</p>
+
+                    <h2>NCP-ArchPreview Technical Report: Moving towards Latent Space Language Models through Next Concept Prediction</h2>
+
+                    <p><em>NCP Team et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2609.10715">arXiv:2609.10715</a></p>
+
+                    <p>Standard autoregressive language models predict one token at a time. NCP-ArchPreview adds a second training objective alongside next-token prediction: Next Concept Prediction (NCP), where the model predicts discrete concepts that span multiple tokens. The concept vocabulary is built from the model's own hidden states using product quantization, and a dedicated Concept Module predicts future concepts that feed back to the token level to guide generation. The two objectives are trained jointly end-to-end.</p>
+                    <p>The model is scaled to 8.9B parameters and trained on 5.73T tokens from Dolma-3, which the authors describe as the largest latent-space language model trained so far. They report that NCP-ArchPreview reaches OLMo-3-7B's final pretraining loss after consuming only 51.3% of the training tokens. Once all training is complete, it beats OLMo-3-7B on a downstream macro-average by 2.45 points, with a 5.99-point gain on GSM8K. At 85% of standard compute, it approaches the training loss of a parameter-matched 8.9B baseline. The latent space has uses beyond pretraining as well: fine-tuning just the 17M-parameter VQ module provides a lightweight domain-adaptation interface, and injecting concept representations into a speculative decoding drafter improves mean accepted length by 4.17%.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Predicting at the concept level rather than the token level is not a new idea, but this is the largest-scale demonstration of it. The training efficiency result is the headline: reaching equivalent pretraining loss in half the tokens is a substantial reduction in compute cost. The improvements on math reasoning suggest the concept-level objective encourages more structured internal representations. And the lightweight domain-adaptation and speculative-decoding applications indicate the latent space remains useful well after pretraining is finished.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>The WMRL and NeoHorse-1 papers both show that post-trained small models can match or approach much larger ones, which continues to be a productive direction in the field. WMRL solves a compute problem in RL by replacing expensive execution with a cheap surrogate; NeoHorse-1 solves a data problem by mining a production system for grounded training signal. Both are practical contributions that expand who can afford to train capable agent models.</p>\n<p>The NCP paper is a reminder that next-token prediction, while effective, may not be the most efficient path to good representations. Forcing the model to predict further ahead at a coarser granularity helps with both training efficiency and downstream performance, and the fact that the resulting latent space also enables lightweight adaptation and faster decoding makes the architecture worth watching beyond pretraining benchmarks.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
