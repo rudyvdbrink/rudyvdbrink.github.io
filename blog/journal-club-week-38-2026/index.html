@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Week 38 journal club: real-time video generation and editing, a tabular foundation model with causal awareness, and agentic AI in research workflows.">
+    <meta name="keywords" content="real-time video generation, tabular foundation model, agentic AI, human-AI collaboration, diffusion transformer, structured data, causal discovery, video editing, in-context learning, recursive self-improvement">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-38-2026/">
+
+    <meta property="og:title" content="Journal Club Week 38, 2026">
+    <meta property="og:description" content="Week 38 journal club: real-time video generation and editing, a tabular foundation model with causal awareness, and agentic AI in research workflows.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-38-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 38, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 38, 2026",
+      "description": "Week 38 journal club: real-time video generation and editing, a tabular foundation model with causal awareness, and agentic AI in research workflows.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-09-20",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-38-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 38</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>September 20, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~8 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>Vidu S2 tackles real-time interactive video generation and editing at 720p, pushing diffusion models into territory where latency matters as much as quality. LimiX-2 takes on tabular prediction with a foundation model that learns joint distributions over structured data rather than predicting a single target column. And Atria Dawn presents both an agentic language model and a candid look at what happens when AI agents participate in the R&amp;D process that builds them.</p>
+
+                    <h2>Vidu S2: Real-Time Interactive, Editable, and Spatial Video Generation</h2>
+
+                    <p><em>Jintao Zhang et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2609.11638">arXiv:2609.11638</a></p>
+
+                    <p>Most video generation models follow an offline paradigm: you submit a prompt, wait minutes, and get a finished clip. Vidu S2, from Tsinghua and Shengshu Technology, targets the interactive case, where a user talks, gestures, or gives instructions and the video responds in real time. The system has two parts. Vidu S2-Avatar generates digital characters at 720p and 25–42 FPS, up from the 540p ceiling of its predecessor. Vidu S2-Editing takes an incoming video stream and modifies it on the fly, covering style transfer, clothing replacement, character swaps, and background changes. Both components also support spatial (stereoscopic) video output for VR headsets.</p><p>The technical core is a method the authors call Self-Replay Forcing (SRF). Streaming video is generated segment by segment, and errors compound across segments: earlier mistakes propagate forward and the output eventually drifts or collapses. Prior work (Self-Forcing) addressed this by conditioning each segment on the model's own earlier output, but that history was fed in clean and detached from the computation graph, so no gradient flowed through it. SRF fixes both problems. After the model performs a long autoregressive rollout, the entire trajectory is re-noised following Diffusion Forcing and replayed in a single gradient-enabled causal pass. Gradients propagate across segment boundaries during replay without backpropagating through the original rollout itself. On top of this, a lightweight one-step super-resolution refiner lifts the backbone's low-resolution output to 720p, and reinforcement learning from human preferences improves motion naturalness and instruction adherence. The inference stack uses SageAttention, per-block W8A8 quantized linear layers, kernel fusion via CUDA Graphs, and multi-GPU context parallelism to keep everything within real-time latency budgets on consumer GPUs.</p><p>For the editing model, the key design is frame-aligned attention: each target frame reads only the source frame at the same timestep, preserving motion and timing, while a reference image remains visible to all frames so that the new appearance stays consistent. Training data for style transfer comes from a clever pipeline where surface-normal videos are paired with stylized reference images, letting the model learn to preserve spatial structure while applying a new look. The authors report results on StreamAV-Bench, Sparkle-Bench, OpenVE, RefVIE, and ViViD, outperforming all baselines. Human preference evaluations corroborate the benchmark numbers.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Real-time interactive video generation is a qualitative shift from the offline clip-generation paradigm that dominates the field today. If these latency and quality numbers hold up in broader deployment, it opens the door to live digital characters, real-time video style transfer for streaming, and interactive VR content that responds to the user moment by moment. The Self-Replay Forcing training method is interesting in its own right as a way to keep autoregressive diffusion stable over long horizons, a problem that matters well beyond this particular application.</p>
+
+                    <h2>LimiX-2: A Contextual Mechanism Network Towards General Structured-Data Intelligence</h2>
+
+                    <p><em>Xingxuan Zhang et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2609.17488">arXiv:2609.17488</a></p>
+
+                    <p>Tabular data prediction has a familiar workflow: pick a model (XGBoost, a neural net, AutoML), train it on the dataset, tune hyperparameters, repeat for the next dataset. Tabular foundation models try to break this loop by pretraining once and then predicting on new datasets through in-context learning, with no parameter updates at inference time. The Prior-Data Fitted Networks (PFN) line of work does this by learning to approximate the posterior predictive distribution p(y | x, context). LimiX-2, from Stable AI and Tsinghua, argues this is too narrow. Instead of centering on a single target column, their Contextual Mechanism Networks (CMN) paradigm learns p(x, y | context), a joint distribution over all variables conditioned on the context set. Supervised prediction becomes a special case. The same model handles classification, regression, missing-value imputation, and causal skeleton recovery without any task-specific fine-tuning.</p><p>The architecture operates at the cell level: each cell in a table gets its own representation rather than being compressed into a row-level vector. A stack of dual-axis transformer blocks alternates between sample-axis attention (propagating information across rows for each column) and asymmetric feature-axis attention (letting target representations read from feature representations but not vice versa). Pretraining uses Context-Conditional Masked Modeling (CCMM), which partitions a table into context and query rows, masks subsets of features in the query rows, and trains the model to reconstruct them alongside the target. The pretraining data is entirely synthetic, generated by structural causal models with diverse graph structures, functional mechanisms (MLPs, decision trees, kernel functions, piecewise and periodic functions), and observation processes. Compared to the previous LimiX, the embedding dimension grows to 256, the model gets separate feature and task pathways, and the synthetic data engine covers a broader range of causal graph topologies and variable relationships.</p><p>LimiX-2 was evaluated on three benchmarks: TabArena (51 datasets), TALENT (288 datasets), and BCCO (156 datasets). It achieves the highest Elo rating on all three, reaching 1935 on TabArena (117 points above the runner-up TabFM+), 1506 on TALENT, and 1432 on BCCO. It outperforms AutoGluon 1.6, all compared tabular foundation models, and all dataset-specific baselines, despite being four times smaller than TabFM in parameter count. On causal skeleton recovery, its feature attention patterns encode direct causal relationships well enough to outperform both XGBoost-based feature importance methods and dedicated causal discovery algorithms.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>This is a strong result for the idea that a single pretrained model can match or beat per-dataset model selection and tuning across hundreds of diverse tabular tasks. The joint-distribution framing is the interesting part: by modeling all variables together instead of just the target, the model picks up inter-variable structure that transfers to imputation and causal discovery for free. For practitioners who spend a lot of time on tabular ML pipelines, a model you can just point at a new dataset with no training or tuning is appealing, and the benchmark results here suggest the accuracy penalty for that convenience may have disappeared.</p>
+
+                    <h2>Atria Dawn: The Dawn of Agentic Superintelligence</h2>
+
+                    <p><em>Honglin Guo et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2609.15818">arXiv:2609.15818</a></p>
+
+                    <p>Atria Dawn Preview is a 744-billion-parameter mixture-of-experts agentic language model from Fudan, Renmin, and collaborating institutions, designed for scientific research and engineering workflows. It is trained through what the authors call a Verifiable Experience Pipeline: every training task is connected to a real execution environment where the model observes state, calls tools, produces artifacts, and receives feedback. Outcomes are verified through external signals (executable tests, experiment metrics, file state, geometric checks, source evidence). Only trajectories that connect a task to its artifacts and verification evidence are retained for training. The model is evaluated on 16 benchmarks spanning tool use, search, workspace productivity, software engineering, ML engineering, and cybersecurity. It achieves the highest reported score on five of them (AutomationBench at 53.8, BFCL v4 at 77.0, CyberGym at 86.5, DeepSearchQA at 96.0, and BrowseComp at 92.5) and lands in the top tier on most others.</p><p>The more unusual contribution is the analysis of the model's own development process as a case study of human-AI collaboration. The authors collected 769 task records from 56 participants alongside agent logs. AI was used in 96.5% of tasks. Among 455 completed AI-assisted tasks with usable responses, 33.2% were reported as infeasible without AI, meaning the work would not have been attempted at all, not just done more slowly. In method and parameter decisions, the most common pattern (55.4%) was "AI proposes, human selects." Humans made the final choice in 85.5% of method decisions and 93.4% of goal-setting decisions. When tasks hit difficulties, 76.0% moved forward through human intervention, but that intervention was overwhelmingly informational: adding context or clarifying requirements (35.2%) and diagnosing the issue or changing the method (34.7%). Direct human editing of the work product was rare (3.2%), and full takeover happened in only 0.7% of cases.</p><p>The daily median ratio of agent actions to human prompts rose from 11.0 to 28.5 over four weeks. The authors are careful to note this does not mean growing autonomy in any strong sense: each human judgment now propagates through more agent actions, but the judgment itself has not been delegated. They identify two open challenges for recursive self-improvement. First, agents tend to propose variations within a direction a researcher has already fixed rather than identifying new directions. Second, lessons from failed runs stay in the session or the researcher's head rather than accumulating as improved research capability in the model itself.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>The benchmark numbers are competitive but not the most interesting part. What stands out is the empirical data on how AI agents and researchers divide labor during a real model-development project. The finding that a third of tasks were judged infeasible without AI, combined with the finding that humans still make nearly all final decisions, paints a specific picture: AI is expanding what is possible to attempt while human judgment remains the bottleneck resource. The honest discussion of what recursive self-improvement would require, and how far current agents fall short of it, is a useful corrective to both hype and dismissal.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>The LimiX-2 results are the ones I will be watching most closely. Tabular ML is a huge share of applied data science work, and a foundation model that eliminates per-dataset training would change daily workflows for a lot of practitioners. The causal discovery angle is a bonus: if feature attention patterns reliably recover causal structure, that is a useful diagnostic tool even when you are not using the model for prediction.</p><p>The Atria Dawn collaboration data is worth reading even if you are not building agentic models. The ratio of agent actions to human prompts nearly tripling in a month, while humans still make 85% of final method decisions, captures something real about how AI tools change the texture of research work without (yet) changing who steers it.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
