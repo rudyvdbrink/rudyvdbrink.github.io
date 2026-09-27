@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="This week: OmniEdu&#x27;s capability-organized K-12 training data, Realtime-Venus full-duplex interaction with async delegation, and RRSI&#x27;s regularized harness…">
+    <meta name="keywords" content="educational LLM, K-12 tutoring, instruction tuning data, full-duplex speech, multimodal interaction, asynchronous tool use, agent harness, recursive self-improvement, regularization, benchmark overfitting">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-39-2026/">
+
+    <meta property="og:title" content="Journal Club Week 39, 2026">
+    <meta property="og:description" content="This week: OmniEdu&#x27;s capability-organized K-12 training data, Realtime-Venus full-duplex interaction with async delegation, and RRSI&#x27;s regularized harness…">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-39-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 39, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 39, 2026",
+      "description": "This week: OmniEdu's capability-organized K-12 training data, Realtime-Venus full-duplex interaction with async delegation, and RRSI's regularized harness…",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-09-27",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-39-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 39</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>September 27, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~9 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>Three papers this week. The first is OmniEdu, an open family of K&ndash;12 models whose main contribution is a carefully filtered, capability-organized instruction corpus. The second is Realtime-Venus, a full-duplex speech and video system that can hand slow requests to a background execution loop without stopping the conversation. The third is RRSI, which applies the vocabulary of classical regularization to a newer problem: agent harnesses that rewrite themselves tend to memorize the benchmark they evolve against.</p>
+                    <p>Two of them share a concern with where capability comes from. OmniEdu argues it comes from how the training data is organized, and RRSI argues that an agent's capability lives largely in the harness around the frozen model. Both are, at heart, papers about systems engineering around fixed weights.</p>
+
+                    <h2>OmniEdu: Open Foundation Models for Learning and Teaching</h2>
+
+                    <p><em>Hao Liang et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2609.23088">arXiv:2609.23088</a></p>
+
+                    <p>The starting observation is that a useful educational model does more than answer questions correctly: it should know where a problem sits in the curriculum, diagnose why a student is stuck, and pick an appropriate intervention. Existing educational LLMs usually train for one of these, with data mixed by source or subject. OmniEdu instead sorts its supervision by the behavior it wants to teach, using four groups: solving problems across school subjects, placing problems within curriculum structure, identifying student errors and misconceptions, and choosing and carrying out a teaching intervention. The corpus is built from over 100 sources, cut from roughly 1.34M education-specific candidates down to 60,951 examples through a six-stage pipeline: deterministic cleaning and decontamination, a semantic audit by a large teacher model that keeps, rewrites, or discards each example, dimension-wise quality scoring on a 1&ndash;5 scale, and k-center greedy selection over embeddings inside token-budgeted task buckets. Token budgeting rather than example counting matters here because a tutoring dialogue is an order of magnitude longer than a one-line response. On top of this sit 9,048 general instruction examples, for 69,999 examples and 15.96M supervised response tokens in total. Borrowing the pedagogical instruction following idea from LearnLM, each example gets one of 20 task-specific system prompts, so the same model learns both to give a justified answer and to deliberately withhold one while scaffolding.</p>
+                    <p>They fine-tune Qwen base models at 4B, 9B, and 27B and evaluate along the three educational axes. Education-oriented tuning helps everywhere, and the gains over the base models are largest exactly where you would hope: on MathTutorBench, the Scaffold win rate of the 4B model jumps from 20.42% to 75.79%, and on LongTutor the Evidence average of the 9B model goes from 5.81% to 66.63%. At 27B, the tuned model scores 63.12% exact match on K12-Bench, reaches 85.89% accuracy on MathFish and 86.95% MaC on EDUMATH, and posts the top Teaching average on LongTutor (3.02) of any model they evaluated, proprietary systems included. On exam-style problem solving it stays competitive with much larger systems: 94.87% on GAOKAO-Bench, though Kimi-K3 still leads on EXAMS-V and MDK12-Bench. General capability checks (IFEval, GPQA, MMMU-Pro) mostly hold or improve, so the specialization does not appear to cost much.</p>
+                    <p>Two honest caveats are visible in their own numbers. Knowledge-state diagnosis on LongTutor tops out around 54% even for the best model, which the authors acknowledge as still hard. And several audit and scoring stages rely on strong closed teacher models, so the pipeline is reproducible but not cheap to rerun.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>For anyone building domain assistants, the transferable piece is the data design rather than the education angle. Organizing an instruction mixture by the behavior you want the model to learn, budgeting selection in supervised tokens, and making the desired response policy explicit in a system prompt are all things you can do with any domain corpus. The released models at three sizes and the full pipeline description make this a usable reference implementation for capability-oriented fine-tuning, and the tutoring benchmarks give a way to measure whether a model teaches rather than just answers.</p>
+
+                    <h2>Realtime-Venus: A full-duplex interaction system with asynchronous delegation</h2>
+
+                    <p><em>Ruixiang Zhao et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2609.13814">arXiv:2609.13814</a></p>
+
+                    <p>Full-duplex dialogue systems have to listen while they speak, and the interesting requests, the ones needing retrieval, reasoning, or tools, take longer than a conversational beat allows. Realtime-Venus addresses both with two separately trained 9B frontends built on MiniCPM-o 4.5: an Omni variant that consumes interleaved audio and video, and an Audio variant for speech only. Interaction is serialized into one-second chunks carrying a user stream, an assistant stream, and a background stream on one shared clock. Each second the backbone predicts a listen or speak control token, plus any response text and aligned speech tokens. Because the control decision shares the model's semantic state with generation, acoustically similar overlaps get different treatment: a backchannel like "right" leaves the response plan alone, while a floor-taking interruption closes the turn and the unspoken remainder is revised. Playback-aware scheduling meters out text tokens according to how much synthesized audio has been played, keeping the response aligned with what the user has most recently said.</p>
+                    <p>The delegation piece is the part I found most considered. When the frontend decides a request needs outside help, it emits a private delegate span that is hidden from speech and display. The harness snapshots the evidence available at the moment the request opened, runs the task asynchronously against registered capabilities, polishes the result into speakable text, and returns it through the private background channel. The frontend then decides when to say it, given whatever the conversation has done since. Fixing the evidence boundary at request time and separating reply preparation (harness) from delivery timing (frontend) is a clean answer to a real coordination problem: the world moves while the tool runs. A training-free long-video memory, which gates frames by motion-compensated prediction cost and retrieves with token-level matching plus a novelty term, extends the Omni model to hour-scale sessions.</p>
+                    <p>Both models share one post-training recipe over 2.8M samples, about 56% offline understanding, 37% proactive duplex, 6% delegation. Results: Venus-Omni leads the compared online models on six of eight video benchmarks (70.2% StreamingBench, 64.7% OVO-Bench, 81.3% Daily-Omni), still well behind offline Gemini-3.5-Flash, which is the expected price of streaming. Venus-Audio posts the best audio understanding numbers in its comparison set, 78.0% on MMAU and 63.2% on MMAU-Pro, and also leads on the spoken QA side with 83.8% on Llama Questions and 67.8% on Speech CMMLU. On Full-Duplex-Bench v1.5 it answers 75% of interruptions and continues correctly through backchannels, other-directed speech, and background speech at 97%, 88%, and 86%, outperforming Gemini 3.1 Live and GPT-4o on every one of those continuation measures. The authors are candid that ProactiveVideoQA and WorldSense dip slightly relative to the MiniCPM-o 4.5 starting point.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Voice agents that call tools synchronously force an awkward choice: freeze the conversation while the tool runs, or answer without the tool. The dual-loop design here shows a third option and, more usefully, specifies the mechanics: evidence snapshots at the request boundary, freshness deadlines on results, and lifecycle tracking from queued through delivered. Even if you never train a speech model, that contract between a latency-sensitive frontend and slow background work is a pattern worth copying. The full-duplex continuation numbers also give an open reference point for overlap handling, which most published systems leave unmeasured.</p>
+
+                    <h2>RRSI: Regularized Recursive Self-Improvement of Agent Harnesses</h2>
+
+                    <p><em>Peng Xia et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2609.24972">arXiv:2609.24972</a></p>
+
+                    <p>An agent is a frozen model wrapped in a harness of prompts, control flow, tool interfaces, memory, and context management, and recent systems automate the tuning of that wrapper: run the agent on an evolve set, summarize the failures, let an LLM propose edits, keep whatever scores higher. The paper's diagnosis is that this loop is adaptive optimization over an expressive search space using a small, repeatedly reused evaluation set, so it overfits the way any such process does. Evolve-set scores climb while held-out gains shrink or disappear. The authors group the causes into benchmark-specific fitting, noise chasing, and complexity accumulation, and their answer is to import classical regularization ideas into the search dynamics rather than restrict what may be edited.</p>
+                    <p>On the proposal side, an L0-style budget caps how many independently attributable edits a candidate may bundle, annealed from five down to one across rounds, so late-stage changes are small and credit is assignable. The proposer conditions on a full run history so it stops retesting falsified hypotheses, and stalled search reserves some budget for untouched components. On the selection side, a critic rejects diffs that hard-code task names or answers before they are ever scored, a noise-adjusted floor (estimated by re-scoring the unchanged harness) stops random winners from becoming permanent state, an L2-style rule requires cost growth to be paid for with measured gains, and an L1-style pruning rule deletes components that have produced no positive gain over a recent window.</p>
+                    <p>Across eight benchmarks in coding, agentic workspace, and engineering design, RRSI gains up to 14.1 points on the evolve split and up to 4.7 on out-of-distribution benchmarks, with no held-out split regressing. The comparison table is telling: the strongest prior method adds 0.9 points to the OOD average, two others end below the harness they started from, while RRSI posts the smallest evolve-set gain of any evolved method and the only OOD average clearly above baseline (43.6 versus 39.7). It also runs on about 30% fewer policy tokens than unregularized evolution. The harness transfers across backbones: evolved with Gemini 3.5 Flash, it still lifts Terminal-Bench accuracy from 11.2% to 14.6% under a smaller model that never participated in the search, and the engineering design gains hold under deterministic simulators, which rules out judge-gaming as the explanation. Removing the regularizers recovers the classic picture: the highest evolve-set score, OOD within a point of no evolution, and the heaviest token bill.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>If you run any kind of automated prompt or scaffold optimization against a fixed eval set, this paper is a warning with a remedy attached. The failure it describes, where the search converges on edits that quote the benchmark back at itself, will look familiar to anyone who has watched an optimizer "improve" a system prompt. The specific mechanisms are cheap to adopt piecemeal: score the untouched base several times to get a noise band before you accept anything, screen diffs for task-specific content before evaluation, and make cost increases justify themselves. The cross-backbone transfer result also suggests harness improvements can be treated as durable artifacts rather than per-model tuning, which changes the economics of investing in them.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>A thread I noticed after finishing all three: measurement is doing a lot of quiet work in each. OmniEdu's conclusion rests on tutoring benchmarks that grade how a model responds, not only whether it is right. Venus reports continuation rates under backchannels and background speech, a behavior most systems papers skip. RRSI is entirely about the gap between the score you optimize and the score you care about. The field is slowly building the evaluative scaffolding to talk about behavior rather than accuracy, and papers like these are what make that visible.</p>
+                    <p>On a lighter note, RRSI's pruning table reads like every engineering retro I have ever been in: half of what the search added was noise or context bloat, and the win came from deleting things. Some weeks the lesson from the literature is to add capacity. This week it is mostly to clean up.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
