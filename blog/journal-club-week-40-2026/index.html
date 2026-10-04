@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Journal club: Raven&#x27;s composable agent harnesses, LoopVL&#x27;s recurrent vision-language model, and RIDE&#x27;s hidden-state extrapolation for on-policy distillation.">
+    <meta name="keywords" content="multi-agent orchestration, agent harnesses, recurrent transformers, vision-language models, knowledge distillation, on-policy distillation, reinforcement learning, LoopVL, machine learning journal club">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-40-2026/">
+
+    <meta property="og:title" content="Journal Club Week 40, 2026">
+    <meta property="og:description" content="Journal club: Raven&#x27;s composable agent harnesses, LoopVL&#x27;s recurrent vision-language model, and RIDE&#x27;s hidden-state extrapolation for on-policy distillation.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-40-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 40, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 40, 2026",
+      "description": "Journal club: Raven's composable agent harnesses, LoopVL's recurrent vision-language model, and RIDE's hidden-state extrapolation for on-policy distillation.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-10-04",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-40-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 40</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>October 4, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~10 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>Raven, from EverMind AI, is an open-source multi-agent ecosystem that treats a model bundled with its harness as the composable unit, and it comes with both a theory of when such composition pays off and a new orchestration benchmark. LoopVL trains a recurrent vision-language model from scratch, reusing two shared 16-layer stacks to get 128 layers of executed depth out of a 1B-scale backbone. RIDE improves on-policy distillation by extrapolating an RL-trained teacher's hidden-state residual instead of its logits.</p>
+                    <p>LoopVL and RIDE work on different subjects but share a premise: the parameters you already have are underused, and the right reuse or the right direction can beat the more expensive default.</p>
+
+                    <h2>Raven: The Harness of Harnesses for Composable Agentic Intelligence</h2>
+
+                    <p><em>EverMind AI, arXiv, 2026.</em> <a href="https://arxiv.org/abs/2609.33439">arXiv:2609.33439</a></p>
+
+                    <p>The starting point is that an agent's ability comes from two things: the model, and the harness around it (tool interfaces, context management, skills, recovery policies). Good harnesses are domain-specific and expensive to engineer by hand, so EverMind instead keeps a roster of executable model-harness pairs, four built in (Raven-Research, Raven-Code, Raven-Design, Raven-Oncall) and third-party agents such as Claude Code and Codex attached through adapters. For each request a Host Agent plans a directed acyclic graph: nodes are agent invocations with typed inputs, edges are artifact dependencies. The runtime validates a submitted graph through five groups of admission checks before any worker starts, schedules nodes as their dependencies settle, and routes each finished node through a judge model that can reject the output, at which point the host can continue the node with a message, abandon it, or replan the remaining workflow. Around this core sit three support systems: diagnosis-driven harness evolution screened against a frozen model (extending the team's earlier HarnessBank), a memory layer built on a host archive and the optional EverOS backend, and Skill Forge, which retrieves reusable procedures from a curated catalog.</p>
+                    <p>The theory section defines capability as task coverage: which tasks a system finishes correctly within a shared resource budget that charges planning, worker calls, and handoffs alike. The main theorem gives a reliability lower bound for a composed plan that sums the per-operation error bounds with no independence assumption, and a corollary gives sufficient conditions for the composed system to cover tasks that no single pool member covers at the same budget. A small construction makes the point concrete: two independent fair bits, each readable by only one agent, with their parity as the required answer. Any lone agent can do no better than guessing, while a three-node plan with two copy handoffs solves the task exactly. The authors are unusually explicit about the limits: the conditions are sufficient rather than necessary, average success rates do not establish the conditional reliability premises, and strong single-agent baselines at matched cost are needed before claiming a real capability gain.</p>
+                    <p>On the empirical side, the paper introduces MAOB, an orchestration benchmark that scores a proposed graph against reference DAGs on node F1, edge F1, partial order accuracy, and exact match, grading the plan before any worker runs. Raven ranks first on all four metrics under both tested backbones, with the clearest margins on dependency prediction. Separate evaluations cover the four specialists on research, coding (SWE-bench variants, repository refactoring, database analysis), design (slides and visual artifacts), and on-call tasks, plus harness evolution under a frozen backbone and skill retrieval, where the curated catalog improves Raven on three benchmarks. Some of the specialist and skill numbers come from the team's previously published HarnessBank and SkillCorpus experiments rather than new head-to-head runs, so the strongest new evidence here is the orchestration benchmark itself.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Much of what determines agent quality right now sits in the harness rather than the weights, and Raven is an attempt to make that layer something you construct, evolve, and compose systematically instead of hand-tuning per domain. The system is open source, the admission-check and artifact-ledger design is worth copying even if you never run the full ecosystem, and MAOB is a useful instrument on its own: it measures planning quality separately from execution, which most agent benchmarks conflate. The theory reads less as a result about this particular system and more as a checklist of what has to hold before multi-agent composition beats a good single agent.</p>
+
+                    <h2>LoopVL: Recurrent Visual Intelligence</h2>
+
+                    <p><em>Zhe Qian et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2609.38426">arXiv:2609.38426</a></p>
+
+                    <p>Recurrent or looped transformers get depth by running shared layers repeatedly instead of stacking unique ones, and LoopVL asks whether this transfers to vision-language models. The model pairs a frozen Penguin vision encoder and a small projector with a recurrent language backbone containing two 16-layer stacks, L and H, each with its own parameters and each reused across invocations. The default H2L3 schedule runs L three times and H once per model cycle, over two cycles, so one forward pass executes 128 Transformer-layer calls from only 32 unique layers. Visual tokens stay inside the recurrent state and keep being rewritten across loops, and at the start of each cycle the model re-injects the original projected visual features through a query-conditioned gate. Training backpropagates only through the last few invocations, widening the backward window during warmup.</p>
+                    <p>The model is trained fully from scratch: 75B tokens of language pretraining on the HRM-Text recipe, alignment on LLaVA-559K, 49B tokens of multimodal mid-training, 16.81B tokens of supervised fine-tuning, and a short GRPO stage with a progressive generation-length schedule. The cleanest comparison is against three non-recurrent baselines trained on the same 0.14T tokens. A 32-layer Transformer-VL 1B with the same unique layers as LoopVL scores 55.33 on MMStar, 55.29 on RealWorldQA, and 51.12 on ChartQA; LoopVL reaches 63.47, 70.98, and 74.52, and it matches or beats dense 4B baselines at lower estimated training FLOPs. Against recent compact VLMs trained on 3T to 36T tokens (Qwen3.5-2B, InternVL3.5-4B, gemma-4 E4B, MiniCPM V-4.6), LoopVL is strongest on reasoning-heavy suites, scoring 45.19 on LogicVista against a next-best 36.91 and 38.49 on MathVision, while trailing on document-heavy tasks like ChartQA and MMEval-Pro.</p>
+                    <p>The analysis chapters are the more interesting half of the paper. Training-time ablations show H2L3 best, and at equal unrolled depth the ordering matters: H2L1 beats H1L3 on all five benchmarks even though both execute 64 layer calls. Inference-time sweeps on the trained model are less forgiving: reading out after a single cycle yields near-zero scores, and adding cycles beyond the training configuration hurts, with MMStar falling from 63.47 at H2L3 to 24.00 at H4L3 despite doubled computation. The headline analysis is the Visual Aha Moment: at the boundary into the second cycle, mean Gini concentration of visual attention jumps from 0.405 to 0.858, spatial entropy drops at every matched L endpoint, and a promoted-token analysis shows image patches ranked in the bottom half during cycle one entering the top quartile in cycle two. The pattern survives retraining with full backpropagation through every invocation and with the anchor gate removed. A logit-lens probe complements this: the intermediate output distribution stays far from the final one until the last H invocation, where the prediction forms rapidly.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>This is the first from-scratch demonstration I have seen that recurrent depth carries over to multimodal models, and the visual modality turns out to be a good instrument for studying recurrence in general: visual tokens keep their spatial correspondence with image patches, so you can watch what the extra loops compute against the input instead of inferring it from text. The caveats travel with the result. The gains are specific to the training schedule, extra loops at inference time do not transfer, and a 1B backbone at 0.14T tokens is far below the data scale of the comparison models, which makes the efficiency claim stronger but leaves open how recurrence behaves once data is no longer the constraint.</p>
+
+                    <h2>The Teacher Is a Direction, Not a Destination: Extrapolating RL-Induced Representation Residuals in On-Policy Distillation</h2>
+
+                    <p><em>Hao Li et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2609.36484">arXiv:2609.36484</a></p>
+
+                    <p>On-policy distillation has the student sample its own rollouts while a frozen teacher supplies per-token supervision on the prefixes the student visits, and it has become a standard way to distill an RL run back into its base model. Recent generalized variants treat the teacher-to-reference log-probability ratio as an implicit reward and scale it up so the student can pass the teacher. This paper argues that output space is the wrong place to do that scaling, for two reasons. First, the LM head is anisotropic: in their measurements the head's weakest singular directions carry most of the teacher-to-base residual's hidden-state energy but only a small fraction of its logit energy, so an output-space objective supervises much of what RL changed at a fraction of its weight and constrains nothing below the final layer. Second, the sampled-token advantage is noisy, and multiplying it by a global coefficient multiplies the noise.</p>
+                    <p>Their method, RIDE, works in the same-initialization setting where the teacher was produced by RL from a base checkpoint and the student starts from that same checkpoint. On each student rollout, the frozen base and teacher are both run over the identical prefix, and their layerwise hidden-state difference is taken as the RL-induced residual. The regression target is placed past the teacher along that residual, teacher plus alpha times the residual, controlled by a single coefficient. Setting alpha to 1 recovers representation matching (OPRD) exactly, so the only thing that changes is the target. Two formal results support the design: conditioned on a rollout, the regression amounts to maximizing a linear reward along the residual with a quadratic penalty that keeps the student near the teacher, and the RIDE gradient is deterministic given the rollout, while the output-space advantage carries a sampled-token variance term that does not vanish and grows with the square of the coefficient.</p>
+                    <p>Experiments use four base/teacher pairs spanning families and scales: DeepSeek-R1-Distill-Qwen-1.5B with its JustRL teacher, and Qwen3-4B, Llama-3.2-3B, and Phi-4-mini with teachers produced by the same RL recipe. Training prompts come from DAPO-Math-17K, evaluation is Avg@16 on AIME 2024, AIME 2025, and AIMO, with three training seeds per method. RIDE's mean sits above the RL teacher's on all four pairs, the only method that manages this, although on three pairs the margin is within one across-seed standard deviation, which the authors report plainly. ExOPD, the output-space extrapolation baseline using the same coefficient and the same pre-RL reference, ends below its teacher on every pair, and on the three pairs where RL moved the teacher least it ends below even the untouched student (48.75 against 62.82 on Qwen3-4B). Sweeping the coefficient, RIDE improves steadily up to 1.2 and degrades gracefully past it, while every extrapolating coefficient harms ExOPD. Four direction controls at matched displacement magnitude (random, reversed, wrong-origin, and off-trajectory residuals) all end up near OPRD, so the gain comes from the RL-induced direction itself rather than from the displacement acting as a generic regularizer.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Distilling an expensive RL run back into its base checkpoint, or merging RL specialists that share an initialization, is a common post-training step, and RIDE is close to a drop-in improvement for anyone already doing representation-space on-policy distillation: run the pre-RL checkpoint alongside the teacher and shift the target. The negative result is as useful as the positive one. Output-space extrapolation, which elsewhere has produced students that beat their teachers, damages the student precisely when the teacher sits close to its base, which is the typical case for lightly tuned RL models, and the paper's variance analysis explains why.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>A pattern I noticed across the week's reading: both modeling papers are arguments that trained parameters are underused. LoopVL gets a second cycle's worth of computation out of the same stacks and can show, patch by patch, that the second cycle reads the image differently. RIDE treats the difference between two checkpoints as a direction that can be extended past the teacher. Neither adds capacity; both rearrange what the existing capacity does.</p>
+                    <p>I also appreciated the negative results. LoopVL publishes an inference-time sweep in which extra cycles collapse MMStar from 63.47 to 24.00, and RIDE reports that three of its four wins over the teacher are within one standard deviation and that its main baseline actively harms students in the common case. Raven is harder to judge from one reading; it is a large system paper, and the part I would reuse first is not the orchestration theory but the admission validation and artifact ledger, which address concrete ways multi-agent runs go wrong.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
