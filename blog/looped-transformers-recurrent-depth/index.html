@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Weight sharing across depth buys more computation per parameter. A tour from ACT and the Universal Transformer to latent reasoning at scale.">
+    <meta name="keywords" content="recurrent depth, looped transformer, weight sharing, Universal Transformer, latent reasoning, test-time compute scaling, deep equilibrium models, adaptive computation time, language model architecture">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/looped-transformers-recurrent-depth/">
+
+    <meta property="og:title" content="Looped Transformers: How Recurrent Depth Reuses the Weights You Already Have">
+    <meta property="og:description" content="Weight sharing across depth buys more computation per parameter. A tour from ACT and the Universal Transformer to latent reasoning at scale.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/looped-transformers-recurrent-depth/">
+    <meta property="og:type" content="article">
+
+    <title>Looped Transformers: How Recurrent Depth Reuses the Weights You Already Have — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Looped Transformers: How Recurrent Depth Reuses the Weights You Already Have",
+      "description": "Weight sharing across depth buys more computation per parameter. A tour from ACT and the Universal Transformer to latent reasoning at scale.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-10-05",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/looped-transformers-recurrent-depth/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Concepts</p>
+                    <h1 class="post-title">Looped transformers: how recurrent depth reuses the weights you already <em>have</em>.</h1>
+                    <p class="post-meta">
+                        <span>October 5, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~12 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>Every token that passes through a standard transformer gets the same treatment: a fixed stack of layers, each with its own parameters, executed exactly once. Capability comes from adding more unique layers, more width, more data. There is another dial that gets less attention. Take a block of layers and run it repeatedly, feeding its output back in as input. The parameter count stays fixed while the executed depth grows, and the model gains a knob it can turn at test time, spending more sequential computation on harder inputs.</p>
+                    <p>This idea has been rediscovered roughly every three years since 2016, under different names: adaptive computation time, the Universal Transformer, deep equilibrium models, deep thinking, looped transformers, recurrent depth. The most recent versions scale to billions of parameters and show something the early papers could only hint at: a language model that improves on reasoning benchmarks when you let it iterate longer, without generating a single extra token. This post walks through that line of work, what a shared block learns to compute when you loop it, and which training details decide whether extra loops at inference time help or hurt.</p>
+
+                    <h2>Two budgets you can scale separately</h2>
+
+                    <p>It helps to separate two budgets that the standard architecture fuses into one. The first is the number of unique parameters, which sets how much the model can store: facts, patterns, vocabulary statistics. The second is the number of layer executions per token, which sets how much sequential computation each prediction gets. A 32-layer transformer executes 32 layers because it has 32 layers. Sharing weights across layers cuts that link.</p>
+                    <p>ALBERT made the efficiency case for sharing in 2019 (<a href="https://arxiv.org/abs/1909.11942">Lan et al., 2019</a>). Tie all parameters across layers and a BERT-large-sized model drops from 334M to 18M parameters with a modest accuracy cost, and the ablation shows where that cost lives: sharing the attention matrices costs almost nothing, while sharing the feed-forward blocks accounts for most of the drop. Sharing also changes the representation geometry. The distance between a layer's input and output is far smoother across ALBERT's depth than across BERT's.</p>
+                    <p>A recurrent-depth model pushes the same idea further. Huginn, a 3.5B language model trained by Geiping et al. (<a href="https://arxiv.org/abs/2502.05171">2025</a>), has only 8 unique transformer layers: two in a prelude that embeds the input, four in a core block, two in a coda that decodes. Run the core block 32 times and one forward pass executes 132 layers, deeper than almost any fixed-depth model, from a small set of weights. Three things follow. Training and serving move fewer unique weights between devices, which helps when bandwidth is the constraint. The model occupies less memory than a dense model of the same executed depth. And the architecture carries a bias toward iterative procedures rather than stored lookups, which turns out to matter for which tasks improve.</p>
+
+                    <h2>The early line: halting, looping, and fixed points</h2>
+
+                    <p>The oldest member of this family is Adaptive Computation Time (<a href="https://arxiv.org/abs/1603.08983">Graves, 2016</a>). An RNN gets a halting unit that scores, after each internal update, whether to keep processing the current input or move on, with a penalty in the loss charging for time spent. On synthetic tasks like parity and multi-digit addition, networks with ACT learn to scale their update count with problem difficulty, roughly one step per digit on addition. On character-level Wikipedia text the model allocates extra updates at word boundaries and punctuation, and none over unpredictable ID number strings. The weak point was the time penalty itself, a hand-set coefficient trading accuracy against speed, and the trained behavior was sensitive to its value.</p>
+                    <p>The Universal Transformer (<a href="https://arxiv.org/abs/1807.03819">Dehghani et al., 2018</a>) moved recurrence from the time axis to the depth axis. Instead of recurring over positions in the sequence, the model applies one self-attention block over and over, revising every position's representation in parallel, with optional per-position halting borrowed from ACT. Two results from that paper still frame the discussion. On algorithmic tasks like copying and addition, evaluated on strings ten times longer than the training strings, the Universal Transformer generalizes where the standard transformer and the LSTM fall apart. And because its depth can grow with the input, the model escapes the constant sequential step count of a fixed-depth transformer, which the authors use to argue Turing completeness under stated assumptions.</p>
+                    <p>Deep equilibrium models (<a href="https://arxiv.org/abs/1909.01377">Bai et al., 2019</a>) then asked what the loop converges to. If you tie weights and iterate, many networks approach a fixed point, so why not solve for that point directly with a root-finder and differentiate through it with the implicit function theorem? The payoff is constant training memory regardless of effective depth, up to an 88% reduction on WikiText-103 language modeling in their benchmarks. One honest complication: the ALBERT authors measured their layer embeddings oscillating rather than settling, so the equilibrium picture describes some weight-tied networks and not others. Whether a loop converges, cycles, or diverges is a property the training recipe has to establish, not one the architecture guarantees.</p>
+
+                    <h2>What a loop learns to compute</h2>
+
+                    <p>The strongest evidence that looping changes what a network can express comes from algorithmic tasks. Schwarzschild et al. (<a href="https://arxiv.org/abs/2106.04537">2021</a>) trained recurrent ResNets on easy problem instances, 32-bit prefix sums, 9x9 mazes, low-rated chess puzzles, then tested on harder ones. Recurrent models trained with few iterations extrapolate when granted more iterations at test time, reaching above 90% accuracy on longer prefix sums where feed-forward networks of equal or greater effective depth stay near chance. Watching the per-iteration outputs shows something close to a known algorithm: on prefix sums the model resolves early bits first and marches down the string, on mazes it floods outward from the start and then prunes. Their framing is worth keeping: recurrence is both the test-time dial and a pressure during training toward parameters that make progress with every application.</p>
+                    <p>On the theoretical side, Giannou et al. (<a href="https://arxiv.org/abs/2301.13196">2023</a>) showed constructively what a looped transformer can be programmed to do. With 13 layers or fewer and an external loop feeding the output sequence back as input, they hand-built attention patterns for read, write, and conditional branch operations, then assembled a one-instruction-set computer, a calculator, matrix inversion, and gradient descent on a small network, all executed from a prompt formatted like a punchcard. This is not how trained models work, and the authors say so. What the construction establishes is a bound on expressivity: with a loop, network depth no longer needs to scale with program length. A fixed-depth model has to encode an iterative algorithm as one giant unrolled circuit. A looped model can encode the iteration itself.</p>
+
+                    <h2>Latent reasoning at scale</h2>
+
+                    <p>The recent wave applies looping to language model pretraining, in two designs. Coconut (<a href="https://arxiv.org/abs/2412.06769">Hao et al., 2024</a>) loops horizontally through an existing fixed-depth model: the last hidden state, instead of being decoded into a token, is fed back as the next input embedding, so the model reasons in continuous space between special markers. Trained with a curriculum that progressively replaces language reasoning steps with these continuous thoughts, Coconut beats chain-of-thought on a synthetic planning task that requires search. The mechanism analysis is the interesting part: a continuous thought can hold several candidate next steps in superposition and prune them over later thoughts, something a sampled token cannot do, because sampling forces a commitment to one path.</p>
+                    <p>Huginn takes the vertical design: a dedicated recurrent core block, looped r times per token, trained from scratch on 800B tokens. The recipe matters more than the diagram. The latent state starts from sampled noise, the embedded input is re-injected at every iteration (without this the recurrence destabilizes), the loop count is drawn per training batch from a heavy-tailed distribution so the model sees many depths, and gradients flow only through the final 8 iterations. The result is a model whose benchmark scores keep rising with r at test time, up to a compute load comparable to a 50B dense model, with the largest gains on math and code. The most diagnostic number is an OpenBookQA ablation: evaluated closed-book, Huginn trails models of similar size because it has fewer facts stored; given the relevant fact in context, it nearly closes the gap. The model trades storage for processing.</p>
+                    <p>Mixture-of-Recursions (<a href="https://arxiv.org/abs/2507.10524">Bae et al., 2025</a>) adds per-token routing. A lightweight router, trained from scratch rather than bolted on afterward, decides how many times each token passes through the shared block, and the KV cache stores entries only for tokens still active at a given recursion depth. Across models from 135M to 1.7B parameters, this beats both vanilla and fixed-recursion baselines at equal training compute, and the router's decisions are readable: predictable tokens like the second half of a word exit after one pass, while hard tokens iterate. Sharing and adaptivity, which earlier work treated as separate efficiency axes, end up composing well inside one architecture.</p>
+
+                    <h2>The training recipe decides whether extra loops help</h2>
+
+                    <p>In code the loop is four lines:</p>
+                    <pre data-lang="python">e = prelude(x)       # embed the input tokens
+                    s = randn_like(e)    # random initial latent state
+                    for i in range(r):   # r sampled per batch during training
+                        s = core(e, s)   # one shared block, reused every iteration
+                    p = coda(s)          # decode the final state to logits</pre>
+                    <p>Getting it to train is the work, and the published recipes read like a list of things that went wrong first.</p>
+                    <ul>
+                    <li><strong>Stability.</strong> A shared block iterated many times has failure patterns a plain stack never sees. Huginn's first large run collapsed: the correlation between token hidden states went to 1.0, meaning the model predicted the same state everywhere. A second run stayed stable but learned to ignore the incoming state, so one iteration scored the same as thirty-two. The fixes were a sandwich normalization layout, re-injecting the input at every step, careful initialization of the output projections, and a lower learning rate.</li>
+                    <li><strong>Gradient depth.</strong> Backpropagating through all r iterations costs memory linear in r, which defeats the purpose. The standard fix is truncated backpropagation through only the last k iterations, the same idea as truncated backprop through time in RNNs, applied along the depth axis. The prelude still receives gradients because its output enters every iteration.</li>
+                    <li><strong>Randomized depth.</strong> Training at one fixed loop count bakes that schedule into the learned computation. Read out early and the intermediate states can be far from any usable prediction; loop longer than trained and scores can degrade even though compute doubled. Sampling r per batch from a heavy-tailed distribution, mostly small values with occasional long runs, is what turns the loop count into a genuine dial at inference time.</li>
+                    <li><strong>Inference mechanics.</strong> A recurrent model gets several serving features for free. Early exit per token when successive iterates stop changing, KV-cache sharing across iterations, and self-speculative decoding all work without extra training, largely because shared projections keep cache entries compatible across depths.</li>
+                    </ul>
+
+                    <h2>When looping is the right tool</h2>
+
+                    <p>The gains concentrate where the answer requires sequential computation that scales with problem difficulty: algorithmic tasks, math, code, multi-hop reasoning, planning with search. The pattern has been stable for a decade, from ACT on parity through the Universal Transformer on length generalization to Huginn on GSM8K. Where the task is storage-bound, looping buys little. Recurrence adds no capacity for facts, and closed-book recall benchmarks show it. If your bottleneck is that the model does not know enough, wider and denser models address it; if the bottleneck is that the model cannot combine what it knows, recurrence addresses that.</p>
+                    <p>The costs are real too. Iterations are sequential along the depth axis, so latency per token grows with r, and you are trading wall-clock for parameters. Serving techniques like continuous depth-wise batching, where tokens at different loop counts share the same weights in one batch, recover much of the throughput, but the hardware has to support that scheduling.</p>
+                    <p>What I would watch next: scaling recurrent-depth pretraining past the 3.5B proof of concept, combining per-token loops with ordinary chain-of-thought rather than treating them as rivals, router designs like Mixture-of-Recursions that allocate depth per token, and the interpretability angle. A looped model exposes its intermediate state after every iteration, so you can watch the computation progress instead of inferring it from the output. That alone makes the architecture useful as a research instrument, whatever its final share of deployed models turns out to be.</p>
+
+                    <h2>Sources and further reading</h2>
+                    <h3>Foundations: adaptive computation and weight sharing</h3>
+                    <ul>
+                        <li>Graves (2016). <a href="https://arxiv.org/abs/1603.08983" target="_blank" rel="noopener">Adaptive Computation Time for Recurrent Neural Networks</a>. arXiv. Introduces the halting mechanism that lets a recurrent network learn how many updates to spend per input.</li>
+                        <li>Dehghani et al. (2018). <a href="https://arxiv.org/abs/1807.03819" target="_blank" rel="noopener">Universal Transformers</a>. ICLR 2019. Moves recurrence to the depth axis and adds per-position dynamic halting.</li>
+                        <li>Lan et al. (2019). <a href="https://arxiv.org/abs/1909.11942" target="_blank" rel="noopener">ALBERT: A Lite BERT for Self-supervised Learning of Language Representations</a>. ICLR 2020. The cross-layer parameter sharing ablations show attention weights share almost for free while feed-forward weights do not.</li>
+                        <li>Bai et al. (2019). <a href="https://arxiv.org/abs/1909.01377" target="_blank" rel="noopener">Deep Equilibrium Models</a>. NeurIPS 2019. Solves for the fixed point of a weight-tied network directly, giving constant training memory at any effective depth.</li>
+                    </ul>
+                    <h3>What looped networks compute</h3>
+                    <ul>
+                        <li>Schwarzschild et al. (2021). <a href="https://arxiv.org/abs/2106.04537" target="_blank" rel="noopener">Can You Learn an Algorithm? Generalizing from Easy to Hard Problems with Recurrent Networks</a>. NeurIPS 2021. Recurrent models trained on easy instances solve harder ones when granted more iterations at test time.</li>
+                        <li>Giannou et al. (2023). <a href="https://arxiv.org/abs/2301.13196" target="_blank" rel="noopener">Looped Transformers as Programmable Computers</a>. ICML 2023. Hand-constructed weights turn a 13-layer looped transformer into a one-instruction-set computer, a calculator, and an in-context learner.</li>
+                    </ul>
+                    <h3>Latent reasoning and recurrent depth at scale</h3>
+                    <ul>
+                        <li>Hao et al. (2024). <a href="https://arxiv.org/abs/2412.06769" target="_blank" rel="noopener">Training Large Language Models to Reason in a Continuous Latent Space</a>. arXiv. The Coconut model feeds hidden states back as inputs and shows breadth-first search behavior emerging in continuous thought.</li>
+                        <li>Geiping et al. (2025). <a href="https://arxiv.org/abs/2502.05171" target="_blank" rel="noopener">Scaling up Test-Time Compute with Latent Reasoning: A Recurrent Depth Approach</a>. arXiv. The Huginn 3.5B model, trained with sampled loop counts and truncated backpropagation, improves with extra iterations at test time.</li>
+                        <li>Bae et al. (2025). <a href="https://arxiv.org/abs/2507.10524" target="_blank" rel="noopener">Mixture-of-Recursions: Learning Dynamic Recursive Depths for Adaptive Token-Level Computation</a>. arXiv. Adds per-token routing over recursion depth with recursion-wise KV caching, beating vanilla and fixed-recursion baselines at equal compute.</li>
+                    </ul>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
