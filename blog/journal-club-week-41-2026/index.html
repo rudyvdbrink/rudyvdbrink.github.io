@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="This week: a benchmark of real AI-companion conversations, neural-rendered code worlds for agents, and a rethink of cross-tokenizer distillation.">
+    <meta name="keywords" content="journal club, machine learning papers, conversational memory benchmark, AI companions, world models, neural rendering, on-policy distillation, cross-tokenizer distillation, LLM agents">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-41-2026/">
+
+    <meta property="og:title" content="Journal Club Week 41, 2026">
+    <meta property="og:description" content="This week: a benchmark of real AI-companion conversations, neural-rendered code worlds for agents, and a rethink of cross-tokenizer distillation.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-41-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 41, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 41, 2026",
+      "description": "This week: a benchmark of real AI-companion conversations, neural-rendered code worlds for agents, and a rethink of cross-tokenizer distillation.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-10-11",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-41-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 41</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>October 11, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~8 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>Three papers this week, each about what a system should do with the information in front of it. The first releases ten real, months-long relationships between people and an AI companion and asks whether models know when the past matters. The second builds interactive worlds where the state lives in a game engine and a distilled video model only paints the picture. The third re-examines cross-tokenizer distillation and finds that the strictest alignment already carries nearly all of the useful signal.</p>
+                    <p>Two of them share a result shape I keep seeing lately: giving a model more signal, whether more retrieved context or more supervision coverage, does not reliably help, and pooled scores can hide that.</p>
+
+                    <h2>RealCompanion: Benchmarking Human Understanding from Reasoning over Longitudinal Real-World Conversations</h2>
+
+                    <p><em>Arman Behnam, Sunglyoung Kim &amp; Liangwei Yang, arXiv, 2026.</em> <a href="https://arxiv.org/abs/2610.01780">arXiv:2610.01780</a></p>
+
+                    <p>Benchmarks for conversational memory have mostly been built from generated dialogs, and generated dialogs are written around the facts they test, so nearly every message in them needs the past. RealCompanion replaces that setup with ten real relationships between people and an AI companion app: 27,218 messages over spans of 36 to 120 days, released with consent and anonymized by rewriting. Each person gets five files (the conversation, a profile of stated facts, a persona of inferred traits, chat test items built from messages the person sent verbatim, and authored questions). Every label cites the messages it rests on, and the chat labels carry a stage-by-stage reasoning trace that was checked against the conversation.</p>
+                    <p>The headline numbers reframe what conversational memory is. On a random sample of messages, 3.4% need anything outside the current thread, and when one does, the required message sits a median of 2,157 messages back. Looking only at the most recent messages recovers the required one in 95.9% of all probes, but for the probes that need memory at all the share drops to 2.2%, so a pooled retrieval score mostly reports the mix of the corpus. BM25 does better on the distant items (hit@5 of 0.248) and still misses three in four. The decision of whether to retrieve at all looks worse. A detector reading the probe and its three preceding messages separates memory-needing probes from others at an AUROC of 0.530, close to chance. Framing effects are large: labeling the same ten retrieved messages as "memories" instead of "earlier turns from this chat" raises memory use by 10 to 14 points, even on probes that need nothing, and supplying ten unselected messages pushes the misfire rate from zero to 60.8%.</p>
+                    <p>The third finding is about persona reconstruction. Three agent systems (Claude Opus 5.5, Codex GPT-5.6-sol, and Gemini 3.8 Flash via Antigravity) each read a full history and wrote the persona file. All three reach F1 between 0.69 and 0.70 while processing between 18M and 546M tokens, a 31-fold cost spread for the same score. Precision of 0.56 to 0.59 against recall of 0.86 to 0.89 means each system recovers most of the released file and then adds roughly seventy to eighty extra claims per hundred it gets right. The systems also agree with each other (0.86 to 0.88) more than either agrees with the ground truth file, so the extra claims are systematic, not noise.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>If you build or evaluate memory layers for chat products, this paper resets the base rates. The scarce and difficult decision is when to retrieve, not how, and neither a detector nor the models themselves make that decision well on real messages. The relabeling result is also a direct warning for prompt design: the heading you put above a retrieved block changes behavior by double-digit points. And because every label cites its evidence, the corpus lets you contest any item, which generated benchmarks cannot offer.</p>
+
+                    <h2>AgentGarten: Code Worlds for Evolving Agents</h2>
+
+                    <p><em>Jiawei Chi et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2610.12374">arXiv:2610.12374</a></p>
+
+                    <p>AgentGarten splits an interactive world into two parts. A simulator or game engine holds the state and executes rules written as code, and a neural renderer turns the geometry the engine exports (depth maps or surface normals) into the visual observations the agent sees. Because the state never passes through the video model, rendering errors cannot accumulate in the world, and a recorded trajectory can be re-rendered in a different style or from a different camera without changing what happened. New worlds are scene programs, and a coding agent can build one from a single image or a text description, checking its own work with test rollouts and collision queries.</p>
+                    <p>The renderer is the technical core. Starting from a pretrained bidirectional video model (Cosmos 3-Nano), the authors adapt it to geometry conditions, convert it to block-causal generation, and distill it into a few-step real-time model with a method they call Adversarial Forcing. Two pieces matter. Exact replay recomputes the history encoding block by block with the same attention calls used at sampling time, so gradients reach the computation that writes the KV cache and the recomputation matches the rollout bitwise; a full-sequence FlexAttention second pass, by contrast, diverges from the rollout by 3.99% relative error. The adversarial piece adds real-data supervision with an exact R1/R2 penalty that avoids the double-backward pass fused attention kernels do not support. The finished renderer produces 36.5 frames per second on one H100, including condition encoding, four denoising steps, decoding, and host transfer.</p>
+                    <p>On top of this they run foundation-model agents that see only rendered frames, act through short Python programs, and after each round of games write playbooks that the next round's agents inherit. In the hide-and-seek environment from OpenAI's 2019 self-play study, hiders built shelters by round 4 and seekers used ramps by round 10, where the original study needed roughly 25 million and 100 million training episodes for the same milestones. The authors are careful that this compares two learning paradigms rather than the sample efficiency of one method: their agents arrive with web-scale knowledge and the task is grounding it in closed-loop control from pixels. The same four-round loop improved outcomes in four more worlds, from two cars swapping ends of a one-lane bridge (71 seconds in round 1, 41 in round 4) to herding sheep and operating a quarry loader.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Environment quality is the bottleneck for training agents, and this is a clean way to get fidelity and visual range at once: the engine guarantees the state, the renderer supplies appearance, and any simulator that exports depth or normals can plug in. The playbook results suggest that for pretrained agents, written experience passed between rounds can substitute for a large fraction of RL sample counts, which changes the economics of building practice environments. The exact-replay construction is also reusable on its own for anyone distilling autoregressive video models.</p>
+
+                    <h2>Rethinking Cross-Tokenizer On-Policy Distillation: From Alignment Coverage to Supervision Reliability</h2>
+
+                    <p><em>Bingxi Hou et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2610.08448">arXiv:2610.08448</a></p>
+
+                    <p>On-policy distillation lets a student learn from its own sampled outputs, with a teacher scoring the prefixes the student reaches. Doing this across model families means aligning two tokenizers, both at the sequence level (token boundaries differ) and at the vocabulary level (the distributions live over different token sets). The recent direction in the literature has been to recover more and more of the supervision that strict token alignment excludes. This paper asks whether that recovery helps, across three teacher-student pairs (Qwen2.5-7B-Instruct to Llama-3.2-3B-Instruct, Granite-4.1-8B to Phi-4-mini-instruct, and Granite-4.1-8B to Qwen2.5-7B-Base) on math and code benchmarks.</p>
+                    <p>The measurements say the strict part already carries the signal. Strict 1:1 token groups cover 85.57 to 96.98% of student-generated tokens even where static vocabulary overlap is as low as 39.49% by Jaccard, and at strictly aligned positions the shared vocabulary holds 99.69 to 99.90% of the teacher's probability mass on average. Restricting the reverse KL to a student-selected top-16 shared tokens per position keeps at least 96% of the accuracy gain of full shared-vocabulary distillation, and it beats all four cross-tokenizer baselines tested (ULD, Extended ULD, GOLD, SimCT) on all three pairs. Adding the excluded signal back, as an MSE loss on span log-probabilities over mismatch groups, gives complete supervision coverage and lowers accuracy at every one of 18 tested positive weights, by 0.27 to 1.20 points.</p>
+                    <p>The gradient diagnostics are what make the negative result convincing. At checkpoints from strict-only training, the span-loss gradients have near-zero or negative cosine with the strict gradients, consistently below a split-half reference computed within the strict loss itself. Meanwhile the ratio of span to strict gradient norms grows over training, so a fixed weight on the span loss gives it increasing influence over time. The extra supervision is not merely unhelpful; it increasingly pushes against the part that works.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>If you distill across tokenizers, this is directly usable guidance: the strict objective on the shared vocabulary, cut to a small student-selected top-k support, is cheap and sufficient, and structural-recovery machinery may subtract value rather than add it. The broader point generalizes past distillation. Coverage of an alignment or a vocabulary is a structural metric, and this paper shows it can move in the opposite direction from learning value, with gradient agreement as a cheap diagnostic for telling the two apart before you run the full training sweep.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>The RealCompanion relabeling experiment stayed with me. Calling a block of retrieved messages "memories" instead of "earlier turns" changes how often a model invokes the past by ten to fourteen points, with no change in content. Anyone who has tweaked a RAG prompt template has seen smaller versions of this, but seeing it measured cleanly on real conversations makes it harder to wave away.</p>
+                    <p>AgentGarten's exact replay is a good reminder that numerical details are not details. Two attention implementations with the same mask differ by 3.99% in recomputed latents, enough to corrupt a gradient path, and matching the execution structure block by block brings the error to zero. And the cross-tokenizer paper earns its negative result by measuring gradients rather than stopping at an accuracy drop, which is the part of the paper I would most like to see other groups copy.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
