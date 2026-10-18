@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Journal club: gated on-policy distillation of RL shifts, the OmniCompass video grounding benchmark, and Jeva, a decision-native system one architecture.">
+    <meta name="keywords" content="on-policy distillation, RL policy transfer, Qwen3 reasoning models, video understanding benchmark, temporal grounding, audio-visual language models, system one models, permutation invariance, machine learning journal club">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-42-2026/">
+
+    <meta property="og:title" content="Journal Club Week 42, 2026">
+    <meta property="og:description" content="Journal club: gated on-policy distillation of RL shifts, the OmniCompass video grounding benchmark, and Jeva, a decision-native system one architecture.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-42-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 42, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 42, 2026",
+      "description": "Journal club: gated on-policy distillation of RL shifts, the OmniCompass video grounding benchmark, and Jeva, a decision-native system one architecture.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-10-18",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-42-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 42</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>October 18, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~8 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>This week I read three papers: a distillation method that checks whether a teacher's RL improvements are temporally consistent before transferring them to a student, a video benchmark that asks models when something happens, where it is, and what happens, and a small architecture that treats typed decisions as operations over a set of options rather than as text generation.</p>
+                    <p>Two of them are about getting more out of computation you have already paid for: one reuses checkpoints from a single teacher RL run, the other caches option representations across requests.</p>
+
+                    <h2>Waypoint-OPD: Transferring RL-Induced Policy Shifts via Gated On-Policy Distillation</h2>
+
+                    <p><em>Bingxi Hou et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2610.21601">arXiv:2610.21601</a></p>
+
+                    <p>Policy-shift distillation, as in Direct-OPD, takes the log-probability ratio between a teacher's checkpoints before and after RL and uses it as a dense token-level reward on trajectories the student generates itself. The premise is that this ratio captures what RL improved without forcing the student to imitate the teacher's absolute distribution. The gap this paper identifies is that the endpoint difference says nothing about how the change unfolded during training. An endpoint shift can come from an early and a late shift that reinforced each other, or from two shifts that partially canceled, and endpoint-only transfer cannot tell these cases apart.</p><p>Waypoint-OPD keeps a third checkpoint from the same RL run, at step 600 of 1200. At each prefix the student visits, it takes the student's top-16 next-token candidates, scores them with all three frozen teachers, and compares the centered preference change from Initial to Waypoint with the change from Waypoint to Final. The gate is the positive part of the student-weighted cosine between these two shift vectors: where the two segments agree in direction, the endpoint signal passes through scaled by that cosine, and where they oppose, the signal is suppressed to zero. A batch-level multiplier keeps the mean gate near a target of 0.8. The whole addition costs one extra frozen-teacher scoring pass, with no new rollouts and no verifier calls.</p><p>The teacher is Qwen3-4B; the students are Qwen3-8B, 14B, and 30B-A3B, evaluated on seven math benchmarks (mean@32) and five code evaluations (mean@8). Waypoint-OPD has the best domain average in all six settings, beating Direct-OPD by 2.18, 1.59, and 1.89 points on math and 2.66, 1.52, and 1.19 on code. The 14B student finishes above the Final teacher's math average (59.20 versus 56.13), and the 8B student essentially matches it. The ablations are convincing: removing the gate costs 2.64 points on 8B math, and shuffling gates across prefixes costs 4.94, ending up below the ungated variant, which says the prefix-specific agreement is what carries the gain. Moving the Waypoint between steps 500 and 700 changes the average by at most 0.05 points, so the method does not depend on picking the middle checkpoint exactly right.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>If you run RL on a small teacher and transfer the gains to larger students, this is a cheap upgrade: one extra frozen scoring pass buys a consistent improvement over endpoint-only transfer at three student scales and in two domains. The paper also adds a new use for intermediate checkpoints. Earlier work showed that intermediate checkpoints can be better imitation targets than the final one; here the intermediate checkpoint is not a target at all, only a measuring stick for the consistency of the change being transferred. That role generalizes, since any policy-shift transfer method could gate its signal the same way.</p>
+
+                    <h2>OmniCompass: A Holistic Benchmark for Omni-Modal Video Grounding and Understanding</h2>
+
+                    <p><em>Xuyang Liu et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2610.18829">arXiv:2610.18829</a></p>
+
+                    <p>OmniCompass has two tracks. OmniCompass-VL covers 820 videos with 2,460 instances answerable from visual evidence; OmniCompass-AV is a 240-video subset with native audio and 720 instances that require joint audio-visual evidence. Each video contributes one temporal grounding, one spatial grounding, and one QA instance, and every instance is annotated twice: once with a text-only description of the target, once with text plus a reference image, with identical ground truth. A Cross-Specification Consistency score credits a model only when it is both correct and consistent across the two phrasings. The annotation effort is substantial: about 1,800 human-hours, cross-verification between annotators, and final adjudication by a lead expert.</p><p>They evaluate 50 models. On the VL track, Gemini-3.8-Flash leads at 42.8% CSAvg and the best open-source model, Kimi-K3, reaches 39.6%. On the AV track the gap is much wider: 57.4% for Gemini-3.8-Flash against 24.6% for the open-source leader MiMo-V2.5. The diagnosis across models is consistent: QA is comparatively strong (best CSQA 69.1%) while precise grounding is weak (best CSTG 27.1%, best CSSG 34.9%), and consistency scores sit 4 to 6 points below the lower of the two single-setting scores, meaning models often identify different targets depending on how the target is described. Reference images help less than one might expect: adding an image improves the average for only 11 of 36 VL models, mostly proprietary ones.</p><p>The analysis experiments are the part I would read first. Prefixing each sampled frame with its timestamp helps everywhere, with temporal grounding gains of about 18 points for two of the tested models, which says current models align frames with time poorly unless you hand them the index. Adding audio on the AV track raises QA consistency by 22.9 points on average but does little for spatial grounding. The largest proprietary-versus-open gap is on Event Understanding, 38.9 points, the category that requires binding what is said to what is visible.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>A benchmark that reports one QA accuracy hides the difference between a model that understands a video and a model that answers questions about it. By scoring grounding and QA on the same videos, and by pairing two ways of referring to the same target, OmniCompass separates temporal retrieval, spatial localization, and answer correctness. For people building open video models, the headline is where the remaining distance sits: audio-visual event binding and precise grounding, not question answering. The timestamp finding is also a cheap intervention worth trying before reaching for a larger model.</p>
+
+                    <h2>Jeva: System One Models from First Principles</h2>
+
+                    <p><em>Qi Li &amp; Xinchao Wang, arXiv, 2026.</em> <a href="https://arxiv.org/abs/2610.18773">arXiv:2610.18773</a></p>
+
+                    <p>System one models answer typed requests directly: pick an option, test a condition, assign a score, without generating a rationale. Most open implementations serialize the request and the candidates into one text and read the answer from token logits or a small head. The authors identify four structural problems with this. Normalizing over the supplied candidates assumes one of them is right, so there is no way to say none applies. Treating an unordered set as a sequence lets candidate position influence the answer. Fixing an inventory of answer symbols constrains the candidate count. And nothing can be cached, because candidate representations live inside request-specific computation.</p><p>Jeva restructures this. A shared encoder maps the request and each option to vectors independently, so option rows carry no request or position information. A compact decision stack, one block in the deployed model, refines only the request state by attending over the immutable option memory, and a shared scoring head produces probabilities over however many candidates are present. Symmetric aggregation makes these probabilities permutation-equivariant by construction, with no consistency loss. A separate coverage gate estimates the probability that any acceptable candidate exists, factored apart from the competition among candidates, and that factorization is what makes null a first-class outcome. They prove that a single block can reverse the preference between two retained options when the surrounding set changes, something independent per-candidate scoring cannot express, so the refinement step contributes interactions that plain similarity scoring lacks. Training is LoRA rank 64 plus the decision head, 13.37M parameters on a Qwen3.5-4B backbone.</p><p>The results back the design. Jeva-4B leads seven of eight evaluation slices, scoring above 90% on BANKING77 and MASSIVE at both 8 and 16 candidates. Across five tested orderings of 600 Choice examples it records zero decision flips, while comparable decision models flip on 17 to 27% of examples. Null detection on BANKING77 reaches 98.66% AUROC against 93.61% for the next best. On ToolRet with 2,048 candidates per request, scoring the full set in one pass beats recursive selection by JevK5 (69.88% versus 67.47%) at less than half the median latency. Caching is the other half of the story: because option vectors and their per-layer projections are request-independent, a hybrid cache that reuses individual options across newly assembled sets cuts median latency on long-document retrieval from 2,102 ms to 75.1 ms at full reuse, with no change in decisions.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>A large share of production LLM calls are decisions: routing, tool selection, guardrails, reranking. Serving them through generation pays autoregressive latency for a one-symbol answer, inherits order bias from serialization, and reprocesses the same registry or document set on every request. Jeva shows that building set structure into the architecture, rather than prompting around its absence, buys order invariance, explicit abstention, and cache reuse at once. The coverage-versus-competition split is the piece I expect to see borrowed, because it separates confidence among the candidates from the question of whether any candidate is acceptable, and conflating those two quantities is a common way to get overconfident classifiers.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>Two of this week's papers are exercises in frugality. Waypoint-OPD squeezes more transfer signal out of checkpoints that an RL run already produced, and Jeva avoids recomputing option encodings that have not changed. In both cases the gain comes from examining what the existing computation already contains, rather than adding more of it.</p>
+                    <p>The benchmark paper left me thinking about evaluation hygiene. A single accuracy number for video understanding turns out to mix a comparatively strong skill (question answering) with two weak ones (temporal and spatial grounding), and the paired text-only and text-plus-image references show models reasoning about different targets depending on how you point at them. That is the sort of result that changes what you optimize next.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
