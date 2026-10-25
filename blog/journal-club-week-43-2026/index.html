@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Three papers on spectral-spatial attribution, interactive video evaluation, and constraint checks for long-horizon payment agents.">
+    <meta name="keywords" content="Shapley values, multispectral images, model interpretability, streaming video generation, agent benchmarks, tool use, process compliance, machine learning evaluation">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-43-2026/">
+
+    <meta property="og:title" content="Journal Club Week 43, 2026">
+    <meta property="og:description" content="Three papers on spectral-spatial attribution, interactive video evaluation, and constraint checks for long-horizon payment agents.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-43-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 43, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 43, 2026",
+      "description": "Three papers on spectral-spatial attribution, interactive video evaluation, and constraint checks for long-horizon payment agents.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-10-25",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-43-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 43</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>October 25, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~7 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>This week covers a new attribution method for multispectral images and two evaluation studies. One examines interactive video generation over extended sessions; the other checks whether payment agents obey policies while completing long sequences of tool calls.</p><p>The two evaluation papers ask a similar question: what happens after the first output, when new instructions arrive and earlier choices still constrain the system? Both evaluate behavior across a session, including state that should remain unchanged.</p>
+
+                    <h2>Spectral-Spatial Interpretation</h2>
+
+                    <p><em>Haotian Ma, Ruqi Yang &amp; Philip Townsend, arXiv, 2026.</em> <a href="https://arxiv.org/abs/2610.21114">arXiv:2610.21114</a></p>
+
+                    <p>Image saliency maps usually sum over channels, while channel-attribution methods usually sum over space. Both can hide evidence that is local in both dimensions, such as a short-wave infrared band that matters inside a burn scar but not elsewhere. Spectral-Spatial Interpretation (SSI) assigns a score to every grid-cell and channel pair. For each cell, it leaves the rest of the image unchanged, masks subsets of that cell's channels with a baseline, and computes Shapley values for the resulting small game on the target-class logit. RGB inputs with three channels can be enumerated exactly; the 13-band EuroSAT and six-band burn-scar experiments use permutation sampling within each cell.</p><p>The construction gives a useful identity: summing SSI over a cell's channels exactly equals the logit change from replacing that whole cell with the baseline. This is a local accounting result, not a guarantee that all cells sum to the total prediction change. It also distinguishes SSI from Owen values, which average over many possible contexts outside the cell. The authors evaluate against Integrated Gradients, DeepSHAP, KernelSHAP, and a rank-1 RISE control on CUB-200, EuroSAT, and HLS Burn Scar. SSI has the best joint deletion and insertion AUCs under both mean and zero masking baselines. On HLS with mean masking, its joint deletion AUC is 0.1545, compared with 0.2160 for Integrated Gradients and 0.2888 for RISE.</p><p>On the same dataset, SSI beats a Monte Carlo Owen estimator on the retained metrics while using 4,480 forward passes per image versus 76,800, about 5.8 percent of the evaluation budget. Those counts are analytical and do not make forward passes directly comparable with backward passes from gradient methods. The rank-1 diagnostic is also informative: compressing an attribution matrix into one spatial map times one global channel profile loses more on EuroSAT than on CUB-200, consistent with the greater channel diversity. The main limitations are the usual sensitivity of perturbation explanations to the masking baseline and the cost of computing local games across a fine grid or hundreds of spectral bands.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>I find the full attribution matrix useful because it makes a testable claim about where a particular band supplies evidence, instead of inferring that from two separately aggregated explanations. For remote sensing, that connects model explanations to physical quantities such as red-edge reflectance or burn severity. The exact cell-level aggregation rule also gives researchers a clean consistency check when comparing attribution methods.</p>
+
+                    <h2>StreamEval: Evaluating Interactive Streaming Video Generation Models</h2>
+
+                    <p><em>StreamEval Team, arXiv, 2026.</em> <a href="https://arxiv.org/abs/2610.28402">arXiv:2610.28402</a></p>
+
+                    <p>StreamEval evaluates video systems during scripted interactive sessions rather than from isolated clips. Its 300 cases cover avatar dialogue, prescribed avatar performance, world generation, instruction-based editing, and reference-based editing, with 60 cases per task. Sessions last 15 to 300 seconds and contain 1,347 scheduled inputs in total, including speech, text, controls, and replacement reference images. The scoring checks whether requested changes happen on time, whether earlier changes persist, and whether protected content remains intact. Ten metrics cover execution, consistency, visual quality, identity or reference matching, and audiovisual synchronization. The study evaluates 37 models in 47 task configurations, with three runs per case and equal weight for each duration tier.</p><p>The results separate rendering quality from control. In avatar performance, Vidu S2 Avatar scores 86.12 for identity and 97.25 for stability, but only 36.90 for following requested actions, still the best score among seven systems. In text-controlled world generation, Krea Realtime has the highest following score at 25.93. HappyOyster 1.0 Adventure reaches 58.34 for visual quality but scores 5.56 for following and 2.78 for continuity. Reference editing is harder still: Vidu S2 Editing leads three reported systems with an Edit Success score of 15.00. Its example sessions show models retaining the source cape after a new reference requests a different one.</p><p>Most content judgments come from multimodal models whose structured observations are converted to scores by fixed rules. The authors calibrate judges with positive and negative probes, and unresolved judgments are reported through their lower scoring endpoint. Two scope details matter when reading the comparisons: the editing tables show only configurations with Overall scores of at least 5, selected after evaluation, and reference editing has just three reported systems. The benchmark therefore gives a broad session protocol, but the model coverage is uneven across tasks.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>This evaluation can distinguish a model that ignores a new control from one that attempts it but corrupts unrelated content or loses an earlier edit. Those differences are hard to see in clip-level quality scores. I also like the explicit deadlines and restoration checks, since they give streaming memory and control a concrete test protocol that other researchers can repeat.</p>
+
+                    <h2>BizBench: Unveiling Hidden Challenges in Deploying Long-Horizon Agents for Real-World Business</h2>
+
+                    <p><em>Enhan Zhao et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2610.20424">arXiv:2610.20424</a></p>
+
+                    <p>This benchmark reconstructs payment workflows in an executable environment with 50 multi-turn tasks, 789 policy and reference documents, and 601 discoverable capabilities behind nine general tools. Tasks combine customer dialogue with shared balances, deadlines, approvals, and commitments across workflows. Documents include superseded rules and apparent conflicts caused by product scope or effective dates, so the agent must decide which instruction applies before acting. Deterministic checks separately score requested outcomes, requirements during execution, and protected objects or side effects. They inspect records and event histories without requiring a match to one reference trajectory. Every task has a replayed passing reference execution, and the evaluators were tested with alternative valid routes and targeted violations.</p><p>Claude Opus 5 has the highest strict success rate at 64.0 percent, followed by GPT-6 Sol at 61.3 percent, although those two models have one run per task while most others have three. GPT-6 Sol completes all three attempts on only 40.0 percent of tasks. Qwen3.8-27B attains 42.0 percent goal success but 32.7 percent strict success, showing the gap introduced by process and protection checks. Five DeepSeek-V4.1-Flash runs reach their goals but fail the full criteria; four dip below a required cash reserve before later restoring it. Qwen3.5-9B completes none of its 150 runs and averages 101.6 tool-error responses per run.</p><p>Long traces do not reliably indicate progress. DeepSeek-V4.1-Flash averages 191.3 assistant tool calls against 111.8 in the reference executions, with most of the excess spent on database queries and document access. Giving it the applicable documents raises strict success from 43.3 to 50.0 percent, while disclosing all customer-known facts at the start raises it to 70.0 percent. Retrospective caps are also revealing: limiting runs to twice the reference call count reduces strict success to 26.7 percent. These experiments point to customer elicitation and repeated information gathering as substantial sources of difficulty beyond policy retrieval alone.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>Final-state evaluation can mark an agent successful after an unauthorized transfer or a temporary reserve breach, even though the event history contains the violation. This work shows how to score those histories directly while leaving agents free to choose different valid strategies. I would use the same separation of goal, process, and protection checks in other tool-use domains where an early action cannot be undone by a tidy final state.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>The SSI result I would most like to see extended is the full-grid evaluation on sensors with many correlated bands. The authors suggest screening or grouping channels, and that step will likely determine whether the method remains affordable outside the current six-band and 13-band experiments.</p><p>For the two benchmarks, the detailed protocols are as informative as the headline scores. StreamEval would benefit from human agreement studies for its automated judgments, and the payment study would be stronger with more tasks and repeated runs for every frontier model. Both already provide concrete execution traces that make low scores easier to investigate.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
