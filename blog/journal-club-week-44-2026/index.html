@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Notes on PDRVLA, Falcon, and OmniShowcase: physical dynamics for robot control, efficient speaker extraction, and geometry-consistent video generation.">
+    <meta name="keywords" content="PDRVLA, vision-language-action models, robot learning, audio-visual speaker extraction, Falcon, subject-to-video generation, 3D consistency, machine learning journal club">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/journal-club-week-44-2026/">
+
+    <meta property="og:title" content="Journal Club Week 44, 2026">
+    <meta property="og:description" content="Notes on PDRVLA, Falcon, and OmniShowcase: physical dynamics for robot control, efficient speaker extraction, and geometry-consistent video generation.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/journal-club-week-44-2026/">
+    <meta property="og:type" content="article">
+
+    <title>Journal Club Week 44, 2026 — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Journal Club Week 44, 2026",
+      "description": "Notes on PDRVLA, Falcon, and OmniShowcase: physical dynamics for robot control, efficient speaker extraction, and geometry-consistent video generation.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-11-01",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/journal-club-week-44-2026/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Journal club</p>
+                    <h1 class="post-title">Journal club <em>week 44</em>, 2026.</h1>
+                    <p class="post-meta">
+                        <span>November 1, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~7 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>This week I read three papers about giving models more of the structure their inputs leave out. PDRVLA teaches a robot policy compact features of future appearance and motion, Falcon extracts one speaker from crowded audio-visual scenes with a small causal model, and OmniShowcase uses reconstructed geometry to keep a subject consistent as a video camera moves around it.</p><p>PDRVLA and OmniShowcase make a related methodological choice: they derive an explicit dynamics or geometry signal during preparation, then feed a compact representation to the model rather than asking it to infer everything from appearance alone.</p>
+
+                    <h2>PDRVLA: A Vision-Language-Action Model with Physical Dynamics Representations</h2>
+
+                    <p><em>Hanqing Wang et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2610.37381">arXiv:2610.37381</a></p>
+
+                    <p>VLA policies often map images and instructions to actions with little explicit representation of how the scene will change. PDRVLA adds a four-block Physical Dynamics Module to a Qwen3.5-4B backbone. Fifty learnable queries read intermediate VLM features and produce 50 physical tokens, which a diffusion action expert consumes alongside final-layer features and proprioception. During pretraining, the tokens are trained to predict pooled latent features of future RGB, depth, and optical flow. A frozen LingBot video model supplies an additional flow-matching objective in that stage. Joint policy training keeps the direct prediction losses but drops the video model, so action inference needs no video rollout.</p><p>The training mixture is unusually broad: 1.26 million real-robot trajectories, 1.22 million handheld UMI trajectories, and 1.87 million simulated ones, plus vision-language data. The authors also retarget EgoDex human demonstrations to 12 arms, yielding 896,832 synthetic robot trajectories, and annotate subtasks and embodied chain-of-thought keyframes. It reports 99.3% success on LIBERO and 89.9% on LIBERO-Plus. RoboTwin 2.0 reaches 93.6%, while SimplerEnv reaches 81.5%. These are small aggregate leads over strong recent systems, and all four evaluations are simulated. On LIBERO-Plus, changed robot initial states remain hardest at 75.2% success.</p><p>The component studies are more informative than the benchmark lead. Adding world-model supervision lowers mean held-out future-feature error by 1.32%, mostly through RGB and depth, but this experiment does not isolate its effect on action success. Self-generated subtask conditioning raises LIBERO-Plus success from 89.93% to 90.23%, with losses in some perturbation categories. ECoT training improves long-horizon results, while generating the ECoT text during inference gives no consistent extra benefit.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>This paper gives a concrete way to use video prediction for control without paying for video generation at every control step. I also find the negative inference result useful: language annotations can improve the policy during training even when asking the model to produce that reasoning at runtime does not help. Real-robot tests and an action-level ablation of the world-model loss would clarify how much of the gain comes from the physical tokens themselves.</p>
+
+                    <h2>Efficient Streaming Audio-Visual Target Speaker Extraction for Real-World Acoustic Scenes</h2>
+
+                    <p><em>Wendi Sang et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2610.32749">arXiv:2610.32749</a></p>
+
+                    <p>Target speaker extraction uses the target person's mouth video to select their voice from a mixture. The usual two-speaker benchmarks omit much of what complicates a recording in a room or on the street. RealSSA-Sim varies 1&ndash;5 near-field interferers, adds 10&ndash;15 far-field talkers in larger scenes, and jointly samples reverberation, background noise, and sudden sound events across four scene types. RealSSA-Real is a separate set of mobile-device recordings used only for evaluation. Training on RealSSA-Sim instead of VoxCeleb2 improves DNSMOS on this real set for all five tested architectures.</p><p>Falcon addresses the model side with a causal, single-pass separator. Its asymmetric U-Net places time-frequency processing at the bottleneck and at three decoder resolutions, replacing repeated calls to one small block. An auxiliary contrastive objective reuses the STFT encoder: the estimated speech is pulled toward the clean target and repelled from each near-field interferer, with a margin that stops repulsion once embeddings are sufficiently separated. This branch disappears after training. Falcon has 0.5 million parameters and uses 10.6G MACs, against 6.2 million and 213.8G for causal AV-TFGridNet. GPU latency falls from 567.8 ms to 51.3 ms on the authors' measurement setup.</p><p>Extraction quality also holds up in the reported tables. Falcon reaches 7.7 dB SI-SNRi on RealSSA-Sim, 14.1 dB on LRS2-2Mix, 16.4 dB on LRS3-2Mix, and 10.5 dB on VoxCeleb2-2Mix, the best result in each comparison. On real recordings it ties Swift-Net-12 for DNSMOS and has the highest target-speaker similarity, though its 32.74% WER is slightly behind AV-Mossformer2's 32.00%. The current system is single-channel, and the contrastive loss requires isolated near-field interferer signals during training.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>The efficiency comparison makes the architectural choice easy to assess: Falcon retains the accuracy of much larger causal separators while avoiding the extra computation of recurrent refinement. The benchmark may have the longer shelf life. Its joint variation of speaker layout and acoustics exposed gains from training data across several backbones. The same loss improves SI-SNRi by 0.4 dB for Falcon, 0.2 dB for Swift-Net-12, and 0.3 dB for Dolphin. Broader real recordings and a version of the loss that works without clean interferer references are the next useful tests.</p>
+
+                    <h2>OmniShowcase: Omnidirectional Subject-Consistent Video Generation from Multi-View Images</h2>
+
+                    <p><em>Junyeong Ahn et al., arXiv, 2026.</em> <a href="https://arxiv.org/abs/2610.35684">arXiv:2610.35684</a></p>
+
+                    <p>Single-image subject-to-video models have to invent the back of an object when the camera moves. Multiple reference images add coverage, but they do not tell the generator how those views fit into one shape. OmniShowcase reconstructs a subject from four reference views, turns the reconstruction into 3D Gaussians, and renders a fixed yaw orbit of surface-normal maps. Those maps and the reference images enter a LoRA-tuned Wan2.1 I2V-14B model as clean context tokens. The normal sequence occupies its own temporal span, so it need not correspond frame by frame with the prompted camera path.</p><p>Showcase-4K supplies 4,000 training videos rendered from 3D assets, with 12 camera motions and 88 trajectory configurations. Video inpainting adds backgrounds while preserving the rendered subject pixels. The geometry condition is reconstructed from the same four views available at inference, not taken from the source mesh. On the held-out ShowcaseBench set, OmniShowcase scores 0.799 DINO identity similarity and 0.0824 GT-CD point-cloud error, compared with 0.707 and 0.1717 for the strongest baseline on each metric. On NAVI, those scores are 0.828 and 0.0975. It also reports the best MEt3R consistency on both sets, with text alignment and general video quality close to the baselines.</p><p>The ablations support the choice of normals. Removing geometry worsens identity and point-cloud agreement, and replacing normals with a textured rendering of the same reconstruction gives little identity benefit, which suggests the extra appearance signal interferes with the references. Two limits are clear. Backgrounds can retain the flat look of the inpainted training scenes, and non-rigid references are fused into one static shape, leading to averaged poses or distorted transitions when motion is requested.</p>
+
+                    <h3>Relevance</h3>
+
+                    <p>This work separates two problems that subject-to-video systems often entangle: appearance comes from the references, while shape away from those views comes from an explicit reconstruction. The normal turntable gives the generator dense viewpoint coverage without requiring a camera-aligned condition for every output frame. The results also make a case for spending effort on geometrically reliable training data, since a 4,000-clip corpus is enough to tune a large frozen backbone for this task. The rigid-subject restriction remains substantial for people, animals, and articulated objects.</p>
+
+                    <h2>Final notes</h2>
+
+                    <p>I was most interested in the ablations that separate training-time help from inference-time machinery. PDRVLA's ECoT results and Falcon's contrastive loss both show that extra supervision can be removed after training while retaining part of its benefit. OmniShowcase takes the opposite route and keeps an explicit reconstruction in the input, which is sensible when the requested views depend on geometry directly.</p><p>The evaluations also deserve equal attention with the models. Falcon's real-recorded test set checks a different distribution from its training mixtures, while PDRVLA's margins sit within a crowded set of simulation results, and OmniShowcase's rigid-subject cases define where its conditioning stops applying. Those details tell me more about usefulness than the aggregate scores alone.</p>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
