@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A practical guide to evaluating agents with state diffs, event logs, constraint checks, repeated trials, and narrowly scoped model judges.">
+    <meta name="keywords" content="agent evaluation, LLM agents, trajectory evaluation, state-based evaluation, tool use, agent benchmarks, LLM-as-a-judge, long-horizon agents">
+    <meta name="author" content="Rudy van den Brink">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.brinkdatascience.com/blog/agent-evaluation-beyond-final-state/">
+
+    <meta property="og:title" content="Evaluating Agents Beyond the Final State">
+    <meta property="og:description" content="A practical guide to evaluating agents with state diffs, event logs, constraint checks, repeated trials, and narrowly scoped model judges.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/rudyvdbrink/rudyvdbrink.github.io/refs/heads/main/static/images/logo.png">
+    <meta property="og:url" content="https://www.brinkdatascience.com/blog/agent-evaluation-beyond-final-state/">
+    <meta property="og:type" content="article">
+
+    <title>Evaluating Agents Beyond the Final State — Brink Data Science</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/global.css">
+    <link rel="stylesheet" href="/static/css/blog.css">
+    <link rel="icon" href="/static/images/logo_gray.png" type="image/png">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QK4YEWQVJJ"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QK4YEWQVJJ');
+    </script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Evaluating Agents Beyond the Final State",
+      "description": "A practical guide to evaluating agents with state diffs, event logs, constraint checks, repeated trials, and narrowly scoped model judges.",
+      "author": {
+        "@type": "Person",
+        "name": "Rudy van den Brink"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Brink Data Science",
+        "url": "https://www.brinkdatascience.com"
+      },
+      "datePublished": "2026-11-02",
+      "mainEntityOfPage": "https://www.brinkdatascience.com/blog/agent-evaluation-beyond-final-state/"
+    }
+    </script>
+</head>
+
+<body>
+    <div class="page-content">
+
+        <header id="banner">
+            <a href="/" class="wordmark" aria-label="Brink Data Science — home">
+                <span class="wordmark-brink">Brink</span>
+                <span class="wordmark-node" aria-hidden="true"></span>
+                <span class="wordmark-rest">Data Science</span>
+            </a>
+            <nav aria-label="Primary">
+                <a href="/#home" class="nav-link">Home</a>
+                <a href="/#portfolio" class="nav-link">Work</a>
+                <a href="/#contact" class="nav-link">Contact</a>
+                <a href="/blog/" class="nav-link active">Blog</a>
+                <a href="/publications/" class="nav-link">Publications</a>
+            </nav>
+            <a href="https://github.com/rudyvdbrink" target="_blank" rel="noopener" class="github-link" aria-label="GitHub">
+                <img src="/static/images/github_logo.png" alt="" class="github-logo">
+            </a>
+        </header>
+
+        <main class="blog-main">
+            <article class="post">
+                <div class="post-head">
+                    <p class="eyebrow">Engineering</p>
+                    <h1 class="post-title">Evaluating agents beyond the final <em>state</em>.</h1>
+                    <p class="post-meta">
+                        <span>November 2, 2026</span>
+                        <span class="meta-sep">/</span>
+                        <span>Rudy van den Brink</span>
+                        <span class="meta-sep">/</span>
+                        <span>~10 min read</span>
+                    </p>
+                </div>
+
+                <div class="prose">
+                    <p>When I evaluate an agent, I treat its last message as an unverified claim. A payment agent can say that a refund is complete, and the account can even show the expected balance. The event log might still show that the agent moved money without approval and then repaired the balance with a second transfer. A final-answer check sees a good response. A final-state check sees a good database. Both accept a run I would reject.</p><p>Agent evaluation needs a wider record: the state the agent changed, the events it caused, and the variation across repeated attempts. I also want the checks to permit different valid solutions. Comparing every tool call with one reference transcript mistakes a particular solution for the task itself.</p><p>I use a split between goal predicates, trajectory constraints, and protected state. This post works through that split, along with session design, reliability metrics, and the limited role I give to model judges. The examples come from web, software, computer-use, and tool-use benchmarks, but the same harness applies to a small internal evaluation set.</p>
+
+                    <h2>Evaluate environment state, not action transcripts</h2>
+
+                    <p>An action transcript records what the agent sent to its tools. The environment state lives elsewhere: in database rows, files, calendar entries, repository contents, or an application’s internal configuration. Evaluation should inspect that state directly whenever the interface allows it. A screenshot or a confident closing message is weak evidence about those objects.</p><p>WebArena made this shift for web tasks by checking functional correctness in self-hosted applications. Its evaluators locate content or inspect underlying state, so two agents can reach the same goal through different routes (<a href="https://arxiv.org/abs/2307.13854">Zhou et al., 2023</a>). SWE-bench applies the same idea to repositories. A patch must make designated fail-to-pass tests succeed, while other tests check that existing behavior remains intact. The original tasks have a median of 51 additional tests beyond the fail-to-pass checks (<a href="https://arxiv.org/abs/2310.06770">Jimenez et al., 2023</a>). Those regression tests are a form of protected-state evaluation.</p><p>AppWorld gives the cleanest formulation for an API environment. It computes the database diff between the initial and final states. Every expected change must be present, and changes outside the expected and explicitly allowed sets cause test assertions to fail. Its unit tests avoid requiring one reference action sequence while still catching unexpected writes (<a href="https://arxiv.org/abs/2407.18901">Trivedi et al., 2024</a>).</p><p>I would copy that structure for most tool agents. Start from a snapshot, execute the run, compute a semantic diff, and write assertions about the diff. IDs and timestamps may need normalization. Everything else should be expressed in domain terms, such as one refund for the requested order, rather than in terms of the agent’s chosen API calls.</p>
+
+                    <h2>Separate goals, ordering, and protected state</h2>
+
+                    <p>State checks answer whether the run ended well. Event checks answer what happened along the way. I keep three kinds of predicates in the evaluation record:</p><ul><li><strong>Goal predicates</strong> describe required outcomes, such as a refund issued to the original payment method.</li><li><strong>Trajectory predicates</strong> describe required events or ordering, such as explicit approval before the refund.</li><li><strong>Protection predicates</strong> cover unrelated objects and temporary conditions, such as no change to another order and no balance below the reserve at any point.</li></ul><p>The temporary conditions matter because a final snapshot can erase them. CORE models valid tool-use paths with deterministic finite automata and scores path correctness, harmful calls, and efficiency. Its transaction example is a transfer followed by a compensating transfer. The balance recovers, but the two operations are not atomic, so an interruption can leave the system in the wrong state (<a href="https://arxiv.org/abs/2509.20998">Michelakis et al., 2025</a>).</p><p>A schematic evaluator can stay small:</p><pre data-lang="python">def evaluate(run):
+                        checks = {
+                            "goal": run.state["refund"]["status"] == "issued",
+                            "approval_first": run.before("approval", "refund"),
+                            "reserve_held": run.minimum_balance() &gt;= RESERVE,
+                            "only_allowed_writes": run.state_diff() &lt;= ALLOWED_CHANGES,
+                        }
+                        return checks</pre><p>I return the individual checks even when strict success requires all of them. That separates an agent that missed the goal from one that completed the goal through a disallowed route. τ-bench illustrates the distinction in the other direction: its authors note that a correct final database and required user-facing output can still miss a policy violation, such as issuing a return without confirmation (<a href="https://arxiv.org/abs/2406.12045">Yao et al., 2024</a>).</p><p>Trajectory predicates should remain sparse and semantic. Requiring an approval event before a write is different from requiring one exact chain of reads and writes. The first encodes a rule. The second often encodes the benchmark author’s preferred solution.</p>
+
+                    <h2>Design sessions with memory and consequences</h2>
+
+                    <p>A task that supplies every fact in the first message and ends after one write tests a narrow part of agent behavior. Longer sessions let earlier actions constrain later choices. They also let me check whether an edit persists after the agent turns its attention elsewhere.</p><p>Useful session variations include:</p><ul><li>Start in the middle of a workflow, with existing files, messages, and partially completed work.</li><li>Introduce a new instruction after an earlier edit, then verify both the new request and the surviving edit.</li><li>Return a tool error or incomplete information and check whether the agent recovers without inventing a result.</li><li>Include an impossible request and require abstention with no state changes.</li></ul><p>OSWorld provides a useful implementation pattern. Each task has an initial-state configuration, an executable environment, and a custom evaluator that retrieves files or application data after the run. Virtual-machine snapshots make reset possible even when the agent controls a full desktop (<a href="https://arxiv.org/abs/2404.07972">Xie et al., 2024</a>). I would also freeze the clock and seed any user simulator. A task that depends on today’s date or a changing website will otherwise produce moving labels.</p><p>Simulators help construct rare situations. ToolEmu uses a language model to emulate tools and to generate adversarial test conditions around underspecified instructions. The authors validate both the emulations and the identified risks with human review (<a href="https://arxiv.org/abs/2309.15817">Ruan et al., 2023</a>). For a regression suite, I would replay important scenarios against deterministic tool implementations. A generated emulator can forget a deleted file or return an impossible transition, and that error can become the agent’s score.</p><p>Intermediate labels help diagnose stalled runs. OSWorld-Pro adds more than 2,800 subgoals to over 300 computer-use tasks, grounded in more than 67,000 human annotations (<a href="https://arxiv.org/abs/2609.24890">Wang et al., 2026</a>). I would use subgoal scores for analysis and keep strict task success visible alongside them. Partial progress can otherwise make an unfinished run look close to complete when a late dependency blocks the goal.</p>
+
+                    <h2>Measure reliability across repeated runs</h2>
+
+                    <p>One run measures one sampled trajectory. Model sampling, a simulated user, network failures, and small interface changes can all alter the next run. Repeating tasks is part of the evaluation rather than a way to decorate the score with a confidence interval.</p><p>The two common <code>k</code>-run metrics answer different questions. <code>pass@k</code> asks whether at least one attempt succeeds, which fits candidate generation followed by selection. <code>pass^k</code> asks whether all <code>k</code> attempts succeed, which fits an agent that must handle the same request every time. Under independent attempts with success probability <code>p</code>, that probability is <code>p^k</code>. At <code>p = 0.7</code>, eight consecutive successes have probability <code>0.7^8 = 0.0576</code>.</p><p>τ-bench introduced <code>pass^k</code> for tool-agent-user interaction and estimated it across repeated trials of each task. In its original retail experiments, GPT-4o averaged about 61% single-run success but fell below 25% on <code>pass^8</code> (<a href="https://arxiv.org/abs/2406.12045">Yao et al., 2024</a>). That gap describes reliability more clearly than either the best run or the average run alone.</p><p>I report single-run strict success, an all-runs metric, and the distribution of per-task success rates. I also keep goal success separate from success with every constraint satisfied. A model can improve the first while making more unauthorized writes on the way to the goal.</p><p>Tool calls, elapsed time, tokens, and cost belong in the same run record, with medians and upper quantiles. Long traces can mean exploration, repeated retrieval, or a loop, so call count needs the event log for interpretation. Every compared system should receive the same step and time budgets. Changing the cap changes the task, especially when a run needs recovery steps after an error.</p>
+
+                    <h2>Keep model judges on narrow semantic checks</h2>
+
+                    <p>Anything that can be checked from a database or event log should stay in code. I reserve model judges for semantic questions that resist a fixed predicate: whether a user-facing explanation covers the required points, whether a summary preserves the source, or whether a requested piece of text has the specified properties.</p><p>The judge receives a narrow question and the relevant evidence. It should not receive a whole trajectory with an instruction to decide whether the run looks good. AgentHarm follows this division by using predefined conditions for most grading and semantic judges for isolated parts of an output (<a href="https://arxiv.org/abs/2410.09024">Andriushchenko et al., 2024</a>). Fixed rules can then combine those observations with the programmatic checks.</p><p>A judge needs its own evaluation. Work on chat grading documented position bias, verbosity bias, and possible preference for a judge’s own generations (<a href="https://arxiv.org/abs/2306.05685">Zheng et al., 2023</a>). Agreement on open-ended chat answers does not establish agreement on agent trajectories, where the judge must track tool results and ordering.</p><p>I build a small labeled set containing clear passes, clear violations, and borderline traces. Pairwise judgments run with the candidates in both orders. A sample of single-answer judgments gets human review, with disagreements used to revise the rubric. The model version, prompt, and scoring code stay pinned for a comparison.</p><p>Agent-produced text in the judge input is untrusted content. A run can contain instructions aimed at the judge just as a web page can contain instructions aimed at the agent. Structured evidence fields and narrow output schemas reduce ambiguity, though they do not remove the need to inspect odd judgments.</p>
+
+                    <h2>A minimal harness for your own tasks</h2>
+
+                    <p>A compact harness can store almost everything needed for this style of evaluation. I would begin with three records:</p><ul><li><strong>Task specification:</strong> initial snapshot, seed, instruction schedule, expected changes, required events, protected conditions, and run budget.</li><li><strong>Execution record:</strong> model and harness versions, tool arguments, tool results, timestamps, errors, state snapshots, and the final response.</li><li><strong>Evaluation record:</strong> each predicate result, the state diff, resource use, and any judge observations with their evidence.</li></ul><p>Before comparing agents, I replay a reference solution and require every goal check to pass. I also mutate that run into targeted violations: remove the approval, change an unrelated row, exceed the reserve for one step, or repeat a write. Each mutation should trip the intended predicate. A check that has never failed on a constructed bad run is unfinished.</p><p>Then I read a sample of traces by hand. I look for false rejections of valid alternative routes and for accepted runs that violate the task in a way the predicates missed. New checks go back into the same suite, so the evaluation improves without changing the meaning of the task instructions.</p><p>For a first internal benchmark, I would choose fewer tasks with strong reset logic and thorough assertions over a large collection scored by a general prompt. The main table can remain simple: strict success, goal-only success, constraint violations, and repeated-run reliability. The stored records provide the detail behind those numbers.</p><p>The final answer still has a place in this harness, especially when the user needs information. It is one artifact of the run. The state diff and event history show what the agent did to produce it.</p>
+
+                    <h2>Sources and further reading</h2>
+                    <h3>Executable agent benchmarks</h3>
+                    <ul>
+                        <li>Zhou et al. (2023). <a href="https://arxiv.org/abs/2307.13854" target="_blank" rel="noopener">WebArena: A Realistic Web Environment for Building Autonomous Agents</a>. ICLR 2024.</li>
+                        <li>Jimenez et al. (2023). <a href="https://arxiv.org/abs/2310.06770" target="_blank" rel="noopener">SWE-bench: Can Language Models Resolve Real-World GitHub Issues?</a>. ICLR 2024.</li>
+                        <li>Trivedi et al. (2024). <a href="https://arxiv.org/abs/2407.18901" target="_blank" rel="noopener">AppWorld: A Controllable World of Apps and People for Benchmarking Interactive Coding Agents</a>.</li>
+                        <li>Xie et al. (2024). <a href="https://arxiv.org/abs/2404.07972" target="_blank" rel="noopener">OSWorld: Benchmarking Multimodal Agents for Open-Ended Tasks in Real Computer Environments</a>.</li>
+                        <li>Yao et al. (2024). <a href="https://arxiv.org/abs/2406.12045" target="_blank" rel="noopener">τ-bench: A Benchmark for Tool-Agent-User Interaction in Real-World Domains</a>.</li>
+                    </ul>
+                    <h3>Trajectory and safety evaluation</h3>
+                    <ul>
+                        <li>Michelakis et al. (2025). <a href="https://arxiv.org/abs/2509.20998" target="_blank" rel="noopener">CORE: Full-Path Evaluation of LLM Agents Beyond Final State</a>.</li>
+                        <li>Wang et al. (2026). <a href="https://arxiv.org/abs/2609.24890" target="_blank" rel="noopener">OSWorld-Pro: Process-based Evaluation for Computer Use Agents</a>.</li>
+                        <li>Ruan et al. (2023). <a href="https://arxiv.org/abs/2309.15817" target="_blank" rel="noopener">Identifying the Risks of LM Agents with an LM-Emulated Sandbox</a>. ICLR 2024.</li>
+                    </ul>
+                    <h3>Judges and rubrics</h3>
+                    <ul>
+                        <li>Zheng et al. (2023). <a href="https://arxiv.org/abs/2306.05685" target="_blank" rel="noopener">Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena</a>. NeurIPS 2023.</li>
+                        <li>Andriushchenko et al. (2024). <a href="https://arxiv.org/abs/2410.09024" target="_blank" rel="noopener">AgentHarm: A Benchmark for Measuring Harmfulness of LLM Agents</a>. The grading rubrics are a useful example of reserving semantic judges for narrow checks.</li>
+                    </ul>
+
+                    <div class="post-cta">
+                        <p>
+                            <strong>Want to talk through what this week's research means for your own
+                            projects?</strong> I help teams turn state-of-the-art machine learning into
+                            working systems.
+                        </p>
+                        <a href="https://app.youform.com/forms/iegl3uw3" class="btn btn-primary" target="_blank" rel="noopener">Get in touch</a>
+                    </div>
+
+                    <a href="/blog/" class="back-link">All posts</a>
+                </div>
+            </article>
+        </main>
+
+        <footer id="footer">
+            <p>&copy; 2022&ndash;2026 Rudy van den Brink. All rights reserved.</p>
+            <nav class="footer-nav" aria-label="Footer">
+                <a href="/blog/">Blog</a>
+                <a href="/publications/">Publications</a>
+            </nav>
+        </footer>
+
+    </div>
+
+    <script src="/static/js/blog.js"></script>
+</body>
+</html>
